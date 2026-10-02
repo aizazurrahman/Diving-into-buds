@@ -4,8 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Diving into Buds — a delicious dive into your taste buds</title>
-<meta name="description" content="Answer 50 mouth-watering questions and discover your taste profile.">
+<meta name="description" content="Answer 50 mouth-watering questions and discover your taste profile. Starts in Hyderabad, crosses India, tours the world.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -15,34 +16,53 @@
   <div class="brand">🍽️ Diving into <span>Buds</span></div>
   <div class="userbox" id="userbox" hidden>
     <span id="userEmail"></span>
-    <button class="btn ghost small" id="logoutBtn">Log out</button>
+    <button class="btn ghost small" id="logoutBtn" type="button">Log out</button>
   </div>
 </header>
 
 <main>
-  <!-- ——— AUTH ——— -->
+  <!-- ——— AUTH / LANDING ——— -->
   <section id="view-auth" class="view">
     <div class="hero">
-      <div class="hero-img" data-emoji="🍛">
-        <img src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?q=80&w=1400&auto=format&fit=crop" alt="A fragrant biryani" onerror="this.remove()">
+      <div class="hero-img" role="img" aria-label="A fragrant biryani">
+        <img src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?q=80&w=1400&auto=format&fit=crop" alt="" onerror="this.remove()">
       </div>
       <h1>Take a dive into your <em>taste buds</em>.</h1>
-      <p class="lede">50 questions. Zero boring forms. Just you, your cravings, and a taste profile at the end of it.</p>
+      <p class="lede">50 questions. Zero boring forms. Just you, your cravings, and a taste profile at the end of it — we start in Hyderabad, cross the whole of India, and finish with a tour of the world.</p>
+    </div>
+
+    <div class="card info-card">
+      <h2 class="info-title">How it works</h2>
+      <div class="steps">
+        <div class="step"><div class="step-emoji">🔐</div><strong>1 · Make an account</strong><span>Just an email &amp; password — 20 seconds.</span></div>
+        <div class="step"><div class="step-emoji">🍛</div><strong>2 · Answer 50 questions</strong><span>One at a time, each with a photo worth drooling over.</span></div>
+        <div class="step"><div class="step-emoji">🎉</div><strong>3 · Get your taste profile</strong><span>Your top foodie traits, plus heat, sweet &amp; adventure meters.</span></div>
+      </div>
+      <div class="slider-explain">
+        <div class="se-head">🎚️ <strong>The confidence slider</strong></div>
+        <p>Every question has a slider under the options. Picked an answer easily? Slide to <strong>5 — no contest</strong>. Was it a photo-finish between two options? Leave it at <strong>1 — almost a tie</strong>. Your strong opinions count more in your final profile, so weigh each pick honestly. You can save &amp; exit anytime — your answers (and slider weights) wait for you here.</p>
+        <div class="se-scale" aria-hidden="true"><span>1 · almost a tie</span><span>3 · pretty sure</span><span>5 · no contest</span></div>
+      </div>
+      <div class="journey" aria-label="The journey">
+        <span class="jchip">🌶️ 15 · Hyderabad roots</span>
+        <span class="jchip">🇮🇳 10 · Pan-India</span>
+        <span class="jchip">🌍 25 · Around the world</span>
+      </div>
     </div>
 
     <div class="card auth-card">
-      <div class="tabs">
-        <button class="tab active" id="tabLogin" type="button">Log in</button>
-        <button class="tab" id="tabSignup" type="button">Sign up</button>
+      <div class="tabs" role="tablist">
+        <button class="tab active" id="tabLogin" type="button" role="tab">Log in</button>
+        <button class="tab" id="tabSignup" type="button" role="tab">Sign up</button>
       </div>
-      <form id="authForm" autocomplete="on">
+      <form id="authForm" autocomplete="on" novalidate>
         <label>Email
           <input type="email" id="authEmail" placeholder="you@example.com" required autocomplete="email">
         </label>
         <label>Password
           <input type="password" id="authPassword" placeholder="Minimum 6 characters" required autocomplete="current-password">
         </label>
-        <p class="error" id="authError" hidden></p>
+        <p class="error" id="authError" role="alert" hidden></p>
         <button class="btn primary big" id="authSubmit" type="submit">Log in</button>
       </form>
       <p class="fineprint">Demo accounts live in this browser only — no server, no spam, ever.</p>
@@ -56,8 +76,8 @@
       <h2 id="homeTitle">Ready to dive in?</h2>
       <p id="homeText" class="lede"></p>
       <div class="stack">
-        <button class="btn primary big" id="primaryAction">Start the 50 questions</button>
-        <button class="btn ghost" id="restartBtn" hidden>Start over</button>
+        <button class="btn primary big" id="primaryAction" type="button">Start the 50 questions</button>
+        <button class="btn ghost" id="restartBtn" type="button" hidden>Start over</button>
       </div>
     </div>
   </section>
@@ -66,20 +86,35 @@
   <section id="view-quiz" class="view" hidden>
     <div class="quiz-head">
       <span id="qCounter">Question 1 of 50</span>
-      <button class="btn ghost small" id="saveExitBtn">💾 Save &amp; exit</button>
+      <button class="btn ghost small" id="saveExitBtn" type="button">💾 Save &amp; exit</button>
     </div>
-    <div class="progress"><div class="bar" id="progressBar"></div></div>
+    <div class="progress" role="progressbar" aria-label="Questions answered" aria-valuemin="0" aria-valuemax="50" aria-valuenow="0" id="progressWrap"><div class="bar" id="progressBar"></div></div>
 
     <div class="card qcard" id="qCard">
-      <div class="qimg" id="qImgWrap">
-        <span class="qimg-emoji" id="qEmoji">🍛</span>
-        <img id="qImg" alt="" onerror="this.style.display='none'">
+      <div class="qinner" id="qInner">
+        <div class="qimg">
+          <span class="qimg-emoji" id="qEmoji" aria-hidden="true">🍛</span>
+          <img id="qImg" alt="" decoding="async" onerror="this.style.display='none'">
+        </div>
+        <div class="qmeta"><span class="chip" id="qSection"></span><span class="qsub" id="qSub"></span></div>
+        <h2 class="qtext" id="qText" tabindex="-1"></h2>
+        <div class="options" id="qOptions" role="group" aria-label="Answer options"></div>
+
+        <div class="slider-block">
+          <div class="slider-head">
+            <label for="weightSlider">How strong is this pick?</label>
+            <span class="slider-val" id="sliderVal">1 · Almost a tie</span>
+          </div>
+          <input type="range" id="weightSlider" min="1" max="5" step="1" value="1"
+                 aria-describedby="sliderHint">
+          <div class="slider-scale" aria-hidden="true"><span>1 · almost a tie</span><span>5 · no contest</span></div>
+          <p class="slider-hint" id="sliderHint">1 means the other options nearly won. 5 means this pick, no debate.</p>
+        </div>
       </div>
-      <h2 class="qtext" id="qText"></h2>
-      <div class="options" id="qOptions"></div>
       <div class="quiz-foot">
-        <button class="btn ghost small" id="backBtn">← Back</button>
-        <span class="saved-note" id="savedNote"></span>
+        <button class="btn ghost small" id="backBtn" type="button">← Back</button>
+        <span class="saved-note" id="savedNote" aria-live="polite"></span>
+        <button class="btn primary small" id="nextBtn" type="button" disabled>Next →</button>
       </div>
     </div>
   </section>
@@ -92,8 +127,9 @@
       <p class="lede" id="profileSummary"></p>
       <div class="traits" id="profileTraits"></div>
       <div class="meters" id="profileMeters"></div>
+      <p class="fineprint" id="profileNote"></p>
       <div class="stack">
-        <button class="btn primary big" id="retakeBtn">Retake the questions</button>
+        <button class="btn primary big" id="retakeBtn" type="button">Retake the questions</button>
       </div>
     </div>
   </section>

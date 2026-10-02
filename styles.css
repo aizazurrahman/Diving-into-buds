@@ -1,0 +1,120 @@
+:root {
+  --bg: #FFFBF4;
+  --ink: #211D15;
+  --muted: #7A7263;
+  --accent: #E4572E;      /* chilli-saffron */
+  --accent-dark: #C7431F;
+  --card: #FFFFFF;
+  --line: #F0E6D8;
+  --radius: 20px;
+  --shadow: 0 10px 30px rgba(80, 50, 10, .08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+}
+h1, h2 { font-family: 'Fraunces', serif; line-height: 1.15; }
+h1 { font-size: clamp(2rem, 6vw, 3.2rem); font-weight: 700; }
+h1 em { color: var(--accent); font-style: normal; }
+h2 { font-size: clamp(1.5rem, 4vw, 2rem); }
+
+.topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 22px; max-width: 880px; width: 100%; margin: 0 auto;
+}
+.brand { font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.25rem; }
+.brand span { color: var(--accent); }
+.userbox { display: flex; align-items: center; gap: 10px; font-size: .85rem; color: var(--muted); }
+
+main { flex: 1; width: 100%; max-width: 880px; margin: 0 auto; padding: 8px 18px 40px; }
+.view { animation: rise .35s ease both; }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+.hero { text-align: center; margin: 10px auto 26px; max-width: 640px; }
+.hero-img {
+  position: relative; height: 240px; border-radius: var(--radius); overflow: hidden;
+  background: linear-gradient(135deg, #F6C177, #E4572E);
+  display: flex; align-items: center; justify-content: center; font-size: 5rem;
+  box-shadow: var(--shadow); margin-bottom: 26px;
+}
+.hero-img::after { content: "🍛"; }
+.hero-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.lede { color: var(--muted); font-size: 1.05rem; margin-top: 10px; line-height: 1.55; }
+
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 26px; max-width: 640px; margin: 0 auto;
+}
+.card.center { text-align: center; }
+.big-emoji { font-size: 3rem; margin-bottom: 10px; }
+.stack { display: flex; flex-direction: column; gap: 10px; margin-top: 22px; }
+
+.auth-card { max-width: 440px; }
+.tabs { display: flex; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 4px; margin-bottom: 20px; }
+.tab { flex: 1; border: 0; background: transparent; padding: 10px; border-radius: 999px; font: inherit; font-weight: 600; cursor: pointer; color: var(--muted); }
+.tab.active { background: var(--ink); color: #fff; }
+label { display: block; font-size: .9rem; font-weight: 600; margin-bottom: 14px; }
+input {
+  display: block; width: 100%; margin-top: 6px; padding: 13px 14px; font: inherit;
+  border: 1.5px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink);
+}
+input:focus { outline: none; border-color: var(--accent); }
+.error { color: #B3261E; font-size: .9rem; margin: 4px 0 12px; }
+.fineprint { text-align: center; color: var(--muted); font-size: .8rem; margin-top: 16px; }
+
+.btn {
+  font: inherit; font-weight: 600; border-radius: 999px; border: 1.5px solid transparent;
+  padding: 11px 20px; cursor: pointer; transition: transform .08s ease, background .15s ease;
+}
+.btn:active { transform: scale(.98); }
+.btn.primary { background: var(--accent); color: #fff; }
+.btn.primary:hover { background: var(--accent-dark); }
+.btn.ghost { background: transparent; border-color: var(--line); color: var(--ink); }
+.btn.ghost:hover { border-color: var(--ink); }
+.btn.big { width: 100%; padding: 15px 20px; font-size: 1.02rem; }
+.btn.small { padding: 7px 14px; font-size: .85rem; }
+
+.quiz-head { display: flex; justify-content: space-between; align-items: center; max-width: 640px; margin: 4px auto 10px; font-weight: 600; color: var(--muted); font-size: .92rem; }
+.progress { height: 8px; background: var(--line); border-radius: 999px; max-width: 640px; margin: 0 auto 18px; overflow: hidden; }
+.progress .bar { height: 100%; background: var(--accent); border-radius: 999px; transition: width .35s ease; width: 0%; }
+
+.qcard { padding: 0 0 20px; overflow: hidden; }
+.qimg {
+  position: relative; height: 300px; background: linear-gradient(135deg, #F6C177, #E4572E);
+  display: flex; align-items: center; justify-content: center;
+}
+.qimg-emoji { font-size: 6rem; filter: drop-shadow(0 6px 16px rgba(0,0,0,.25)); }
+.qimg img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.qtext { padding: 22px 24px 6px; font-size: 1.45rem; }
+.options { display: grid; gap: 10px; padding: 14px 24px 6px; }
+.opt {
+  font: inherit; text-align: left; padding: 15px 18px; border-radius: 14px; cursor: pointer;
+  border: 1.5px solid var(--line); background: #fff; font-weight: 500; font-size: 1rem;
+  transition: border-color .12s ease, background .12s ease, transform .08s ease;
+}
+.opt:hover { border-color: var(--accent); background: #FFF5EC; }
+.opt:active { transform: scale(.99); }
+.opt.picked { border-color: var(--accent); background: #FFEEDD; font-weight: 600; }
+.quiz-foot { display: flex; justify-content: space-between; align-items: center; padding: 14px 24px 2px; }
+.saved-note { color: var(--muted); font-size: .82rem; }
+
+.traits { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 20px 0 6px; }
+.trait { background: #FFF1E4; color: var(--accent-dark); border: 1px solid #FFD9BE; padding: 8px 14px; border-radius: 999px; font-weight: 600; font-size: .92rem; }
+.meters { max-width: 420px; margin: 18px auto 4px; text-align: left; }
+.meter { margin-bottom: 14px; }
+.meter .mhead { display: flex; justify-content: space-between; font-size: .9rem; font-weight: 600; margin-bottom: 6px; }
+.meter .track { height: 10px; background: var(--line); border-radius: 999px; overflow: hidden; }
+.meter .fill { height: 100%; background: var(--accent); border-radius: 999px; }
+
+footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 18px; }
+@media (max-width: 560px) {
+  .qimg { height: 230px; }
+  .hero-img { height: 190px; }
+  .card { padding: 20px; }
+  .qtext, .options { padding-left: 18px; padding-right: 18px; }
+}

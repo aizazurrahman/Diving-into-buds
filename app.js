@@ -21,11 +21,13 @@ const store = {
   del(k) { localStorage.removeItem(k); }
 };
 const DEFAULT_TOTAL = 50;
-const runTotal = (s) => (s && s.builtFor && s.builtFor.count) || DEFAULT_TOTAL;
+const runTotal = () => DEFAULT_TOTAL;
 const WEIGHT_WORDS = { 1: "Almost a tie", 2: "Leaning this way", 3: "Pretty sure", 4: "Strong pick", 5: "No contest" };
 const DIET_LABELS = { everything: "Everything", vegetarian: "Vegetarian", vegan: "Vegan", halal: "Everything Halal" };
-const ROOT_LABELS = { hyderabad: "Hyderabad", asia: "Asia", americas: "Americas", europe: "Europe" };
-const ROOT_EMOJI = { hyderabad: "🏰", asia: "🥢", americas: "🌮", europe: "🥐" };
+const ROOT_LABELS = { hyderabad: "Hyderabad, India", southasia: "South Asia", eastasia: "East/Southeast Asia", middleeast: "Middle-Eastern", unitedstates: "United States", europe: "Europe", africa: "Africa", latinamerica: "Latin America & The Caribbean" };
+const LEGACY_ROOTS = { asia: "eastasia", americas: "unitedstates" };
+function normRootsValue(v) { return LEGACY_ROOTS[v] || v; }
+const ROOT_EMOJI = { hyderabad: "🏰", southasia: "🍛", eastasia: "🥢", middleeast: "🧆", unitedstates: "🍔", europe: "🥐", africa: "🌍", latinamerica: "🌮" };
 
 /* ————— State ————— */
 let sessionUser = null; // { id, email }
@@ -75,6 +77,9 @@ function gateOpen(q, s) {
 }
 function playable(q, s) {
   if (!s.builtFor || !q.diets.includes(s.builtFor.diet)) return false;
+  // An orphaned follow-up (its parent belongs to another roots' chain and is
+  // not part of this run) can never be served.
+  if (q.gate && s.order && !s.order.includes(q.gate.q) && !(s.reserve || []).includes(q.gate.q)) return false;
   if (!gateOpen(q, s)) return false;
   return visibleOpts(q, s).length >= 2;
 }
@@ -87,22 +92,21 @@ function buildOrder(s) {
   const openersAll = byDeck("opener");
   const openers = [...openersAll.filter(q => q.multi), ...openersAll.filter(q => !q.multi)].slice(0, 5);
   const roots = byDeck(F.roots), glob = byDeck("global"), bridge = byDeck("bridge");
-  const chains = byDeck({ hyderabad: "hydro", asia: "asiachain", americas: "amechain", europe: "eurchain" }[F.roots] || "hydro");
+  const chains = byDeck({ hyderabad: "hydro", eastasia: "asiachain", unitedstates: "usachain", europe: "eurchain", southasia: "souchain", middleeast: "midchain", africa: "africhain", latinamerica: "latchain" }[F.roots] || "hydro");
   const palate = byDeck("palate");
-  const total = F.count || DEFAULT_TOTAL;
-  // The full set composes in priority order; a shorter run takes the most
-  // important questions first: openers, the eating-style chain, palate
-  // essentials, then a roots / global / bridge mix.
-  const composed = total < DEFAULT_TOTAL
-    ? [...openers, ...chains, ...palate.slice(0, 5), ...roots.slice(0, 7), ...glob.slice(0, 2), ...bridge.slice(0, 2)]
-    : [
-        ...openers,
-        ...chains,
-        ...palate.slice(0, 5),
-        ...roots.slice(0, 10), ...glob.slice(0, 3),
-        ...palate.slice(5, 10),
-        ...roots.slice(10, 19), ...bridge.slice(0, 8), ...glob.slice(3, 6)
-      ];
+  const total = DEFAULT_TOTAL;
+  const salad = ["pal-25", "pal-26"].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
+  // The set composes in priority order: openers, the eating-style chain,
+  // the salad check, palate essentials, then a roots / global / bridge mix.
+  const composed = [
+    ...openers,
+    ...chains,
+    ...salad,
+    ...palate.slice(0, 5),
+    ...roots.slice(0, 10), ...glob.slice(0, 3),
+    ...palate.slice(5, 10),
+    ...roots.slice(10, 18), ...bridge.slice(0, 8), ...glob.slice(3, 5)
+  ];
   const seen = new Set();
   const order = composed.filter(q => !seen.has(q.id) && seen.add(q.id));
   for (const q of valid) {
@@ -195,6 +199,7 @@ async function hydrate() {
   const cloudAnswers = {};
   Object.keys(rawAnswers).forEach(k => { if (QBANK_BY_ID[k]) cloudAnswers[k] = rawAnswers[k]; });
   const fund = row.fundamentals || rawAnswers.__fund || null;
+  if (fund) fund.roots = normRootsValue(fund.roots);
   const result = row.result || rawAnswers.__result || null;
   if (fund && (Object.keys(cloudAnswers).length || row.finished || local.builtFor)) {
     st = blankState();
@@ -208,6 +213,9 @@ async function hydrate() {
     st = local; // cloud holds nothing usable yet — keep this device's state
     if (st.builtFor) scheduleSync();
   }
+  if (st.fundamentals) st.fundamentals.roots = normRootsValue(st.fundamentals.roots);
+  if (st.builtFor) st.builtFor.roots = normRootsValue(st.builtFor.roots);
+  if (st.result) st.result.roots = normRootsValue(st.result.roots);
 }
 
 /* ————— Views ————— */
@@ -281,13 +289,12 @@ function routeAfterLogin() {
 }
 
 /* ————— Fundamentals ————— */
-let pickDiet = null, pickRoots = null, pickCity = "", pickCount = null;
-function savePending() { store.set("dib_pending_fund", { diet: pickDiet, roots: pickRoots, city: pickCity, count: pickCount }); }
+let pickDiet = null, pickRoots = null, pickCity = "";
+function savePending() { store.set("dib_pending_fund", { diet: pickDiet, roots: pickRoots, city: pickCity }); }
 function initFundPicks() {
   const saved = (st && st.fundamentals) || store.get("dib_pending_fund", null);
   pickDiet = saved ? saved.diet : null;
-  pickRoots = saved ? saved.roots : null;
-  pickCount = saved && saved.count ? saved.count : 50;
+  pickRoots = saved ? normRootsValue(saved.roots) : null;
   pickCity = saved && saved.city ? canonicalCity(saved.city) : "";
   $("cityInput").value = pickCity;
   $("cityInput").classList.remove("invalid");
@@ -302,11 +309,7 @@ function paintFundPicks() {
     const on = b.dataset.roots === pickRoots;
     b.classList.toggle("picked", on); b.setAttribute("aria-checked", on ? "true" : "false");
   });
-  document.querySelectorAll("#countGrid .fund-opt").forEach(b => {
-    const on = Number(b.dataset.count) === pickCount;
-    b.classList.toggle("picked", on); b.setAttribute("aria-checked", on ? "true" : "false");
-  });
-  $("buildBtn").disabled = !(pickDiet && pickRoots && pickCity && pickCount);
+  $("buildBtn").disabled = !(pickDiet && pickRoots && pickCity);
   $("buildBtn").textContent = st && st.builtFor ? "Rebuild my questions →" : "Build my questions →";
 }
 document.querySelectorAll("#dietGrid .fund-opt").forEach(b => b.onclick = () => {
@@ -314,9 +317,6 @@ document.querySelectorAll("#dietGrid .fund-opt").forEach(b => b.onclick = () => 
 });
 document.querySelectorAll("#rootsGrid .fund-opt").forEach(b => b.onclick = () => {
   pickRoots = b.dataset.roots; savePending(); paintFundPicks();
-});
-document.querySelectorAll("#countGrid .fund-opt").forEach(b => b.onclick = () => {
-  pickCount = Number(b.dataset.count); savePending(); paintFundPicks();
 });
 const FUND_INFO = {
   diet: {
@@ -326,10 +326,14 @@ const FUND_INFO = {
     halal: "Everything Halal — the full spread, halal-style: no pork and no alcohol anywhere in your questions. You still pick your meats first, just like Everything."
   },
   roots: {
-    hyderabad: "Hyderabad — Deccan home turf: dum biryani, haleem, Irani café culture, and the wider Indian table. Written for people who grew up on it — or wish they had.",
-    asia: "Asia — East, South-East and South Asia: ramen and sushi to laksa, momos and rendang. If your comfort zone runs on rice, noodles and broth, start here.",
-    americas: "Americas — North, Central and South: low-and-slow BBQ, tacos, ceviche, feijoada and jerk. Smoke, lime and corn run deep in this deck.",
-    europe: "Europe — paella to pierogi, schnitzel to souvlaki: the old continent's classics, from Mediterranean olive-oil country to Nordic preserves."
+    hyderabad: "Hyderabad, India — Deccan home turf: dum biryani, haleem, Irani café culture. Written for people who grew up on it — or wish they had.",
+    southasia: "South Asia — the wider subcontinent beyond Hyderabad: Punjabi dhabas, Bengali fish courses, Sri Lankan hoppers, Karachi karahis, Nepali dal bhat.",
+    eastasia: "East/Southeast Asia — ramen and sushi to laksa, pho, rendang and dumplings. If your comfort zone runs on rice, noodles and broth, start here.",
+    middleeast: "Middle-Eastern — mezze spreads, kebabs, saffron rice and slow stews from the Levant, the Gulf, Persia, Turkey and Egypt.",
+    unitedstates: "United States — low-and-slow BBQ, diners, burgers, gumbo and plate lunches: smoke, comfort and big plates.",
+    europe: "Europe — paella to pierogi, schnitzel to souvlaki: the old continent's classics, from Mediterranean olive-oil country to Nordic preserves.",
+    africa: "Africa — jollof and suya to injera, tagines and the braai: one continent, a thousand tables, endless fire.",
+    latinamerica: "Latin America & The Caribbean — tacos, ceviche, arepas, feijoada and jerk: corn, lime and smoke run deep here."
   }
 };
 document.querySelectorAll(".fi").forEach(el => {
@@ -726,10 +730,10 @@ $("cityInput").addEventListener("blur", () => {
 });
 $("buildBtn").onclick = () => {
   const city = pickCity;
-  if (!pickDiet || !pickRoots || !city || !pickCount) return;
-  const F = { diet: pickDiet, roots: pickRoots, city, count: pickCount };
+  if (!pickDiet || !pickRoots || !city) return;
+  const F = { diet: pickDiet, roots: pickRoots, city };
   const prev = st.builtFor;
-  if (prev && prev.diet === F.diet && prev.roots === F.roots && (prev.count || DEFAULT_TOTAL) === F.count) {
+  if (prev && prev.diet === F.diet && prev.roots === F.roots) {
     // City added/changed only — questions don't depend on it, keep progress.
     st.fundamentals = F; st.builtFor = F;
     if (st.result) st.result = computeResult(st);
@@ -779,7 +783,7 @@ function renderHome() {
     $("primaryAction").textContent = `Continue — question ${n + 1}`;
   } else {
     $("homeTitle").textContent = "Ready to dive in?";
-    $("homeText").textContent = `Your questions are built around ${ROOT_LABELS[st.builtFor.roots]} roots and a ${DIET_LABELS[st.builtFor.diet]} diet. About ${st.builtFor.count === 25 ? 3 : 5} minutes — save & exit anytime.`;
+    $("homeText").textContent = `Your questions are built around ${ROOT_LABELS[st.builtFor.roots]} roots and a ${DIET_LABELS[st.builtFor.diet]} diet. About 10 minutes — save & exit anytime.`;
     $("primaryAction").textContent = "Start the questions";
   }
 }
@@ -1014,24 +1018,32 @@ const TAG_LABELS = {
 };
 const RECS = [
   { dish: "Vegetable paella", from: "Spain · Europe", region: "europe", diet: "vegan", emoji: "🥘", match: ["rice", "biryani"], why: "Saffron rice cooked slow in one pan — biryani's Mediterranean cousin, socarrat crust and all." },
-  { dish: "Tahdig — crispy saffron rice", from: "Persia", region: "asia", diet: "vegan", emoji: "🍚", match: ["rice", "biryani", "classic"], why: "Fragrant rice with a golden, crunchy bottom — the part everyone fights over, as the main event." },
-  { dish: "Jambalaya", from: "Louisiana · Americas", region: "americas", diet: "meat:chicken", emoji: "🍤", match: ["rice", "spice", "smoky"], why: "One-pot spiced rice with smoke and heat — a biryani relative that grew up in New Orleans." },
-  { dish: "Veggie burrito bowl", from: "Mexico · Americas", region: "americas", diet: "vegan", emoji: "🌯", match: ["rice", "fresh", "healthy"], why: "Rice, beans, salsa, guac — the build-your-own thali, Mexican edition." },
-  { dish: "Mapo tofu", from: "Sichuan · Asia", region: "asia", diet: "vegan", emoji: "🌶️", match: ["spice", "adventure"], why: "Silky tofu in a chilli-bean lava with numbing Sichuan pepper. Your heat tolerance, upgraded." },
-  { dish: "Thai green curry with tofu", from: "Thailand · Asia", region: "asia", diet: "vegan", emoji: "🍛", match: ["creamy", "spice"], why: "Coconut, basil and green chilli — salan energy in a whole new accent." },
-  { dish: "Shakshuka", from: "The Mediterranean", region: "europe", diet: "veg", emoji: "🍳", match: ["tangy", "home"], why: "Eggs poached in spiced tomato sauce — breakfast, lunch and dinner argue over it." },
+  { dish: "Tahdig — crispy saffron rice", from: "Persia · Middle East", region: "middleeast", diet: "vegan", emoji: "🍚", match: ["rice", "biryani", "classic"], why: "Fragrant rice with a golden, crunchy bottom — the part everyone fights over, as the main event." },
+  { dish: "Jambalaya", from: "Louisiana · United States", region: "unitedstates", diet: "meat:chicken", emoji: "🍤", match: ["rice", "spice", "smoky"], why: "One-pot spiced rice with smoke and heat — a biryani relative that grew up in New Orleans." },
+  { dish: "Veggie burrito bowl", from: "Mexico · Latin America", region: "latinamerica", diet: "vegan", emoji: "🌯", match: ["rice", "fresh", "healthy"], why: "Rice, beans, salsa, guac — the build-your-own thali, Mexican edition." },
+  { dish: "Mapo tofu", from: "Sichuan · East Asia", region: "eastasia", diet: "vegan", emoji: "🌶️", match: ["spice", "adventure"], why: "Silky tofu in a chilli-bean lava with numbing Sichuan pepper. Your heat tolerance, upgraded." },
+  { dish: "Thai green curry with tofu", from: "Thailand · Southeast Asia", region: "eastasia", diet: "vegan", emoji: "🍛", match: ["creamy", "spice"], why: "Coconut, basil and green chilli — salan energy in a whole new accent." },
+  { dish: "Shakshuka", from: "The Mediterranean", region: "middleeast", diet: "veg", emoji: "🍳", match: ["tangy", "home"], why: "Eggs poached in spiced tomato sauce — breakfast, lunch and dinner argue over it." },
   { dish: "Ratatouille", from: "France · Europe", region: "europe", diet: "vegan", emoji: "🍆", match: ["home", "healthy", "fresh"], why: "Slow-stewed vegetables with herbs — proof that simple veg, cooked patiently, wins." },
-  { dish: "Elote — street corn", from: "Mexico · Americas", region: "americas", diet: "veg", emoji: "🌽", match: ["street", "tangy"], why: "Charred corn, lime, chilli, cheese — chaat's long-lost Mexican sibling." },
+  { dish: "Elote — street corn", from: "Mexico · Latin America", region: "latinamerica", diet: "veg", emoji: "🌽", match: ["street", "tangy"], why: "Charred corn, lime, chilli, cheese — chaat's long-lost Mexican sibling." },
   { dish: "Mushroom pierogi", from: "Poland · Europe", region: "europe", diet: "vegan", emoji: "🥟", match: ["home", "classic"], why: "Dumplings with sauerkraut and mushroom — momos that emigrated and got cosy." },
-  { dish: "Mushroom ceviche", from: "Peru · Americas", region: "americas", diet: "vegan", emoji: "🍋", match: ["fresh", "tangy", "adventure"], why: "Lime-cured, onion-sharp, chilli-bright — a flavour wake-up call, no cooking involved." },
-  { dish: "Bibimbap", from: "Korea · Asia", region: "asia", diet: "veg", emoji: "🍲", match: ["rice", "fresh"], why: "A rainbow of vegetables over rice with gochujang — mix it like you mean it." },
+  { dish: "Mushroom ceviche", from: "Peru · Latin America", region: "latinamerica", diet: "vegan", emoji: "🍋", match: ["fresh", "tangy", "adventure"], why: "Lime-cured, onion-sharp, chilli-bright — a flavour wake-up call, no cooking involved." },
+  { dish: "Bibimbap", from: "Korea · East Asia", region: "eastasia", diet: "veg", emoji: "🍲", match: ["rice", "fresh"], why: "A rainbow of vegetables over rice with gochujang — mix it like you mean it." },
   { dish: "Mushroom risotto", from: "Italy · Europe", region: "europe", diet: "veg", emoji: "🍄", match: ["creamy", "classic"], why: "Rice stirred to silk — khichdi's elegant Italian cousin." },
-  { dish: "Tempeh satay skewers", from: "Indonesia · Asia", region: "asia", diet: "vegan", emoji: "🍢", match: ["smoky", "street"], why: "Charred skewers with peanut sauce — kebab night, Southeast Asian style." },
-  { dish: "Açaí bowl", from: "Brazil · Americas", region: "americas", diet: "vegan", emoji: "🫐", match: ["sweet", "fresh", "healthy"], why: "Icy purple berries, granola crunch — dessert that behaves like breakfast." },
-  { dish: "Miso soup & onigiri", from: "Japan · Asia", region: "asia", diet: "vegan", emoji: "🍙", match: ["mild", "home"], why: "Quiet, savoury comfort — the gentle end of the flavour spectrum, done perfectly." },
-  { dish: "Yakitori skewers", from: "Japan · Asia", region: "asia", diet: "meat:chicken", emoji: "🍗", match: ["smoky", "street", "meat"], why: "Charcoal-kissed chicken skewers — your kebab instincts, refined to an art." },
-  { dish: "Texas brisket", from: "Texas · Americas", region: "americas", diet: "meat:beef", emoji: "🥩", match: ["smoky", "meat"], why: "14 hours of smoke, salt and patience. Slow food at its most serious." },
+  { dish: "Tempeh satay skewers", from: "Indonesia · Southeast Asia", region: "eastasia", diet: "vegan", emoji: "🍢", match: ["smoky", "street"], why: "Charred skewers with peanut sauce — kebab night, Southeast Asian style." },
+  { dish: "Açaí bowl", from: "Brazil · Latin America", region: "latinamerica", diet: "vegan", emoji: "🫐", match: ["sweet", "fresh", "healthy"], why: "Icy purple berries, granola crunch — dessert that behaves like breakfast." },
+  { dish: "Miso soup & onigiri", from: "Japan · East Asia", region: "eastasia", diet: "vegan", emoji: "🍙", match: ["mild", "home"], why: "Quiet, savoury comfort — the gentle end of the flavour spectrum, done perfectly." },
+  { dish: "Yakitori skewers", from: "Japan · East Asia", region: "eastasia", diet: "meat:chicken", emoji: "🍗", match: ["smoky", "street", "meat"], why: "Charcoal-kissed chicken skewers — your kebab instincts, refined to an art." },
+  { dish: "Texas brisket", from: "Texas · United States", region: "unitedstates", diet: "meat:beef", emoji: "🥩", match: ["smoky", "meat"], why: "14 hours of smoke, salt and patience. Slow food at its most serious." },
   { dish: "Grilled branzino", from: "The Mediterranean · Europe", region: "europe", diet: "meat:seafood", emoji: "🐟", match: ["fresh", "mild"], why: "Whole fish, olive oil, lemon, herbs — coastal simplicity that needs nothing else." },
+  { dish: "Pav bhaji", from: "Mumbai · South Asia", region: "southasia", diet: "veg", emoji: "🍛", match: ["comfort", "street", "spice"], why: "Buttered, mashed, masala-rich vegetables with soft pav rolls — Mumbai's street comfort at full volume." },
+  { dish: "Masala dosa", from: "South India · South Asia", region: "southasia", diet: "vegan", emoji: "🥞", match: ["crisp", "fermented", "tangy"], why: "A shattering-crisp fermented crepe around spiced potato — tang, crunch and comfort in one plate." },
+  { dish: "Muhammara & warm pita", from: "Levant · Middle East", region: "middleeast", diet: "vegan", emoji: "🫓", match: ["tangy", "smoky", "spice"], why: "Roasted peppers and walnuts ground into a fiery-sweet dip — the boldest bowl on the mezze table." },
+  { dish: "Chicken shawarma plate", from: "Levant · Middle East", region: "middleeast", diet: "meat:chicken", emoji: "🌯", match: ["smoky", "spice", "street"], why: "Spit-roasted and shaved thin, with garlic toum and pickles — the great wrap, plated." },
+  { dish: "Party jollof rice", from: "West Africa · Africa", region: "africa", diet: "meat:chicken", emoji: "🍚", match: ["rice", "smoky", "spice"], why: "Tomato-rich rice with the famous smoky bottom — the centrepiece of every West African party." },
+  { dish: "Ethiopian beyaynetu", from: "Ethiopia · Africa", region: "africa", diet: "vegan", emoji: "🫓", match: ["fermented", "spice", "fresh"], why: "A rainbow of lentil, chickpea and vegetable wots over tangy injera — a whole feast on one bread." },
+  { dish: "Arepas con queso", from: "Venezuela · Latin America", region: "latinamerica", diet: "veg", emoji: "🫓", match: ["comfort", "street", "crisp"], why: "Griddled corn cakes with a molten cheese middle — crisp outside, soft within." },
+  { dish: "Nashville hot chicken", from: "Tennessee · United States", region: "unitedstates", diet: "meat:chicken", emoji: "🍗", match: ["spice", "comfort", "crisp"], why: "Fried chicken dredged in cayenne oil, cooled with pickles and white bread — a controlled burn." },
   { dish: "Seekh kebab, Deccan style", from: "Hyderabad", region: "hyderabad", diet: "meat:lamb", emoji: "🔥", match: ["smoky", "spice", "deccan", "meat"], why: "Hand-minced, coal-smoked, unapologetically spiced — home turf, perfected." }
 ];
 function meterLabel(kind, pct) {

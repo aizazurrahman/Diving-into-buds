@@ -218,7 +218,7 @@ const DECK_OPENER = [
 
 /* ——— deck: hyderabad.js ——— */
 const DECK_HYDERABAD = [
-{ id:'hyd-01', deck:'hyderabad', q:'Biryani time! Which plate is calling your name?', emoji:'🍛', img:'photo-1631515243349-e0cb75fb8d3a', multi:false,
+{ id:'hyd-01', info:'Dum biryani layers raw marinated meat under rice, then seals the pot — the steam cooks everything together. The Hyderabadi style is proudly masala-forward.', deck:'hyderabad', q:'Biryani time! Which plate is calling your name?', emoji:'🍛', img:'photo-1631515243349-e0cb75fb8d3a', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Hyderabadi Chicken Dum Biryani', tags:['biryani','deccan','rice','meat'], diet:'meat:chicken', spice:3},
@@ -226,7 +226,7 @@ const DECK_HYDERABAD = [
     {t:'Veg Dum Biryani', tags:['biryani','deccan','rice','veg'], alt:true, diet:'vegan', spice:2},
     {t:'Bagara Khana with Dalcha (tempered rice with lentil & gourd stew)', tags:['rice','deccan','home','veg'], diet:'vegan', spice:1}
   ] },
-{ id:'hyd-02', deck:'hyderabad', q:'Haleem season is on! Your bowl of choice?', emoji:'🍲', img:'photo-1547592180-85f173990554', multi:false,
+{ id:'hyd-02', info:'Haleem is wheat, lentils and meat slow-cooked for hours and pounded into a rich paste — Hyderabad\'s Ramzan icon, finished with fried onions, mint and a squeeze of lime.', deck:'hyderabad', q:'Haleem season is on! Your bowl of choice?', emoji:'🍲', img:'photo-1547592180-85f173990554', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Mutton Haleem (slow-pounded wheat, lentils & meat)', tags:['deccan','meat','classic'], diet:'meat:lamb', spice:2},
@@ -234,7 +234,7 @@ const DECK_HYDERABAD = [
     {t:'Veg Haleem (lentils, veggies & soya, same masala soul)', tags:['deccan','veg','adventure'], alt:true, diet:'vegan', spice:2},
     {t:'Jackfruit Haleem (kathal cooked haleem-style)', tags:['deccan','veg','adventure'], alt:true, diet:'vegan', spice:2}
   ] },
-{ id:'hyd-03', deck:'hyderabad', q:'Classic Deccani breakfast — khichdi, khatta, and what else?', emoji:'🌅', img:'photo-1589302168068-964664d93dc0', multi:false,
+{ id:'hyd-03', info:'Khichdi-khatta-kheema is the classic Deccani breakfast: soft rice-and-lentil khichdi, a tangy tamarind khatta, and spiced minced meat alongside.', deck:'hyderabad', q:'Classic Deccani breakfast — khichdi, khatta, and what else?', emoji:'🌅', img:'photo-1589302168068-964664d93dc0', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Khichdi-Khatta-Kheema (rice-lentil porridge, tangy soup & minced meat)', tags:['home','rice','meat','deccan'], diet:'meat:lamb', spice:2},
@@ -242,7 +242,7 @@ const DECK_HYDERABAD = [
     {t:'Pesarattu (crispy moong dal crepe) with ginger chutney', tags:['home','veg','healthy'], diet:'vegan', spice:1},
     {t:'Idli-Sambar, full ghar style', tags:['home','veg','mild'], diet:'vegan', spice:1}
   ] },
-{ id:'hyd-04', deck:'hyderabad', q:'Salan showdown! Which curry steals the biryani spotlight?', emoji:'🌶️', img:'photo-1585937421612-70a008356fbe', multi:false,
+{ id:'hyd-04', info:'Salan is biryani\'s partner curry — mirchi ka salan (chilli & peanut) and baghare baingan (sesame aubergine) are the two classics.', deck:'hyderabad', q:'Salan showdown! Which curry steals the biryani spotlight?', emoji:'🌶️', img:'photo-1585937421612-70a008356fbe', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Mirchi ka Salan (chillies in peanut-sesame curry)', tags:['deccan','spice','creamy'], diet:'vegan', spice:3},
@@ -266,7 +266,7 @@ const DECK_HYDERABAD = [
     {t:'Khajur and Fruit Chaat (dates & spiced fruit)', tags:['fresh','sweet'], diet:'vegan', sweet:2},
     {t:'Mixed Veg Pakode (crisp veg fritters)', tags:['street','veg','spice'], diet:'vegan', spice:2}
   ] },
-{ id:'hyd-07', deck:'hyderabad', q:'Kebab night near Charminar — which skewer wins?', emoji:'🍢', img:'photo-1599487488170-d11ec9c172f0', multi:false,
+{ id:'hyd-07', info:'Seekh kebabs are hand-minced meat pressed onto flat skewers and grilled over coals — a Mughlai technique the Deccan made its own.', deck:'hyderabad', q:'Kebab night near Charminar — which skewer wins?', emoji:'🍢', img:'photo-1599487488170-d11ec9c172f0', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Pathar ka Gosht (meat grilled on a hot stone slab)', tags:['deccan','meat','smoky'], diet:'meat:lamb', spice:3, adv:2},
@@ -298,7 +298,7 @@ const DECK_HYDERABAD = [
     {t:'Faluda (rose milk, vermicelli & basil seeds)', tags:['sweet','creamy','cafe'], diet:'veg', sweet:3},
     {t:'Coconut-Jaggery Ladoo (no milk, full nostalgia)', tags:['sweet','home'], diet:'vegan', sweet:2}
   ] },
-{ id:'hyd-11', deck:'hyderabad', q:'Dum debate: how should the biryani be layered?', emoji:'🔥', img:'photo-1563379091339-03b21ab4a4f8', multi:false,
+{ id:'hyd-11', info:'The dum debate is real in Hyderabad: purists argue whether the meat or the rice should touch the pot first. There is no safe answer at a family table.', deck:'hyderabad', q:'Dum debate: how should the biryani be layered?', emoji:'🔥', img:'photo-1563379091339-03b21ab4a4f8', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Kacchi style — raw marinated chicken layered with rice, sealed & slow-cooked', tags:['biryani','deccan','meat','adventure'], diet:'meat:chicken', spice:3},
@@ -314,7 +314,7 @@ const DECK_HYDERABAD = [
     {t:'Crispy Corn Salt & Pepper', tags:['street','spice','veg'], diet:'vegan', spice:2},
     {t:'Aloo Lukmi (flaky potato-filled pastry)', tags:['street','veg','classic'], diet:'vegan', spice:1}
   ] },
-{ id:'hyd-13', deck:'hyderabad', q:'Irani cafe vibes at Nimrah — what lands on your marble table?', emoji:'☕', img:'photo-1552566626-52f8b828add9', multi:false,
+{ id:'hyd-13', info:'Irani cafés are Hyderabad\'s vintage tea houses — marble-topped tables, bun maska, and chai strong enough to need the saucer.', deck:'hyderabad', q:'Irani cafe vibes at Nimrah — what lands on your marble table?', emoji:'☕', img:'photo-1552566626-52f8b828add9', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Bun Maska with Irani Chai (buttered bun & milky tea)', tags:['cafe','chai','classic'], diet:'veg', sweet:1},
@@ -462,7 +462,7 @@ const DECK_HYDERABAD = [
 
 /* ——— deck: asia.js ——— */
 const DECK_ASIA = [
-  { id:'asi-01', deck:'asia', q:'Ramen night in Tokyo — which bowl are you slurping first?', emoji:'🍜', img:'photo-1557872943-16a5ac26437e', multi:false,
+  { id:'asi-01', info:'Ramen broths are a world of their own: tonkotsu is rich and milky from long-boiled bones, shoyu is clear and soy-dark, miso is fermented and hearty.', deck:'asia', q:'Ramen night in Tokyo — which bowl are you slurping first?', emoji:'🍜', img:'photo-1557872943-16a5ac26437e', multi:false,
     diets:['everything','vegetarian','vegan','halal'],
     options:[
       {t:'Tonkotsu ramen — rich, milky pork broth with melt-in-the-mouth chashu', tags:['noodle','meat','creamy','asia'], diet:'meat:pork', spice:0},
@@ -470,7 +470,7 @@ const DECK_ASIA = [
       {t:'Shoyu ramen with tofu, mushrooms and spring onion', tags:['noodle','veg','healthy','asia'], diet:'vegan', spice:0},
       {t:'Tan-tan ramen — sesame and chilli heat with plant-based mince', tags:['noodle','veg','spice','asia'], diet:'vegan', spice:3}
     ] },
-  { id:'asi-02', deck:'asia', q:'At a Tokyo sushi counter, what is your first order?', emoji:'🍣', img:'photo-1579871494447-9811cf80d66c', multi:false,
+  { id:'asi-02', info:'At a traditional sushi counter the chef reads your pace. Fatty toro first is a power move; sweet tamago is how judges quietly test a shop.', deck:'asia', q:'At a Tokyo sushi counter, what is your first order?', emoji:'🍣', img:'photo-1579871494447-9811cf80d66c', multi:false,
     diets:['everything','vegetarian','vegan','halal'],
     options:[
       {t:'Fatty salmon nigiri, brushed with soy', tags:['rice','meat','fresh','asia'], diet:'meat:seafood'},
@@ -486,7 +486,7 @@ const DECK_ASIA = [
       {t:'Miso soup with silken tofu and wakame seaweed', tags:['veg','healthy','home','asia'], diet:'vegan', spice:0},
       {t:'A small chilled glass of sake', tags:['asia','adventure'], diet:'alcohol', adv:1}
     ] },
-  { id:'asi-04', deck:'asia', q:'Bibimbap time — a sizzling Korean rice bowl you mix at the table. Yours is topped with…', emoji:'🍚', img:'photo-1553163147-622ab57be1c7', multi:false,
+  { id:'asi-04', info:'Bibimbap means mixed rice — you stir the sizzling stone bowl so the crispy bottom layer (nurungji) mixes through everything.', deck:'asia', q:'Bibimbap time — a sizzling Korean rice bowl you mix at the table. Yours is topped with…', emoji:'🍚', img:'photo-1553163147-622ab57be1c7', multi:false,
     diets:['everything','vegetarian','vegan','halal'],
     options:[
       {t:'Bulgogi beef — sweet soy-marinated and charred', tags:['rice','meat','sweet','asia'], diet:'meat:beef', sweet:1},
@@ -502,7 +502,7 @@ const DECK_ASIA = [
       {t:'Vegetable kimbap — seaweed rice rolls, picnic style', tags:['rice','veg','street','asia'], diet:'vegan'},
       {t:'Hotteok — warm pancakes with cinnamon, sugar and nuts', tags:['sweet','street','asia'], diet:'vegan', sweet:2}
     ] },
-  { id:'asi-06', deck:'asia', q:'Korean BBQ night — the grill is hot. What is sizzling first?', emoji:'🔥', img:'photo-1558030006-450675393462', multi:false,
+  { id:'asi-06', info:'At Korean BBQ you grill at the table and wrap each bite in lettuce with rice, garlic and ssamjang — the wrap is the point, not just the meat.', deck:'asia', q:'Korean BBQ night — the grill is hot. What is sizzling first?', emoji:'🔥', img:'photo-1558030006-450675393462', multi:false,
     diets:['everything','vegetarian','vegan','halal'],
     options:[
       {t:'Samgyeopsal — thick pork belly with ssamjang dip', tags:['meat','smoky','asia'], diet:'meat:pork'},
@@ -542,7 +542,7 @@ const DECK_ASIA = [
       {t:'Tub tim grob — crunchy red rubies in iced coconut milk', tags:['sweet','asia','adventure'], diet:'vegan', sweet:2, adv:1},
       {t:'Sangkaya — smooth egg custard over sticky rice', tags:['sweet','asia'], diet:'veg', sweet:2}
     ] },
-  { id:'asi-11', deck:'asia', q:'Pho shop moment in Hanoi — which bowl do you order?', emoji:'🍜', img:'photo-1582878826629-1930a9b76f5c', multi:false,
+  { id:'asi-11', info:'Pho\'s soul is its broth: clear, star-anise scented, simmered for hours. Herbs go in fresh at the table, never cooked down.', deck:'asia', q:'Pho shop moment in Hanoi — which bowl do you order?', emoji:'🍜', img:'photo-1582878826629-1930a9b76f5c', multi:false,
     diets:['everything','vegetarian','vegan','halal'],
     options:[
       {t:'Pho bo — rare beef in a star-anise broth', tags:['noodle','meat','asia'], diet:'meat:beef', spice:1},
@@ -558,7 +558,7 @@ const DECK_ASIA = [
       {t:'Tofu banh mi with crunchy pickles and coriander', tags:['veg','fresh','asia'], diet:'vegan'},
       {t:'Fresh spring rolls with tofu, herbs and peanut dip', tags:['veg','fresh','healthy','asia'], diet:'vegan'}
     ] },
-  { id:'asi-13', deck:'asia', q:'The dim sum cart rolls by in Hong Kong — what do you point at first?', emoji:'🥟', img:'photo-1496116218417-1a781b1c416', multi:false,
+  { id:'asi-13', info:'Dim sum means touch the heart — small plates built for tea. The cart tradition lets you point first and ask questions later.', deck:'asia', q:'The dim sum cart rolls by in Hong Kong — what do you point at first?', emoji:'🥟', img:'photo-1496116218417-1a781b1c416', multi:false,
     diets:['everything','vegetarian','vegan','halal'],
     options:[
       {t:'Har gow — translucent prawn dumplings', tags:['meat','classic','asia'], diet:'meat:seafood'},
@@ -574,7 +574,7 @@ const DECK_ASIA = [
       {t:'Mapo tofu, fully plant-based and numbing-hot', tags:['veg','spice','asia'], diet:'vegan', spice:3},
       {t:'Kung pao chicken with dried chillies and peanuts', tags:['meat','spice','asia'], diet:'meat:chicken', spice:2}
     ] },
-  { id:'asi-15', deck:'asia', q:'Hot pot night — the broth is bubbling. Your first dip goes to…', emoji:'🫕', img:'photo-1547592180-85f173990554', multi:false,
+  { id:'asi-15', info:'Hot pot is cook-it-yourself theatre: thin slices swish through broth for seconds. Chongqing\'s mala broth numbs with Sichuan pepper.', deck:'asia', q:'Hot pot night — the broth is bubbling. Your first dip goes to…', emoji:'🫕', img:'photo-1547592180-85f173990554', multi:false,
     diets:['everything','vegetarian','vegan','halal'],
     options:[
       {t:'Hand-cut lamb rolls for the spicy broth', tags:['meat','spice','asia'], diet:'meat:lamb', spice:2},
@@ -590,7 +590,7 @@ const DECK_ASIA = [
       {t:'Nasi goreng sayur — veggie fried rice, no egg, extra sambal', tags:['rice','veg','spice','asia'], diet:'vegan', spice:2},
       {t:'Pineapple fried rice with cashews and raisins, no egg', tags:['rice','veg','sweet','asia'], diet:'vegan', sweet:1}
     ] },
-  { id:'asi-17', deck:'asia', q:'Laksa love — which steamy bowl wins your heart?', emoji:'🍜', img:'photo-1547592166-23ac45744acd', multi:false,
+  { id:'asi-17', info:'Laksa splits into two camps: curry laksa (coconut-rich) and asam laksa (tamarind-sour, no coconut) — Penang and Singapore still argue about it.', deck:'asia', q:'Laksa love — which steamy bowl wins your heart?', emoji:'🍜', img:'photo-1547592166-23ac45744acd', multi:false,
     diets:['everything','vegetarian','vegan','halal'],
     options:[
       {t:'Curry laksa with chicken, prawns and tofu puffs', tags:['noodle','meat','spice','creamy','asia'], diet:'meat:chicken', spice:2},
@@ -614,7 +614,7 @@ const DECK_ASIA = [
       {t:'Adobong sitaw — green beans and tofu, adobo style', tags:['veg','tangy','home','asia'], diet:'vegan'},
       {t:'Vegetable lumpia — crisp spring rolls with a vinegar dip', tags:['veg','street','tangy','asia'], diet:'vegan'}
     ] },
-  { id:'asi-20', deck:'asia', q:'Momo break — steamed dumplings from the Himalayas. Your filling?', emoji:'🥟', img:'photo-1496116218417-1a781b1c416', multi:false,
+  { id:'asi-20', info:'Momos travelled from Tibet through Nepal — and the chutney, often a fiery tomato-sesame one, is half the experience.', deck:'asia', q:'Momo break — steamed dumplings from the Himalayas. Your filling?', emoji:'🥟', img:'photo-1496116218417-1a781b1c416', multi:false,
     diets:['everything','vegetarian','vegan','halal'],
     options:[
       {t:'Chicken momos with spicy tomato-sesame chutney', tags:['meat','spice','asia'], diet:'meat:chicken', spice:2},
@@ -662,7 +662,7 @@ const DECK_ASIA = [
       {t:'Baingan bharta — smoky mashed aubergine with peas', tags:['veg','smoky','home','asia'], diet:'vegan', spice:1},
       {t:'Palak paneer — spinach curry with soft cheese cubes', tags:['veg','creamy','home','asia'], diet:'veg', spice:1}
     ] },
-  { id:'asi-26', deck:'asia', q:'The biryani extended family — which layered rice wins?', emoji:'🍚', img:'photo-1563379091339-03b21ab4a4f8', multi:false,
+  { id:'asi-26', info:'Layered rice dishes travelled with traders and empires — biryani, pilaf, plov and tahdig are cousins separated by geography.', deck:'asia', q:'The biryani extended family — which layered rice wins?', emoji:'🍚', img:'photo-1563379091339-03b21ab4a4f8', multi:false,
     diets:['everything','vegetarian','vegan','halal'],
     options:[
       {t:'Hyderabadi chicken dum biryani — the fiery original', tags:['biryani','rice','meat','spice','asia'], diet:'meat:chicken', spice:3},
@@ -706,7 +706,7 @@ const DECK_ASIA = [
 
 /* ——— deck: americas.js ——— */
 const DECK_AMERICAS = [
-{ id:'ame-01', deck:'americas', q:'Taco night in Mexico City — which taco are you grabbing first?', emoji:'🌮', img:'photo-1565299585323-38d6b0865b47', multi:false,
+{ id:'ame-01', info:'In Mexico City the taco is a handheld art: al pastor is shaved from a vertical spit (a Lebanese gift to Mexico), suadero is slow-cooked brisket.', deck:'americas', q:'Taco night in Mexico City — which taco are you grabbing first?', emoji:'🌮', img:'photo-1565299585323-38d6b0865b47', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Baja fish taco with chipotle slaw', tags:['street','americas','tangy'], diet:'meat:seafood', spice:2},
@@ -714,7 +714,7 @@ const DECK_AMERICAS = [
     {t:'Cauliflower al pastor with pineapple salsa', tags:['street','americas','veg'], alt:true, diet:'vegan', spice:2},
     {t:'Black bean & charred corn taco with avocado', tags:['street','americas','veg','fresh'], diet:'vegan', spice:1}
   ]},
-{ id:'ame-02', deck:'americas', q:'Low-and-slow American BBQ — what is landing on your tray?', emoji:'🍖', img:'photo-1544025162-d76694265947', multi:false,
+{ id:'ame-02', info:'American BBQ is regional religion: Texas brisket, Carolina pulled pork, Kansas City burnt ends, Memphis dry ribs — all low and slow over wood smoke.', deck:'americas', q:'Low-and-slow American BBQ — what is landing on your tray?', emoji:'🍖', img:'photo-1544025162-d76694265947', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Smoked beef brisket with a peppery bark', tags:['smoky','meat','americas','classic'], diet:'meat:beef', spice:1},
@@ -746,7 +746,7 @@ const DECK_AMERICAS = [
     {t:'Buffalo cauliflower bites with ranch-style dip', tags:['veg','americas','spice'], alt:true, diet:'vegan', spice:2},
     {t:'Crispy fried oyster mushrooms, chicken-style crunch', tags:['veg','americas','adventure'], alt:true, diet:'vegan', spice:1}
   ]},
-{ id:'ame-06', deck:'americas', q:'A steaming bowl of Louisiana gumbo — which pot is calling you?', emoji:'🍲', img:'photo-1547592180-85f173990554', multi:false,
+{ id:'ame-06', info:'Gumbo starts with a roux cooked to the colour of chocolate — the darker, the deeper. Okra and filé (sassafras) are its two thickening traditions.', deck:'americas', q:'A steaming bowl of Louisiana gumbo — which pot is calling you?', emoji:'🍲', img:'photo-1547592180-85f173990554', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Chicken & smoked sausage gumbo over rice', tags:['home','meat','americas','rice'], diet:'meat:chicken', spice:2},
@@ -786,7 +786,7 @@ const DECK_AMERICAS = [
     {t:'Key lime sorbet — sharp, icy, refreshing', tags:['sweet','tangy','americas','veg','fresh'], diet:'vegan', sweet:2},
     {t:'New York cheesecake with a lime twist', tags:['sweet','creamy','americas'], diet:'veg', sweet:2}
   ]},
-{ id:'ame-11', deck:'americas', q:'Mole poblano — Mexico\u2019s deep, chocolatey chilli sauce. Over what?', emoji:'🍫', img:'photo-1504674900247-0877df9cc836', multi:false,
+{ id:'ame-11', info:'Mole poblano blends 20+ ingredients — chillies, spices and a whisper of chocolate — into Mexico\'s most ceremonial sauce, born in Puebla.', deck:'americas', q:'Mole poblano — Mexico\u2019s deep, chocolatey chilli sauce. Over what?', emoji:'🍫', img:'photo-1504674900247-0877df9cc836', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Slow-cooked chicken in mole poblano', tags:['americas','meat','spice','home'], diet:'meat:chicken', spice:2},
@@ -810,7 +810,7 @@ const DECK_AMERICAS = [
     {t:'Tamarind agua fresca — sweet-sour & earthy', tags:['tangy','americas','veg','adventure'], diet:'vegan', sweet:2},
     {t:'Classic lime margarita, salted rim', tags:['americas','tangy','cafe'], diet:'alcohol', sweet:1}
   ]},
-{ id:'ame-14', deck:'americas', q:'Peruvian ceviche — raw fish cured in lime & chilli. Your version?', emoji:'🐟', img:'photo-1467003909585-2f8a72700288', multi:false,
+{ id:'ame-14', info:'Ceviche cooks fish in lime juice — the acid firms the protein without heat. Peruvian style adds red onion, chilli and sweet potato on the side.', deck:'americas', q:'Peruvian ceviche — raw fish cured in lime & chilli. Your version?', emoji:'🐟', img:'photo-1467003909585-2f8a72700288', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Classic sea bass ceviche with red onion & sweet potato', tags:['americas','fresh','tangy','adventure'], diet:'meat:seafood', spice:2},
@@ -834,7 +834,7 @@ const DECK_AMERICAS = [
     {t:'Grilled chicken & quinoa with herb dressing', tags:['healthy','meat','americas'], diet:'meat:chicken', spice:0},
     {t:'Seared salmon over quinoa & greens', tags:['healthy','americas','fresh'], diet:'meat:seafood', spice:0}
   ]},
-{ id:'ame-17', deck:'americas', q:'Feijoada — Brazil\u2019s black bean stew. Which pot are you ladling from?', emoji:'🫘', img:'photo-1512058564366-18510be2db19', multi:false,
+{ id:'ame-17', info:'Feijoada is Brazil\'s Saturday ritual: black beans stewed slowly, served with rice, greens, orange slices and farofa (toasted cassava flour).', deck:'americas', q:'Feijoada — Brazil\u2019s black bean stew. Which pot are you ladling from?', emoji:'🫘', img:'photo-1512058564366-18510be2db19', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Traditional feijoada — beans with pork & beef, rice & orange', tags:['americas','meat','rice','home','classic'], diet:'meat:other', spice:1},
@@ -866,7 +866,7 @@ const DECK_AMERICAS = [
     {t:'Açaí swirled with sweet condensed milk', tags:['sweet','creamy','americas'], diet:'veg', sweet:3},
     {t:'Pure açaí sorbet cup with cacao nibs', tags:['sweet','americas','veg','adventure'], diet:'vegan', sweet:1}
   ]},
-{ id:'ame-21', deck:'americas', q:'Argentinian empanadas — golden half-moons. Your filling?', emoji:'🥟', img:'photo-1601050690597-df0568f70950', multi:false,
+{ id:'ame-21', info:'Empanadas change by province: Salta\'s are juicy with potato, Tucumán\'s are national champions. The fold (repulgue) hints at the filling.', deck:'americas', q:'Argentinian empanadas — golden half-moons. Your filling?', emoji:'🥟', img:'photo-1601050690597-df0568f70950', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Beef with olive & a hint of cumin', tags:['americas','meat','street','classic'], diet:'meat:beef', spice:1},
@@ -874,7 +874,7 @@ const DECK_AMERICAS = [
     {t:'Spinach & potato with garlic', tags:['americas','veg','home'], diet:'vegan', spice:0},
     {t:'Mushroom & caramelised onion', tags:['americas','veg','smoky'], diet:'vegan', spice:0}
   ]},
-{ id:'ame-22', deck:'americas', q:'Asado night in Argentina — the grill is loaded. Your plate?', emoji:'🔥', img:'photo-1558030006-450675393462', multi:false,
+{ id:'ame-22', info:'Asado is Argentina\'s social grill: choripán first, then morcilla and sweetbreads (mollejas), then the big cuts — patience is the main ingredient.', deck:'americas', q:'Asado night in Argentina — the grill is loaded. Your plate?', emoji:'🔥', img:'photo-1558030006-450675393462', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Asado beef ribs, salt & smoke only', tags:['smoky','meat','americas','classic'], diet:'meat:beef', spice:0},
@@ -890,7 +890,7 @@ const DECK_AMERICAS = [
     {t:'Ají amarillo mayo — golden Peruvian chilli mayo', tags:['creamy','americas','spice'], diet:'veg', spice:2},
     {t:'Romesco-style roasted pepper & almond sauce', tags:['americas','veg','smoky','adventure'], diet:'vegan', spice:1}
   ]},
-{ id:'ame-24', deck:'americas', q:'Poutine time in Canada — fries, gravy, glory. Which version?', emoji:'🍟', img:'photo-1518013431117-eb1465fa5752', multi:false,
+{ id:'ame-24', info:'Poutine is Québec\'s gift to the world: fries, gravy, and cheese curds that must squeak. The curds are non-negotiable.', deck:'americas', q:'Poutine time in Canada — fries, gravy, glory. Which version?', emoji:'🍟', img:'photo-1518013431117-eb1465fa5752', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Classic poutine — cheese curds & rich beef gravy', tags:['americas','classic','creamy'], diet:'meat:other', spice:0},
@@ -906,7 +906,7 @@ const DECK_AMERICAS = [
     {t:'Slow maple baked beans', tags:['sweet','americas','veg','smoky'], diet:'vegan', sweet:2},
     {t:'Pancake stack drowned in maple butter', tags:['sweet','americas','classic','cafe'], diet:'veg', sweet:3}
   ]},
-{ id:'ame-26', deck:'americas', q:'Jerk night in Jamaica — smoky, fiery, allspice-rich. What is on the grill?', emoji:'🌶️', img:'photo-1555939594-58d7cb561ad1', multi:false,
+{ id:'ame-26', info:'Jerk is Jamaica\'s smoke-and-fire method: allspice (pimento) and Scotch bonnet chillies, traditionally grilled over pimento wood.', deck:'americas', q:'Jerk night in Jamaica — smoky, fiery, allspice-rich. What is on the grill?', emoji:'🌶️', img:'photo-1555939594-58d7cb561ad1', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Jerk chicken with charred edges', tags:['spice','smoky','meat','americas'], diet:'meat:chicken', spice:3},
@@ -1038,7 +1038,7 @@ const DECK_EUROPE = [
       {t:'Fresh berry tart in crisp vegan pastry', tags:['sweet','fresh'], diet:'vegan', sweet:2},
       {t:'Lemon tart — glossy, sharp, buttery', tags:['sweet','tangy'], diet:'veg', sweet:2}
     ] },
-  { id:'eur-12', deck:'europe', q:'Paella Sunday in Spain — which pan are you sharing?', emoji:'🥘', img:'photo-1534080564583-6be75777b70a', multi:false,
+  { id:'eur-12', info:'True paella is Valencian, cooked wide and thin so the base crisps into socarrat — the crunchy layer everyone fights for.', deck:'europe', q:'Paella Sunday in Spain — which pan are you sharing?', emoji:'🥘', img:'photo-1534080564583-6be75777b70a', multi:false,
     diets:['everything','vegetarian','vegan','halal'],
     options:[
       {t:'Vegetable paella — artichoke, beans, sweet peppers', tags:['rice','veg','europe'], diet:'vegan'},
@@ -1158,7 +1158,7 @@ const DECK_EUROPE = [
       {t:'Fresh fruit & berry tartlets in vegan pastry', tags:['sweet','fresh'], diet:'vegan', sweet:2},
       {t:'Cucumber finger sandwiches with butter', tags:['classic','fresh'], diet:'veg'}
     ] },
-  { id:'eur-27', deck:'europe', q:'A plate of Polish pierogi — which filling?', emoji:'🥟', img:'photo-1496116218417-1a781b1c416', multi:false,
+  { id:'eur-27', info:'Pierogi are Poland\'s beloved dumplings — ruskie (potato & cheese) is the classic, crowned with browned onion and sour cream.', deck:'europe', q:'A plate of Polish pierogi — which filling?', emoji:'🥟', img:'photo-1496116218417-1a781b1c416', multi:false,
     diets:['everything','vegetarian','vegan','halal'],
     options:[
       {t:'Potato & cheese — the beloved ruskie', tags:['veg','home','classic','europe'], diet:'veg'},
@@ -1394,7 +1394,7 @@ const DECK_GLOBAL = [
 ];
 
 const DECK_BRIDGE = [
-  { id:'bri-01', deck:'bridge', q:'If dum biryani is home, its slow-cooked cousins are waiting abroad. Which one calls you?', emoji:'🍚', img:'photo-1534080564583-6be75777b70a', multi:false,
+  { id:'bri-01', info:'Slow-cooked rice travels well: biryani\'s cousins — Persian tahdig with its golden crust, Uzbek plov, Valencian paella — all reward patience.', deck:'bridge', q:'If dum biryani is home, its slow-cooked cousins are waiting abroad. Which one calls you?', emoji:'🍚', img:'photo-1534080564583-6be75777b70a', multi:false,
     diets:['everything','vegetarian','vegan','halal'],
     options:[
       {t:'Paella — saffron rice with seafood, from Spain', tags:['rice','europe','meat'], diet:'meat:seafood'},

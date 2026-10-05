@@ -99,9 +99,9 @@ function buildOrder(s) {
         ...openers,
         ...chains,
         ...palate.slice(0, 5),
-        ...roots.slice(0, 11), ...glob.slice(0, 6),
+        ...roots.slice(0, 10), ...glob.slice(0, 3),
         ...palate.slice(5, 10),
-        ...roots.slice(11, 22), ...bridge.slice(0, 8), ...glob.slice(6, 11)
+        ...roots.slice(10, 19), ...bridge.slice(0, 8), ...glob.slice(3, 6)
       ];
   const seen = new Set();
   const order = composed.filter(q => !seen.has(q.id) && seen.add(q.id));
@@ -287,7 +287,7 @@ function initFundPicks() {
   const saved = (st && st.fundamentals) || store.get("dib_pending_fund", null);
   pickDiet = saved ? saved.diet : null;
   pickRoots = saved ? saved.roots : null;
-  pickCount = saved && saved.count ? saved.count : null;
+  pickCount = saved && saved.count ? saved.count : 50;
   pickCity = saved && saved.city ? canonicalCity(saved.city) : "";
   $("cityInput").value = pickCity;
   $("cityInput").classList.remove("invalid");
@@ -1039,6 +1039,7 @@ function meterLabel(kind, pct) {
   if (kind === "sweet") return pct >= 66 ? "Serious sweet tooth" : pct >= 33 ? "Sweet in moderation" : "Savoury soul";
   return pct >= 66 ? "Fearless taster" : pct >= 33 ? "Curious explorer" : "Creature of habit";
 }
+let altRecsCache = [];
 function computeResult(s) {
   const tagCount = {};
   const meters = { spice: [0, 0], sweet: [0, 0], adv: [0, 0] };
@@ -1089,8 +1090,18 @@ function computeResult(s) {
     }))
     .sort((a, b) => b.score - a.score);
   const recs = [];
-  const seenRegion = new Set();
-  scored.forEach(({ r }) => { if (recs.length < 5 && !recs.find(x => x.dish === r.dish)) { recs.push(r); seenRegion.add(r.region); } });
+  const regionCount = {};
+  scored.forEach(({ r }) => {
+    if (recs.length >= 5 || recs.find(x => x.dish === r.dish)) return;
+    if ((regionCount[r.region] || 0) >= 2) return; // spread the five discoveries across regions
+    recs.push(r); regionCount[r.region] = (regionCount[r.region] || 0) + 1;
+  });
+  const more = [];
+  scored.forEach(({ r }) => {
+    if (more.length >= 5 || recs.find(x => x.dish === r.dish) || more.find(x => x.dish === r.dish)) return;
+    more.push(r);
+  });
+  altRecsCache = more.map(r => ({ dish: r.dish, from: r.from, why: r.why }));
   return {
     email: sessionUser ? sessionUser.email : "",
     diet: s.builtFor.diet, roots: s.builtFor.roots, city: s.builtFor.city || "",
@@ -1100,6 +1111,12 @@ function computeResult(s) {
     completedAt: new Date().toISOString()
   };
 }
+function recCardsHtml(list, res) {
+  return list.map(r =>
+    `<div class="rec"><span class="r-emoji">${(RECS.find(x => x.dish === r.dish) || {}).emoji || "🍽️"}</span>
+     <div><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong><p>${r.why}</p>${res.city ? `<a class="r-find" target="_blank" rel="noopener" href="https://www.google.com/maps/search/${encodeURIComponent(r.dish + " near " + res.city)}">📍 Find it near you in ${res.city} →</a>` : ""}</div></div>`).join("");
+}
+let lastResult = null, recsAltShown = false;
 function renderResults() {
   const res = st.result || computeResult(st);
   st.result = res;
@@ -1109,6 +1126,10 @@ function renderResults() {
     ? `In one line: ${strip(labels[0])} meets ${strip(labels[1]).toLowerCase()}. Here's the full picture:`
     : "Here's what your answers say about your palate:";
   $("profileTraits").innerHTML = labels.map(l => `<span class="trait">${l}</span>`).join("");
+  lastResult = res; recsAltShown = false;
+  const affLabels = Object.keys(res.affinities || {}).map(t => TAG_LABELS[t]).filter(Boolean).slice(0, 8);
+  $("profileAffinities").innerHTML = affLabels.length ? `<h3 class="rec-title2">✨ Flavours you're drawn to</h3><div class="traits">${affLabels.map(l => `<span class="trait">${l}</span>`).join("")}</div>` : "";
+  $("profileAversions").innerHTML = (res.aversions || []).length ? `<h3 class="rec-title2">🚫 Your hard no's</h3><div class="traits">${res.aversions.map(a => `<span class="trait no">${a}</span>`).join("")}</div><p class="neg-note">We will never match you with these.</p>` : "";
   const names = { spice: "🌶️ Heat level", sweet: "🍮 Sweet tooth", adv: "🧭 Adventurousness" };
   $("profileMeters").innerHTML = Object.entries(res.meters).map(([k, pct]) =>
     `<div class="meter"><div class="mhead"><span>${names[k]}</span><span>${meterLabel(k, pct)}</span></div>
@@ -1117,9 +1138,17 @@ function renderResults() {
     document.querySelectorAll("#profileMeters .fill").forEach(f => { f.style.width = f.dataset.w + "%"; });
   }));
   $("profileNote").textContent = (res.partial ? `⚠️ You ended early after ${res.answered || res.detail.length} answers, so this profile is based on limited information — answer more questions for a sharper picture. ` : "") + `Weighted by your confidence slider — your average pick strength was ${res.avgConfidence} / 5. Strong opinions shaped this profile most.`;
-  $("profileRecs").innerHTML = res.recs.map(r =>
-    `<div class="rec"><span class="r-emoji">${(RECS.find(x => x.dish === r.dish) || {}).emoji || "🍽️"}</span>
-     <div><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong><p>${r.why}</p>${res.city ? `<a class="r-find" target="_blank" rel="noopener" href="https://www.google.com/maps/search/${encodeURIComponent(r.dish + " near " + res.city)}">📍 Find it near you in ${res.city} →</a>` : ""}</div></div>`).join("");
+  $("profileRecs").innerHTML = recCardsHtml(res.recs, res);
+  const mrb = $("moreRecsBtn");
+  if (mrb) {
+    mrb.hidden = !((st.altRecs || []).length);
+    mrb.textContent = "🎲 Show me different flavours";
+    mrb.onclick = () => {
+      recsAltShown = !recsAltShown;
+      $("profileRecs").innerHTML = recCardsHtml(recsAltShown ? st.altRecs : (lastResult.recs || []), lastResult);
+      mrb.textContent = recsAltShown ? "↩️ Back to my top matches" : "🎲 Show me different flavours";
+    };
+  }
   $("sheetNote").textContent = SHEETS_ENDPOINT ? "✓ Your results were saved for flavour analysis." : "";
 }
 async function sendToSheets() {
@@ -1137,6 +1166,7 @@ async function sendToSheets() {
 function finish(early) {
   st.finished = true;
   st.result = computeResult(st);
+  st.altRecs = altRecsCache;
   if (early) { st.result.partial = true; st.result.answered = answeredCount(st); }
   saveState();
   sendToSheets();

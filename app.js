@@ -45,8 +45,11 @@ function chosenMeats(s) {
   if (!a || !Array.isArray(a.o) || !a.o.length) return null;
   return a.o.map(i => QBANK_BY_ID[qid].options[i].diet.replace("meat:", ""));
 }
-function optVisible(dietClass, diet, meats) {
-  const d = dietClass;
+function optVisible(opt, diet, meats) {
+  const d = opt.diet;
+  // Veg stand-ins for canonical meat dishes (veg biryani, veg haleem…) are
+  // never offered to meat-eating users — they would never pick them.
+  if (opt.alt && (diet === "everything" || diet === "halal")) return false;
   if (diet === "vegan") return d === "vegan";
   if (diet === "vegetarian") return d === "vegan" || d === "veg";
   if (d === "alcohol") return diet === "everything";
@@ -57,7 +60,7 @@ function optVisible(dietClass, diet, meats) {
 function visibleOpts(q, s) {
   const diet = s.builtFor.diet, meats = chosenMeats(s);
   const out = [];
-  q.options.forEach((o, i) => { if (optVisible(o.diet, diet, meats)) out.push({ o, i }); });
+  q.options.forEach((o, i) => { if (optVisible(o, diet, meats)) out.push({ o, i }); });
   return out;
 }
 function playable(q, s) {
@@ -68,7 +71,7 @@ function playable(q, s) {
 /* ————— Question-list builder (deterministic: same picks ⇒ same list) ————— */
 function buildOrder(s) {
   const F = s.builtFor, diet = F.diet;
-  const valid = QBANK.filter(q => q.diets.includes(diet) && q.options.filter(o => optVisible(o.diet, diet, null)).length >= 2);
+  const valid = QBANK.filter(q => q.diets.includes(diet) && q.options.filter(o => optVisible(o, diet, null)).length >= 2);
   const byDeck = (d) => valid.filter(q => q.deck === d);
   const openersAll = byDeck("opener");
   const openers = [...openersAll.filter(q => q.multi), ...openersAll.filter(q => !q.multi)].slice(0, 5);
@@ -544,7 +547,7 @@ function computeResult(s) {
   // Recommendations: diet-safe, tag-matched, other regions first.
   const meats = chosenMeats(s);
   const scored = RECS
-    .filter(r => optVisible(r.diet, s.builtFor.diet, meats))
+    .filter(r => optVisible(r, s.builtFor.diet, meats))
     .map(r => ({
       r,
       score: r.match.filter(t => topTags.includes(t)).length * 2 + (r.region !== s.builtFor.roots ? 1 : 0)

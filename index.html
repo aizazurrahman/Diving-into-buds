@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=10">
+<link rel="stylesheet" href="styles.css?v=11">
 </head>
 <body>
 
@@ -53,10 +53,6 @@
         <p class="se-tip">(Tip: Unsure? Leave it at 1 and keep rolling to the next question)</p>
       </div>
 
-      <div class="peek">
-        <span class="peek-label">A peek at the profile waiting for you</span>
-        <div class="peek-chips"><span>🌶️ Heat level</span><span>🍮 Sweet tooth</span><span>🧭 Adventurousness</span><span>✨ Flavours matched near you</span></div>
-      </div>
       <p class="fund-note">First, a few quick picks — <strong>your diet</strong>, <strong>your roots</strong>, and <strong>the city you live in</strong> — so your questions are built around you, and your results can point to flavours near home. 🌍</p>
     </div>
 
@@ -97,12 +93,16 @@
 
       <h3 class="fund-label">Fundamental 2 · Your roots</h3>
       <div class="fund-grid" id="rootsGrid" role="radiogroup" aria-label="Your roots">
-        <button type="button" class="fund-opt" data-roots="hyderabad" role="radio" aria-checked="false"><span class="f-emoji">🏰</span><strong>Hyderabad</strong><span>Deccan soul — biryani country.</span><span class="fi" data-fi="roots" data-key="hyderabad" title="More about this choice">i</span></button>
-        <button type="button" class="fund-opt" data-roots="asia" role="radio" aria-checked="false"><span class="f-emoji">🥢</span><strong>Asia</strong><span>From ramen to rendang.</span><span class="fi" data-fi="roots" data-key="asia" title="More about this choice">i</span></button>
-        <button type="button" class="fund-opt" data-roots="americas" role="radio" aria-checked="false"><span class="f-emoji">🌮</span><strong>Americas</strong><span>BBQ, tacos &amp; everything between.</span><span class="fi" data-fi="roots" data-key="americas" title="More about this choice">i</span></button>
+        <button type="button" class="fund-opt" data-roots="africa" role="radio" aria-checked="false"><span class="f-emoji">🌍</span><strong>Africa</strong><span>Jollof to injera to the braai.</span><span class="fi" data-fi="roots" data-key="africa" title="More about this choice">i</span></button>
+        <button type="button" class="fund-opt" data-roots="eastasia" role="radio" aria-checked="false"><span class="f-emoji">🥢</span><strong>East/Southeast Asia</strong><span>From ramen to rendang.</span><span class="fi" data-fi="roots" data-key="eastasia" title="More about this choice">i</span></button>
         <button type="button" class="fund-opt" data-roots="europe" role="radio" aria-checked="false"><span class="f-emoji">🥐</span><strong>Europe</strong><span>From paella to pierogi.</span><span class="fi" data-fi="roots" data-key="europe" title="More about this choice">i</span></button>
+        <button type="button" class="fund-opt" data-roots="hyderabad" role="radio" aria-checked="false"><span class="f-emoji">🏰</span><strong>Hyderabad, India</strong><span>Deccan soul — biryani country.</span><span class="fi" data-fi="roots" data-key="hyderabad" title="More about this choice">i</span></button>
+        <button type="button" class="fund-opt" data-roots="latinamerica" role="radio" aria-checked="false"><span class="f-emoji">🌮</span><strong>Latin America &amp; The Caribbean</strong><span>Tacos, ceviche &amp; fire.</span><span class="fi" data-fi="roots" data-key="latinamerica" title="More about this choice">i</span></button>
+        <button type="button" class="fund-opt" data-roots="middleeast" role="radio" aria-checked="false"><span class="f-emoji">🧆</span><strong>Middle-Eastern</strong><span>Mezze, kebabs &amp; saffron rice.</span><span class="fi" data-fi="roots" data-key="middleeast" title="More about this choice">i</span></button>
+        <button type="button" class="fund-opt" data-roots="southasia" role="radio" aria-checked="false"><span class="f-emoji">🍛</span><strong>South Asia</strong><span>Beyond Hyderabad — the whole subcontinent.</span><span class="fi" data-fi="roots" data-key="southasia" title="More about this choice">i</span></button>
+        <button type="button" class="fund-opt" data-roots="unitedstates" role="radio" aria-checked="false"><span class="f-emoji">🍔</span><strong>United States</strong><span>BBQ, diners &amp; big plates.</span><span class="fi" data-fi="roots" data-key="unitedstates" title="More about this choice">i</span></button>
       </div>
-      <p class="fund-info" id="rootsInfo">ℹ️ Why only four roots? They're our launch regions — each has a full deck of questions written for it, plus bridges to the rest of the world (every set mixes your roots with global questions). More roots are on the way — pick the one closest to your palate. Tap the ⓘ on any option to learn more.</p>
+      <p class="fund-info" id="rootsInfo">ℹ️ Why these roots? They cover the world's great food families — each has a full deck of questions written for it, plus bridges to everywhere else (every set mixes your roots with global questions). Pick the one closest to your palate. Tap the ⓘ on any option to learn more.</p>
 
       <h3 class="fund-label">Which city do you live in?</h3>
       <div class="city-wrap">
@@ -111,11 +111,6 @@
       </div>
       <p class="fund-hint" id="cityHint">Start typing and pick your city from the list — that keeps your suggestions accurate. Not used for questions, only to suggest foods from restaurants near you.</p>
 
-      <h3 class="fund-label">How many questions?</h3>
-      <div class="fund-grid" id="countGrid" role="radiogroup" aria-label="How many questions">
-        <button type="button" class="fund-opt" data-count="25" role="radio" aria-checked="false"><span class="f-emoji">⚡</span><strong>25 questions</strong><span>Good to get a general idea of your profile.</span></button>
-        <button type="button" class="fund-opt" data-count="50" role="radio" aria-checked="false"><span class="f-emoji">🎯</span><strong>50 questions</strong><span>Best for getting a complete picture.</span></button>
-      </div>
 
       <div class="stack">
         <button class="btn primary big" id="buildBtn" type="button" disabled>Build my questions →</button>
@@ -213,8 +208,9 @@
 <footer>Made with 🌶️ and curiosity · Diving into Buds</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="questions.js?v=11"></script>
-<script src="questions2.js?v=3"></script>
-<script src="app.js?v=17"></script>
+<script src="questions.js?v=12"></script>
+<script src="questions2.js?v=4"></script>
+<script src="questions3.js?v=1"></script>
+<script src="app.js?v=18"></script>
 </body>
 </html>

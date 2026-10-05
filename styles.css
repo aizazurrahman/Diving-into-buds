@@ -369,7 +369,7 @@ footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 18
 .end-btn:hover { border-color: var(--accent); }
 .quiz-sticky .info-panel { margin: 2px auto 12px; max-width: 640px; }
 
-/* v8 polish: arrow icons, profile chips, peek strip, rec shuffle */
+/* v8 polish: arrow icons, profile chips, rec shuffle */
 .slider-ico, .se-ico { display: inline-flex; vertical-align: -3px; }
 .slider-ico svg { width: 18px; height: 18px; }
 .se-ico svg { width: 19px; height: 19px; }
@@ -378,8 +378,4 @@ footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 18
 .neg-note { font-size: .85rem; color: var(--muted); margin: 6px 0 0; text-align: left; }
 .more-recs { display: block; margin: 14px auto 2px; }
 .more-recs[hidden] { display: none; }
-.peek { margin-top: 18px; text-align: center; }
-.peek-label { font-size: .8rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
-.peek-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 9px; }
-.peek-chips span { background: var(--accent-soft); border: 1px solid #DECDFA; color: var(--accent-dark); font-weight: 600; font-size: .85rem; padding: 6px 12px; border-radius: 999px; }
 #profileAffinities .traits, #profileAversions .traits { justify-content: flex-start; }

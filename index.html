@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=4">
+<link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body>
 
@@ -87,7 +87,7 @@
         <p>Crank it to 5 for an instant "heck yes!", or leave it at 1 for close winners. Your highest-confidence picks shape your final results most accurately. It adds a few extra seconds but gives a far more personalized profile.</p>
         <p class="se-tip">(Tip: Unsure? Leave it at 1 and keep rolling to the next question)</p>
       </div>
-      <p class="fund-note">First, two quick fundamentals — <strong>your diet</strong> and <strong>your roots</strong> — so your 50 questions are built around you, wherever in the world your taste buds call home. 🌍</p>
+      <p class="fund-note">First, three quick fundamentals — <strong>your diet</strong>, <strong>your roots</strong>, and <strong>the city you live in</strong> — so your 50 questions are built around you, and your results can point to flavours near home. 🌍</p>
     </div>
 
     <div class="card auth-card">
@@ -113,8 +113,8 @@
   <section id="view-fund" class="view" hidden>
     <div class="card fund-card">
       <div class="big-emoji">🧭</div>
-      <h2>Two fundamentals first</h2>
-      <p class="lede">Your 50 questions get built around these picks. Choose one from each.</p>
+      <h2>Three fundamentals first</h2>
+      <p class="lede">Your diet and roots build your 50 questions. Your city powers the restaurant suggestions at the end.</p>
 
       <h3 class="fund-label">Fundamental 1 · Pick your diet</h3>
       <div class="fund-grid" id="dietGrid" role="radiogroup" aria-label="Pick your diet">
@@ -132,11 +132,24 @@
         <button type="button" class="fund-opt" data-roots="europe" role="radio" aria-checked="false"><span class="f-emoji">🥐</span><strong>Europe</strong><span>From paella to pierogi.</span></button>
       </div>
 
+      <h3 class="fund-label">Fundamental 3 · Which city do you live in?</h3>
+      <input type="text" id="cityInput" class="city-input" list="cityList" placeholder="e.g. Hyderabad" autocomplete="address-level2" maxlength="60">
+      <datalist id="cityList">
+        <option value="Hyderabad"></option><option value="Bengaluru"></option><option value="Mumbai"></option>
+        <option value="Delhi"></option><option value="Chennai"></option><option value="Kolkata"></option>
+        <option value="Pune"></option><option value="Dubai"></option><option value="London"></option>
+        <option value="New York"></option><option value="Chicago"></option><option value="Houston"></option>
+        <option value="Dallas"></option><option value="Los Angeles"></option><option value="San Francisco"></option>
+        <option value="Seattle"></option><option value="Toronto"></option><option value="Sydney"></option>
+        <option value="Singapore"></option>
+      </datalist>
+      <p class="fund-hint">Not used for questions — only to suggest foods from restaurants near you.</p>
+
       <div class="stack">
         <button class="btn primary big" id="buildBtn" type="button" disabled>Build my 50 questions →</button>
         <button class="btn ghost" id="fundExitBtn" type="button">💾 Save &amp; exit</button>
       </div>
-      <p class="fineprint">Changing fundamentals later restarts your questionnaire — your picks here decide which questions you get.</p>
+      <p class="fineprint">Changing diet or roots later restarts your questionnaire — those picks decide your questions. City only steers your suggestions, and you can change it anytime.</p>
     </div>
   </section>
 
@@ -219,7 +232,7 @@
 <footer>Made with 🌶️ and curiosity · Diving into Buds</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="questions.js?v=4"></script>
-<script src="app.js?v=6"></script>
+<script src="questions.js?v=5"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>

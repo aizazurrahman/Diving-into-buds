@@ -226,16 +226,19 @@ $("logoutBtn").onclick = async () => {
   show("view-auth");
 };
 function routeAfterLogin() {
-  if (st && st.builtFor) { renderHome(); show("view-home"); }
+  if (st && st.builtFor && st.builtFor.city) { renderHome(); show("view-home"); }
   else { initFundPicks(); show("view-fund"); }
 }
 
 /* ————— Fundamentals ————— */
-let pickDiet = null, pickRoots = null;
+let pickDiet = null, pickRoots = null, pickCity = "";
+function savePending() { store.set("dib_pending_fund", { diet: pickDiet, roots: pickRoots, city: pickCity }); }
 function initFundPicks() {
   const saved = (st && st.fundamentals) || store.get("dib_pending_fund", null);
   pickDiet = saved ? saved.diet : null;
   pickRoots = saved ? saved.roots : null;
+  pickCity = saved && saved.city ? saved.city : "";
+  $("cityInput").value = pickCity;
   paintFundPicks();
 }
 function paintFundPicks() {
@@ -247,21 +250,32 @@ function paintFundPicks() {
     const on = b.dataset.roots === pickRoots;
     b.classList.toggle("picked", on); b.setAttribute("aria-checked", on ? "true" : "false");
   });
-  $("buildBtn").disabled = !(pickDiet && pickRoots);
+  $("buildBtn").disabled = !(pickDiet && pickRoots && (pickCity || "").trim().length >= 2);
   $("buildBtn").textContent = st && st.builtFor ? "Rebuild my 50 questions →" : "Build my 50 questions →";
 }
 document.querySelectorAll("#dietGrid .fund-opt").forEach(b => b.onclick = () => {
-  pickDiet = b.dataset.diet; store.set("dib_pending_fund", { diet: pickDiet, roots: pickRoots }); paintFundPicks();
+  pickDiet = b.dataset.diet; savePending(); paintFundPicks();
 });
 document.querySelectorAll("#rootsGrid .fund-opt").forEach(b => b.onclick = () => {
-  pickRoots = b.dataset.roots; store.set("dib_pending_fund", { diet: pickDiet, roots: pickRoots }); paintFundPicks();
+  pickRoots = b.dataset.roots; savePending(); paintFundPicks();
 });
+$("cityInput").addEventListener("input", (e) => { pickCity = e.target.value; savePending(); paintFundPicks(); });
 $("buildBtn").onclick = () => {
-  if (!pickDiet || !pickRoots) return;
-  const F = { diet: pickDiet, roots: pickRoots };
-  const changing = st.builtFor && JSON.stringify(st.builtFor) !== JSON.stringify(F);
-  if ((changing || st.finished) && answeredCount(st) > 0 &&
-      !confirm("New fundamentals mean a fresh set of 50 questions — your current answers will be cleared. Continue?")) return;
+  const city = (pickCity || "").trim();
+  if (!pickDiet || !pickRoots || city.length < 2) return;
+  const F = { diet: pickDiet, roots: pickRoots, city };
+  const prev = st.builtFor;
+  if (prev && prev.diet === F.diet && prev.roots === F.roots) {
+    // City added/changed only — questions don't depend on it, keep progress.
+    st.fundamentals = F; st.builtFor = F;
+    if (st.result) st.result = computeResult(st);
+    saveState();
+    if (!st.finished && answeredCount(st) === 0) { st.pos = 0; renderQuestion(); show("view-quiz"); }
+    else { renderHome(); show("view-home"); }
+    return;
+  }
+  if ((prev || st.finished) && answeredCount(st) > 0 &&
+      !confirm("New diet or roots mean a fresh set of 50 questions — your current answers will be cleared. Continue?")) return;
   st.fundamentals = F; st.builtFor = F;
   st.answers = {}; st.finished = false; st.result = null; st.sheetSent = false;
   buildOrder(st);
@@ -281,13 +295,13 @@ function renderHome() {
   const n = answeredCount(st);
   const restart = $("restartBtn"), change = $("changeFundBtn");
   $("fundSummary").textContent = st.builtFor
-    ? `Your fundamentals: ${DIET_LABELS[st.builtFor.diet]} · ${ROOT_EMOJI[st.builtFor.roots]} ${ROOT_LABELS[st.builtFor.roots]} roots`
+    ? `Your fundamentals: ${DIET_LABELS[st.builtFor.diet]} · ${ROOT_EMOJI[st.builtFor.roots]} ${ROOT_LABELS[st.builtFor.roots]} roots${st.builtFor.city ? ` · 📍 ${st.builtFor.city}` : ""}`
     : "";
   restart.hidden = !(n > 0 || st.finished);
   change.hidden = !st.builtFor;
   if (!st.builtFor) {
     $("homeTitle").textContent = "One quick step first 🧭";
-    $("homeText").textContent = "Pick your two fundamentals — your diet and your roots — and we'll build your 50 questions around them.";
+    $("homeText").textContent = "Pick your three fundamentals — your diet, your roots and the city you live in — and we'll build your 50 questions around them.";
     $("primaryAction").textContent = "Pick my fundamentals →";
   } else if (st.finished) {
     $("homeTitle").textContent = "Your taste profile is ready 🎉";
@@ -519,6 +533,12 @@ function computeResult(s) {
     detail.push({ qid, q: q.q, deck: q.deck, picks: picks.map(p => p.t), weight: w });
   });
   const topTags = Object.entries(tagCount).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([t]) => t);
+  const affinities = {};
+  Object.entries(tagCount).sort((a, b) => b[1] - a[1]).slice(0, 8).forEach(([t, c]) => { affinities[t] = c; });
+  const nogo = s.answers["op-nogo"];
+  const aversions = nogo && Array.isArray(nogo.o)
+    ? nogo.o.map(i => (QBANK_BY_ID["op-nogo"].options[i] || {}).t).filter(t => t && !/^Nothing/.test(t))
+    : [];
   const meterPct = {};
   Object.entries(meters).forEach(([k, [sum, wt]]) => { meterPct[k] = wt ? Math.round(100 * sum / (3 * wt)) : 0; });
   // Recommendations: diet-safe, tag-matched, other regions first.
@@ -535,8 +555,8 @@ function computeResult(s) {
   scored.forEach(({ r }) => { if (recs.length < 5 && !recs.find(x => x.dish === r.dish)) { recs.push(r); seenRegion.add(r.region); } });
   return {
     email: sessionUser ? sessionUser.email : "",
-    diet: s.builtFor.diet, roots: s.builtFor.roots,
-    topTags, meters: meterPct,
+    diet: s.builtFor.diet, roots: s.builtFor.roots, city: s.builtFor.city || "",
+    topTags, affinities, aversions, meters: meterPct,
     avgConfidence: wCount ? +(wSum / wCount).toFixed(2) : 1,
     detail, recs: recs.map(r => ({ dish: r.dish, from: r.from, why: r.why })),
     completedAt: new Date().toISOString()
@@ -558,7 +578,7 @@ function renderResults() {
   $("profileNote").textContent = `Weighted by your confidence slider — your average pick strength was ${res.avgConfidence} / 5. Strong opinions shaped this profile most.`;
   $("profileRecs").innerHTML = res.recs.map(r =>
     `<div class="rec"><span class="r-emoji">${(RECS.find(x => x.dish === r.dish) || {}).emoji || "🍽️"}</span>
-     <div><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong><p>${r.why}</p></div></div>`).join("");
+     <div><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong><p>${r.why}</p>${res.city ? `<a class="r-find" target="_blank" rel="noopener" href="https://www.google.com/maps/search/${encodeURIComponent(r.dish + " near " + res.city)}">📍 Find it near you in ${res.city} →</a>` : ""}</div></div>`).join("");
   $("sheetNote").textContent = SHEETS_ENDPOINT ? "✓ Your results were saved for flavour analysis." : "";
 }
 async function sendToSheets() {
@@ -587,7 +607,10 @@ $("csvBtn").onclick = () => {
   const rows = [
     ["Diving into Buds — taste profile results"],
     ["Email", res.email], ["Diet", DIET_LABELS[res.diet] || res.diet], ["Roots", ROOT_LABELS[res.roots] || res.roots],
+    ["City", res.city || ""],
     ["Completed", res.completedAt], ["Top traits", res.topTags.join(", ")],
+    ["Affinities", Object.entries(res.affinities || {}).map(([k, v]) => `${k}:${v}`).join(", ")],
+    ["Hard no's", (res.aversions || []).join(", ")],
     ["Heat %", res.meters.spice], ["Sweet %", res.meters.sweet], ["Adventure %", res.meters.adv],
     ["Average confidence", res.avgConfidence], [],
     ["#", "Question", "Section", "Your pick(s)", "Confidence"]

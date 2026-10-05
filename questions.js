@@ -1,4 +1,4 @@
-// Diving into Buds — question bank (v4). Assembled from decks/*.js — edit decks, not this file.
+// Diving into Buds — question bank. Assembled from decks/*.js — edit decks, not this file.
 
 /* ——— deck: opener.js ——— */
 // Diving into Buds — OPENER deck
@@ -218,12 +218,12 @@ const DECK_OPENER = [
 
 /* ——— deck: hyderabad.js ——— */
 const DECK_HYDERABAD = [
-{ id:'hyd-01', deck:'hyderabad', q:'Biryani time, miya! Which plate is calling your name?', emoji:'🍛', img:'photo-1631515243349-e0cb75fb8d3a', multi:false,
+{ id:'hyd-01', deck:'hyderabad', q:'Biryani time! Which plate is calling your name?', emoji:'🍛', img:'photo-1631515243349-e0cb75fb8d3a', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Hyderabadi Chicken Dum Biryani', tags:['biryani','deccan','rice','meat'], diet:'meat:chicken', spice:3},
     {t:'Mutton Dum Biryani', tags:['biryani','deccan','rice','meat'], diet:'meat:lamb', spice:3},
-    {t:'Veg Dum Biryani', tags:['biryani','deccan','rice','veg'], diet:'vegan', spice:2},
+    {t:'Veg Dum Biryani', tags:['biryani','deccan','rice','veg'], alt:true, diet:'vegan', spice:2},
     {t:'Bagara Khana with Dalcha (tempered rice with lentil & gourd stew)', tags:['rice','deccan','home','veg'], diet:'vegan', spice:1}
   ] },
 { id:'hyd-02', deck:'hyderabad', q:'Haleem season is on! Your bowl of choice?', emoji:'🍲', img:'photo-1547592180-85f173990554', multi:false,
@@ -231,8 +231,8 @@ const DECK_HYDERABAD = [
   options:[
     {t:'Mutton Haleem (slow-pounded wheat, lentils & meat)', tags:['deccan','meat','classic'], diet:'meat:lamb', spice:2},
     {t:'Chicken Haleem', tags:['deccan','meat'], diet:'meat:chicken', spice:2},
-    {t:'Veg Haleem (lentils, veggies & soya, same masala soul)', tags:['deccan','veg','adventure'], diet:'vegan', spice:2},
-    {t:'Jackfruit Haleem (kathal cooked haleem-style)', tags:['deccan','veg','adventure'], diet:'vegan', spice:2}
+    {t:'Veg Haleem (lentils, veggies & soya, same masala soul)', tags:['deccan','veg','adventure'], alt:true, diet:'vegan', spice:2},
+    {t:'Jackfruit Haleem (kathal cooked haleem-style)', tags:['deccan','veg','adventure'], alt:true, diet:'vegan', spice:2}
   ] },
 { id:'hyd-03', deck:'hyderabad', q:'Classic Deccani breakfast — khichdi, khatta, and what else?', emoji:'🌅', img:'photo-1589302168068-964664d93dc0', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
@@ -266,7 +266,7 @@ const DECK_HYDERABAD = [
     {t:'Khajur and Fruit Chaat (dates & spiced fruit)', tags:['fresh','sweet'], diet:'vegan', sweet:2},
     {t:'Mixed Veg Pakode (crisp veg fritters)', tags:['street','veg','spice'], diet:'vegan', spice:2}
   ] },
-{ id:'hyd-07', deck:'hyderabad', q:'Kebab night near Charminar — which skewer wins, miya?', emoji:'🍢', img:'photo-1599487488170-d11ec9c172f0', multi:false,
+{ id:'hyd-07', deck:'hyderabad', q:'Kebab night near Charminar — which skewer wins?', emoji:'🍢', img:'photo-1599487488170-d11ec9c172f0', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Pathar ka Gosht (meat grilled on a hot stone slab)', tags:['deccan','meat','smoky'], diet:'meat:lamb', spice:3, adv:2},
@@ -303,7 +303,7 @@ const DECK_HYDERABAD = [
   options:[
     {t:'Kacchi style — raw marinated chicken layered with rice, sealed & slow-cooked', tags:['biryani','deccan','meat','adventure'], diet:'meat:chicken', spice:3},
     {t:'Pakki style — mutton cooked first, then layered & dum', tags:['biryani','deccan','meat','classic'], diet:'meat:lamb', spice:3},
-    {t:'Veg dum — veggies & masala layered just as seriously', tags:['biryani','deccan','veg'], diet:'vegan', spice:2},
+    {t:'Veg dum — veggies & masala layered just as seriously', tags:['biryani','deccan','veg'], alt:true, diet:'vegan', spice:2},
     {t:'Skip biryani — Bagara Khana with Khatti Dal (tangy lentils) wins', tags:['rice','home','veg','tangy'], diet:'vegan', spice:1}
   ] },
 { id:'hyd-12', deck:'hyderabad', q:'Fry-day at a Deccani hotel — pick your plate!', emoji:'🍗', img:'photo-1558030006-450675393462', multi:false,
@@ -362,13 +362,13 @@ const DECK_HYDERABAD = [
     {t:'Dahi Raita to cool things down', tags:['creamy','mild'], diet:'veg', spice:0},
     {t:'Mint Chutney, sharp & herby', tags:['fresh','tangy'], diet:'vegan', spice:1}
   ] },
-{ id:'hyd-19', deck:'hyderabad', q:'Seafood craving in the Deccan — arre, it happens! Your pick?', emoji:'🐟', img:'photo-1467003909585-2f8a72700288', multi:false,
+{ id:'hyd-19', deck:'hyderabad', q:'Seafood craving in the Deccan — it happens! Your pick?', emoji:'🐟', img:'photo-1467003909585-2f8a72700288', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Apollo Fish (fiery, curry-leaf fish fry)', tags:['meat','spice','adventure'], diet:'meat:seafood', spice:3},
     {t:'Prawn Fry, masala-coated', tags:['meat','spice'], diet:'meat:seafood', spice:2},
     {t:'Bagara Khana with Dahi ki Chutney (tempered rice & yogurt raita)', tags:['rice','creamy','mild'], diet:'veg', spice:1},
-    {t:'Nakko seafood — Bagara Khana with Mirchi ka Salan for me', tags:['rice','deccan','veg'], diet:'vegan', spice:2}
+    {t:'No seafood — Bagara Khana with Mirchi ka Salan for me', tags:['rice','deccan','veg'], diet:'vegan', spice:2}
   ] },
 { id:'hyd-20', deck:'hyderabad', q:'Tiffin time! Which breakfast plate starts your day right?', emoji:'🍳', img:'photo-1525351484163-7529414344d8', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
@@ -456,7 +456,7 @@ const DECK_HYDERABAD = [
     {t:'Chicken Dum Biryani, the undisputed king', tags:['biryani','deccan','meat','classic'], diet:'meat:chicken', spice:3},
     {t:'Mutton Haleem, rich & slow-cooked', tags:['deccan','meat','classic'], diet:'meat:lamb', spice:2},
     {t:'Bagara Khana, Dalcha & Salan — the full veg spread', tags:['rice','deccan','veg','home'], diet:'vegan', spice:2},
-    {t:'Veg Dum Biryani with Mirchi ka Salan', tags:['biryani','deccan','veg'], diet:'vegan', spice:2}
+    {t:'Veg Dum Biryani with Mirchi ka Salan', tags:['biryani','deccan','veg'], alt:true, diet:'vegan', spice:2}
   ] }
 ];
 
@@ -604,7 +604,7 @@ const DECK_ASIA = [
       {t:'Chicken satay with rich peanut sauce', tags:['meat','street','asia'], diet:'meat:chicken', spice:1},
       {t:'Beef rendang — slow-braised in coconut and spices', tags:['meat','spice','home','asia'], diet:'meat:beef', spice:2},
       {t:'Tempeh satay with peanut sauce and crunchy pickles', tags:['veg','street','asia'], diet:'vegan', spice:1},
-      {t:'Young jackfruit rendang — tender, spiced, slow-cooked', tags:['veg','spice','asia','adventure'], diet:'vegan', spice:2, adv:1}
+      {t:'Young jackfruit rendang — tender, spiced, slow-cooked', tags:['veg','spice','asia','adventure'], alt:true, diet:'vegan', spice:2, adv:1}
     ] },
   { id:'asi-19', deck:'asia', q:'Filipino comfort food — what fills your plate?', emoji:'🍽️', img:'photo-1504674900247-0877df9cc836', multi:false,
     diets:['everything','vegetarian','vegan','halal'],
@@ -666,7 +666,7 @@ const DECK_ASIA = [
     diets:['everything','vegetarian','vegan','halal'],
     options:[
       {t:'Hyderabadi chicken dum biryani — the fiery original', tags:['biryani','rice','meat','spice','asia'], diet:'meat:chicken', spice:3},
-      {t:'Jackfruit biryani — meaty texture, all plant', tags:['biryani','rice','veg','spice','adventure'], diet:'vegan', spice:2, adv:1},
+      {t:'Jackfruit biryani — meaty texture, all plant', tags:['biryani','rice','veg','spice','adventure'], alt:true, diet:'vegan', spice:2, adv:1},
       {t:'Mushroom biryani — oil-based and deeply spiced', tags:['biryani','rice','veg','spice','asia'], diet:'vegan', spice:2},
       {t:'Egg biryani with masala eggs and crisp fried onions', tags:['biryani','rice','spice','asia'], diet:'veg', spice:2}
     ] },
@@ -711,7 +711,7 @@ const DECK_AMERICAS = [
   options:[
     {t:'Baja fish taco with chipotle slaw', tags:['street','americas','tangy'], diet:'meat:seafood', spice:2},
     {t:'Al pastor — marinated pork shaved off the spit', tags:['street','americas','meat'], diet:'meat:pork', spice:2},
-    {t:'Cauliflower al pastor with pineapple salsa', tags:['street','americas','veg'], diet:'vegan', spice:2},
+    {t:'Cauliflower al pastor with pineapple salsa', tags:['street','americas','veg'], alt:true, diet:'vegan', spice:2},
     {t:'Black bean & charred corn taco with avocado', tags:['street','americas','veg','fresh'], diet:'vegan', spice:1}
   ]},
 { id:'ame-02', deck:'americas', q:'Low-and-slow American BBQ — what is landing on your tray?', emoji:'🍖', img:'photo-1544025162-d76694265947', multi:false,
@@ -719,7 +719,7 @@ const DECK_AMERICAS = [
   options:[
     {t:'Smoked beef brisket with a peppery bark', tags:['smoky','meat','americas','classic'], diet:'meat:beef', spice:1},
     {t:'Pulled pork shoulder with tangy slaw', tags:['smoky','meat','americas'], diet:'meat:pork', spice:1},
-    {t:'Smoked jackfruit in BBQ sauce', tags:['smoky','veg','americas','adventure'], diet:'vegan', spice:2},
+    {t:'Smoked jackfruit in BBQ sauce', tags:['smoky','veg','americas','adventure'], alt:true, diet:'vegan', spice:2},
     {t:'Grilled portobello & corn ribs with chimichurri', tags:['smoky','veg','americas','fresh'], diet:'vegan', spice:1}
   ]},
 { id:'ame-03', deck:'americas', q:'The great burger debate — your patty of choice?', emoji:'🍔', img:'photo-1568901346375-23c9450c58cd', multi:false,
@@ -743,8 +743,8 @@ const DECK_AMERICAS = [
   options:[
     {t:'Buttermilk fried chicken, golden & juicy', tags:['classic','meat','americas','home'], diet:'meat:chicken', spice:1},
     {t:'Nashville hot chicken — fiery chilli oil glaze', tags:['spice','meat','americas'], diet:'meat:chicken', spice:3},
-    {t:'Buffalo cauliflower bites with ranch-style dip', tags:['veg','americas','spice'], diet:'vegan', spice:2},
-    {t:'Crispy fried oyster mushrooms, chicken-style crunch', tags:['veg','americas','adventure'], diet:'vegan', spice:1}
+    {t:'Buffalo cauliflower bites with ranch-style dip', tags:['veg','americas','spice'], alt:true, diet:'vegan', spice:2},
+    {t:'Crispy fried oyster mushrooms, chicken-style crunch', tags:['veg','americas','adventure'], alt:true, diet:'vegan', spice:1}
   ]},
 { id:'ame-06', deck:'americas', q:'A steaming bowl of Louisiana gumbo — which pot is calling you?', emoji:'🍲', img:'photo-1547592180-85f173990554', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
@@ -790,7 +790,7 @@ const DECK_AMERICAS = [
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Slow-cooked chicken in mole poblano', tags:['americas','meat','spice','home'], diet:'meat:chicken', spice:2},
-    {t:'Roasted cauliflower steak under rich mole', tags:['americas','veg','adventure'], diet:'vegan', spice:2},
+    {t:'Roasted cauliflower steak under rich mole', tags:['americas','veg','adventure'], alt:true, diet:'vegan', spice:2},
     {t:'Mushrooms & plantain simmered in mole', tags:['americas','veg','sweet'], diet:'vegan', spice:2},
     {t:'Enmoladas — tortillas in mole with melted cheese', tags:['americas','creamy','classic'], diet:'veg', spice:2}
   ]},
@@ -815,16 +815,16 @@ const DECK_AMERICAS = [
   options:[
     {t:'Classic sea bass ceviche with red onion & sweet potato', tags:['americas','fresh','tangy','adventure'], diet:'meat:seafood', spice:2},
     {t:'Shrimp ceviche with tomato & avocado', tags:['americas','fresh','tangy'], diet:'meat:seafood', spice:2},
-    {t:'Mushroom ceviche in leche de tigre (lime-chilli marinade)', tags:['americas','veg','fresh','adventure'], diet:'vegan', spice:2},
-    {t:'Mango & avocado ceviche with red onion', tags:['americas','veg','fresh','sweet'], diet:'vegan', spice:1}
+    {t:'Mushroom ceviche in leche de tigre (lime-chilli marinade)', tags:['americas','veg','fresh','adventure'], alt:true, diet:'vegan', spice:2},
+    {t:'Mango & avocado ceviche with red onion', tags:['americas','veg','fresh','sweet'], alt:true, diet:'vegan', spice:1}
   ]},
 { id:'ame-15', deck:'americas', q:'Lomo saltado — Peru\u2019s stir-fry of soy, tomato & fries over rice. Your protein?', emoji:'🥩', img:'photo-1600891964092-4316c288032e', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
   options:[
     {t:'Beef strips, classic style', tags:['americas','meat','rice','home'], diet:'meat:beef', spice:1},
     {t:'Chicken saltado with peppers & onion', tags:['americas','meat','rice'], diet:'meat:chicken', spice:1},
-    {t:'King oyster mushrooms, seared & saucy', tags:['americas','veg','rice','adventure'], diet:'vegan', spice:1},
-    {t:'Cauliflower & bell pepper saltado', tags:['americas','veg','rice','healthy'], diet:'vegan', spice:1}
+    {t:'King oyster mushrooms, seared & saucy', tags:['americas','veg','rice','adventure'], alt:true, diet:'vegan', spice:1},
+    {t:'Cauliflower & bell pepper saltado', tags:['americas','veg','rice','healthy'], alt:true, diet:'vegan', spice:1}
   ]},
 { id:'ame-16', deck:'americas', q:'Build an Andean quinoa bowl — what anchors it?', emoji:'🥗', img:'photo-1540420773420-3366772f4999', multi:false,
   diets:['everything','vegetarian','vegan','halal'],
@@ -839,7 +839,7 @@ const DECK_AMERICAS = [
   options:[
     {t:'Traditional feijoada — beans with pork & beef, rice & orange', tags:['americas','meat','rice','home','classic'], diet:'meat:other', spice:1},
     {t:'Chicken feijoada-style bean stew', tags:['americas','meat','rice','home'], diet:'meat:chicken', spice:1},
-    {t:'Fully plant-based feijoada with smoked tofu-free beans & greens', tags:['americas','veg','rice','smoky'], diet:'vegan', spice:1},
+    {t:'Fully plant-based feijoada with smoked tofu-free beans & greens', tags:['americas','veg','rice','smoky'], alt:true, diet:'vegan', spice:1},
     {t:'Black bean & sweet potato stew with farofa (toasted cassava crumbs)', tags:['americas','veg','rice','adventure'], diet:'vegan', spice:1}
   ]},
 { id:'ame-18', deck:'americas', q:'Brigadeiro break — Brazil\u2019s fudgy chocolate truffles. Pick a flavour.', emoji:'🍬', img:'photo-1551024506-0bccd828d307', multi:false,
@@ -1107,7 +1107,7 @@ const DECK_EUROPE = [
     options:[
       {t:'Pork schnitzel — golden, crisp, lemon on the side', tags:['meat','classic','europe'], diet:'meat:pork'},
       {t:'Chicken schnitzel with herbed crumbs', tags:['meat'], diet:'meat:chicken'},
-      {t:'Breaded portobello schnitzel, fully plant-based', tags:['veg'], diet:'vegan'},
+      {t:'Breaded portobello schnitzel, fully plant-based', tags:['veg'], alt:true, diet:'vegan'},
       {t:'Giant soft pretzel with sharp mustard', tags:['street','classic'], diet:'vegan'}
     ] },
   { id:'eur-21', deck:'europe', q:'Bakery stop in Munich — pick your bake.', emoji:'🥖', img:'photo-1509440159596-0249088772ff', multi:false,
@@ -1131,7 +1131,7 @@ const DECK_EUROPE = [
     options:[
       {t:'Battered cod & chips, salt and vinegar', tags:['meat','classic','street','europe'], diet:'meat:seafood'},
       {t:'Battered sausage & chips', tags:['meat','street'], diet:'meat:pork'},
-      {t:'Banana blossom "fish" & chips — the plant-based cult favourite', tags:['veg','adventure'], diet:'vegan', adv:2},
+      {t:'Banana blossom "fish" & chips — the plant-based cult favourite', tags:['veg','adventure'], alt:true, diet:'vegan', adv:2},
       {t:'Chips with chip-shop curry sauce', tags:['street','spice'], diet:'vegan', spice:1}
     ] },
   { id:'eur-24', deck:'europe', q:'The great British breakfast — build your plate.', emoji:'🍳', img:'photo-1525351484163-7529414344d8', multi:false,

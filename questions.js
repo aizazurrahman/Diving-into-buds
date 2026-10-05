@@ -190,6 +190,30 @@ const DECK_OPENER = [
       { t:'Europe', tags:['europe'], diet:'vegan' },
     ]},
 
+  { id:'op-format', deck:'opener', multi:false,
+    q:'Your ideal plate format?',
+    emoji:'🍽️', img:'photo-1555396273-367ea4eb4db5',
+    diets:['everything','vegetarian','vegan','halal'],
+    options:[
+      { t:'A big bowl, all mixed in', tags:['rice','home'], diet:'vegan' },
+      { t:'Handheld & street-style', tags:['street'], diet:'vegan' },
+      { t:'Sharing platters, family style', tags:['classic','home'], diet:'vegan' },
+      { t:'Plated & fancy', tags:['cafe'], adv:1, diet:'vegan' },
+    ]},
+
+  { id:'op-nogo', deck:'opener', multi:true,
+    q:"Any hard no's? Pick all that apply — we'll never suggest these.",
+    emoji:'🚫', img:'photo-1596040033229-a9821ebd058d',
+    diets:['everything','vegetarian','vegan','halal'],
+    options:[
+      { t:'Coriander (the soap gene is real)', tags:[], diet:'vegan' },
+      { t:'Mushrooms', tags:[], diet:'vegan' },
+      { t:'Olives', tags:[], diet:'vegan' },
+      { t:'Raw onion', tags:[], diet:'vegan' },
+      { t:'Bitter flavours', tags:[], diet:'vegan' },
+      { t:"Nothing — I'll try anything once", tags:['adventure'], adv:2, diet:'vegan' },
+    ]},
+
 ];
 
 /* ——— deck: hyderabad.js ——— */

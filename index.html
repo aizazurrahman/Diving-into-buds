@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Diving into Buds — a delicious dive into your taste buds</title>
-<meta name="description" content="Answer 50 mouth-watering questions and discover your taste profile. Starts in Hyderabad, crosses India, tours the world.">
+<meta name="description" content="50 quick questions. Zero fluff. We figure out what makes your taste buds tick, then match you to world flavors you didn't know you'd love.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=3">
+<link rel="stylesheet" href="styles.css?v=4">
 </head>
 <body>
 
@@ -24,30 +24,70 @@
   <!-- ——— AUTH / LANDING ——— -->
   <section id="view-auth" class="view">
     <div class="hero">
-      <div class="hero-img" role="img" aria-label="A fragrant biryani">
-        <img src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?q=80&w=1400&auto=format&fit=crop" alt="" onerror="this.remove()">
+      <div class="hero-art" role="img" aria-label="A minimalist saffron crocus with crimson threads">
+        <svg viewBox="0 0 640 300" aria-hidden="true" focusable="false">
+          <defs>
+            <radialGradient id="glow" cx="50%" cy="40%" r="70%">
+              <stop offset="0%" stop-color="#FFE9BC"/>
+              <stop offset="55%" stop-color="#FFD08A"/>
+              <stop offset="100%" stop-color="#FFB25E" stop-opacity="0"/>
+            </radialGradient>
+            <linearGradient id="petal" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#C4A9F2"/>
+              <stop offset="100%" stop-color="#8E6FD8"/>
+            </linearGradient>
+            <linearGradient id="thread" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#F06423"/>
+              <stop offset="100%" stop-color="#B3271E"/>
+            </linearGradient>
+          </defs>
+          <circle cx="320" cy="140" r="150" fill="url(#glow)"/>
+          <ellipse cx="320" cy="248" rx="120" ry="10" fill="#E8871E" opacity="0.14"/>
+          <g class="bloom">
+            <g transform="rotate(-26 320 196)"><path d="M320 200 C299 148 304 100 320 58 C336 100 341 148 320 200 Z" fill="url(#petal)" opacity="0.75"/></g>
+            <g transform="rotate(26 320 196)"><path d="M320 200 C299 148 304 100 320 58 C336 100 341 148 320 200 Z" fill="url(#petal)" opacity="0.75"/></g>
+            <path d="M320 202 C301 150 306 98 320 52 C334 98 339 150 320 202 Z" fill="url(#petal)"/>
+            <g fill="none" stroke="url(#thread)" stroke-width="5.5" stroke-linecap="round">
+              <path d="M320 190 C312 158 296 140 282 130"/>
+              <path d="M320 188 C320 152 326 132 320 112"/>
+              <path d="M320 190 C328 158 344 140 358 130"/>
+            </g>
+            <g fill="#A91F16">
+              <circle cx="280" cy="128" r="5"/><circle cx="320" cy="108" r="5.5"/><circle cx="360" cy="128" r="5"/>
+            </g>
+            <path d="M320 202 C306 214 296 226 292 240 L348 240 C344 226 334 214 320 202 Z" fill="#F2A93B"/>
+          </g>
+          <g fill="none" stroke="url(#thread)" stroke-width="4" stroke-linecap="round" opacity="0.85">
+            <path d="M238 244 C252 236 268 236 280 244"/>
+            <path d="M356 246 C370 238 386 238 398 246"/>
+            <path d="M296 256 C306 250 318 250 328 256"/>
+          </g>
+          <g fill="#E8A33D">
+            <path class="spark" d="M168 84 l3.5 8.5 8.5 3.5 -8.5 3.5 -3.5 8.5 -3.5 -8.5 -8.5 -3.5 8.5 -3.5 Z"/>
+            <path class="spark s2" d="M462 66 l3 7.5 7.5 3 -7.5 3 -3 7.5 -3 -7.5 -7.5 -3 7.5 -3 Z"/>
+            <path class="spark s3" d="M486 168 l2.5 6 6 2.5 -6 2.5 -2.5 6 -2.5 -6 -6 -2.5 6 -2.5 Z"/>
+            <path class="spark s2" d="M150 176 l2.5 6 6 2.5 -6 2.5 -2.5 6 -2.5 -6 -6 -2.5 6 -2.5 Z"/>
+          </g>
+        </svg>
       </div>
+      <div class="badge">✦ A 50-question flavour journey ✦</div>
       <h1>Take a dive into your <em>taste buds</em>.</h1>
-      <p class="lede">50 questions. Zero boring forms. Just you, your cravings, and a taste profile at the end of it — we start in Hyderabad, cross the whole of India, and finish with a tour of the world.</p>
+      <p class="lede">50 quick questions. Zero fluff. We figure out what makes your taste buds tick, then match your tastes to quietly introduce you to world flavors you didn't know you'd love.</p>
     </div>
 
     <div class="card info-card">
       <h2 class="info-title">How it works</h2>
       <div class="steps">
-        <div class="step"><div class="step-emoji">🔐</div><strong>1 · Make an account</strong><span>Just an email &amp; password — saved securely in the cloud, so your profile follows you to any device.</span></div>
-        <div class="step"><div class="step-emoji">🍛</div><strong>2 · Answer 50 questions</strong><span>One at a time, each with a photo worth drooling over.</span></div>
-        <div class="step"><div class="step-emoji">🎉</div><strong>3 · Get your taste profile</strong><span>Your top foodie traits, plus heat, sweet &amp; adventure meters.</span></div>
+        <div class="step"><div class="step-emoji">🔐</div><strong>1 · Make an account</strong><span>This would save your data if you ever wish to come back and access your profile</span></div>
+        <div class="step"><div class="step-emoji">🍽️</div><strong>2 · Answer 50 questions</strong></div>
+        <div class="step"><div class="step-emoji">🎉</div><strong>3 · Meet your taste profile</strong><span>Our recommendations based on your profile</span></div>
       </div>
       <div class="slider-explain">
-        <div class="se-head">🎚️ <strong>The confidence slider</strong></div>
-        <p>Every question has a slider under the options. Picked an answer easily? Slide to <strong>5 — no contest</strong>. Was it a photo-finish between two options? Leave it at <strong>1 — almost a tie</strong>. Your strong opinions count more in your final profile, so weigh each pick honestly. You can save &amp; exit anytime — your answers (and slider weights) wait for you here.</p>
-        <div class="se-scale" aria-hidden="true"><span>1 · almost a tie</span><span>3 · pretty sure</span><span>5 · no contest</span></div>
+        <div class="se-head">🎚️ <strong>The Confidence Slider: How Sure Are You?</strong></div>
+        <p>Crank it to 5 for an instant "heck yes!", or leave it at 1 for close winners. Your highest-confidence picks shape your final results most accurately. It adds a few extra seconds but gives a far more personalized profile.</p>
+        <p class="se-tip">(Tip: Unsure? Leave it at 1 and keep rolling to the next question)</p>
       </div>
-      <div class="journey" aria-label="The journey">
-        <span class="jchip">🌶️ 15 · Hyderabad roots</span>
-        <span class="jchip">🇮🇳 10 · Pan-India</span>
-        <span class="jchip">🌍 25 · Around the world</span>
-      </div>
+      <p class="fund-note">First, two quick fundamentals — <strong>your diet</strong> and <strong>your roots</strong> — so your 50 questions are built around you, wherever in the world your taste buds call home. 🌍</p>
     </div>
 
     <div class="card auth-card">
@@ -69,14 +109,47 @@
     </div>
   </section>
 
+  <!-- ——— FUNDAMENTALS ——— -->
+  <section id="view-fund" class="view" hidden>
+    <div class="card fund-card">
+      <div class="big-emoji">🧭</div>
+      <h2>Two fundamentals first</h2>
+      <p class="lede">Your 50 questions get built around these picks. Choose one from each.</p>
+
+      <h3 class="fund-label">Fundamental 1 · Pick your diet</h3>
+      <div class="fund-grid" id="dietGrid" role="radiogroup" aria-label="Pick your diet">
+        <button type="button" class="fund-opt" data-diet="everything" role="radio" aria-checked="false"><span class="f-emoji">🍽️</span><strong>Everything</strong><span>No rules. Bring it all on.</span></button>
+        <button type="button" class="fund-opt" data-diet="vegetarian" role="radio" aria-checked="false"><span class="f-emoji">🥗</span><strong>Vegetarian</strong><span>No meat or seafood — dairy &amp; eggs welcome.</span></button>
+        <button type="button" class="fund-opt" data-diet="vegan" role="radio" aria-checked="false"><span class="f-emoji">🌱</span><strong>Vegan</strong><span>Fully plant-based, all the way.</span></button>
+        <button type="button" class="fund-opt" data-diet="halal" role="radio" aria-checked="false"><span class="f-emoji">🌙</span><strong>Everything Halal</strong><span>Everything, halal — no pork, no alcohol.</span></button>
+      </div>
+
+      <h3 class="fund-label">Fundamental 2 · Your roots</h3>
+      <div class="fund-grid" id="rootsGrid" role="radiogroup" aria-label="Your roots">
+        <button type="button" class="fund-opt" data-roots="hyderabad" role="radio" aria-checked="false"><span class="f-emoji">🏰</span><strong>Hyderabad</strong><span>Deccan soul — biryani country.</span></button>
+        <button type="button" class="fund-opt" data-roots="asia" role="radio" aria-checked="false"><span class="f-emoji">🥢</span><strong>Asia</strong><span>From ramen to rendang.</span></button>
+        <button type="button" class="fund-opt" data-roots="americas" role="radio" aria-checked="false"><span class="f-emoji">🌮</span><strong>Americas</strong><span>BBQ, tacos &amp; everything between.</span></button>
+        <button type="button" class="fund-opt" data-roots="europe" role="radio" aria-checked="false"><span class="f-emoji">🥐</span><strong>Europe</strong><span>From paella to pierogi.</span></button>
+      </div>
+
+      <div class="stack">
+        <button class="btn primary big" id="buildBtn" type="button" disabled>Build my 50 questions →</button>
+        <button class="btn ghost" id="fundExitBtn" type="button">💾 Save &amp; exit</button>
+      </div>
+      <p class="fineprint">Changing fundamentals later restarts your questionnaire — your picks here decide which questions you get.</p>
+    </div>
+  </section>
+
   <!-- ——— HOME ——— -->
   <section id="view-home" class="view" hidden>
     <div class="card center">
       <div class="big-emoji">👋</div>
       <h2 id="homeTitle">Ready to dive in?</h2>
       <p id="homeText" class="lede"></p>
+      <p class="fund-summary" id="fundSummary"></p>
       <div class="stack">
         <button class="btn primary big" id="primaryAction" type="button">Start the 50 questions</button>
+        <button class="btn ghost" id="changeFundBtn" type="button" hidden>Change fundamentals</button>
         <button class="btn ghost" id="restartBtn" type="button" hidden>Start over</button>
       </div>
     </div>
@@ -84,11 +157,13 @@
 
   <!-- ——— QUIZ ——— -->
   <section id="view-quiz" class="view" hidden>
-    <div class="quiz-head">
-      <span id="qCounter">Question 1 of 50</span>
-      <button class="btn ghost small" id="saveExitBtn" type="button">💾 Save &amp; exit</button>
+    <div class="quiz-sticky">
+      <div class="quiz-head">
+        <span id="qCounter">Question 1 of 50</span>
+        <button class="btn ghost small save-btn" id="saveExitBtn" type="button">💾 Save &amp; exit</button>
+      </div>
+      <div class="progress" role="progressbar" aria-label="Questions answered" aria-valuemin="0" aria-valuemax="50" aria-valuenow="0" id="progressWrap"><div class="bar" id="progressBar"></div></div>
     </div>
-    <div class="progress" role="progressbar" aria-label="Questions answered" aria-valuemin="0" aria-valuemax="50" aria-valuenow="0" id="progressWrap"><div class="bar" id="progressBar"></div></div>
 
     <div class="card qcard" id="qCard">
       <div class="qinner" id="qInner">
@@ -98,6 +173,7 @@
         </div>
         <div class="qmeta"><span class="chip" id="qSection"></span><span class="qsub" id="qSub"></span></div>
         <h2 class="qtext" id="qText" tabindex="-1"></h2>
+        <p class="multi-hint" id="multiHint" hidden>✋ Pick all that apply — then hit Next.</p>
         <div class="options" id="qOptions" role="group" aria-label="Answer options"></div>
 
         <div class="slider-block">
@@ -123,22 +199,27 @@
   <section id="view-results" class="view" hidden>
     <div class="card center">
       <div class="big-emoji">🎉</div>
-      <h2>Your taste profile</h2>
+      <h2>Meet your taste profile</h2>
       <p class="lede" id="profileSummary"></p>
       <div class="traits" id="profileTraits"></div>
       <div class="meters" id="profileMeters"></div>
       <p class="fineprint" id="profileNote"></p>
+      <h3 class="rec-title">🌍 Flavours to meet next</h3>
+      <p class="rec-sub">Matched to your profile — similar enough to love, new enough to explore.</p>
+      <div class="recs" id="profileRecs"></div>
+      <p class="fineprint" id="sheetNote"></p>
       <div class="stack">
+        <button class="btn ghost" id="csvBtn" type="button">⬇️ Download my results (CSV)</button>
         <button class="btn primary big" id="retakeBtn" type="button">Retake the questions</button>
       </div>
     </div>
   </section>
 </main>
 
-<footer>Made with 🌶️ in Hyderabad spirit · Diving into Buds</footer>
+<footer>Made with 🌶️ and curiosity · Diving into Buds</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="questions.js?v=3"></script>
-<script src="app.js?v=5"></script>
+<script src="questions.js?v=4"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>

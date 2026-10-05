@@ -262,6 +262,29 @@ document.querySelectorAll("#dietGrid .fund-opt").forEach(b => b.onclick = () => 
 document.querySelectorAll("#rootsGrid .fund-opt").forEach(b => b.onclick = () => {
   pickRoots = b.dataset.roots; savePending(); paintFundPicks();
 });
+const FUND_INFO = {
+  diet: {
+    everything: "Everything — no restrictions at all. The first question asks which meats you eat, so your 50 stay relevant: pick chicken-only and mutton biryani quietly leaves the set.",
+    vegetarian: "Vegetarian — no meat and no seafood in any option, ever. Dairy and eggs still appear (paneer, curd rice, egg dishes), so this is not the vegan set.",
+    vegan: "Vegan — fully plant-based: no meat, seafood, dairy, eggs or honey in any option. Your questions swap in plant dishes that stand on their own.",
+    halal: "Everything Halal — the full spread, halal-style: no pork and no alcohol anywhere in your questions. You still pick your meats first, just like Everything."
+  },
+  roots: {
+    hyderabad: "Hyderabad — Deccan home turf: dum biryani, haleem, Irani café culture, and the wider Indian table. Written for people who grew up on it — or wish they had.",
+    asia: "Asia — East, South-East and South Asia: ramen and sushi to laksa, momos and rendang. If your comfort zone runs on rice, noodles and broth, start here.",
+    americas: "Americas — North, Central and South: low-and-slow BBQ, tacos, ceviche, feijoada and jerk. Smoke, lime and corn run deep in this deck.",
+    europe: "Europe — paella to pierogi, schnitzel to souvlaki: the old continent's classics, from Mediterranean olive-oil country to Nordic preserves."
+  }
+};
+document.querySelectorAll(".fi").forEach(el => {
+  el.addEventListener("click", (e) => {
+    e.stopPropagation(); e.preventDefault();
+    const box = $(el.dataset.fi + "Info");
+    if (!box) return;
+    box.textContent = (FUND_INFO[el.dataset.fi] || {})[el.dataset.key] || "";
+    box.classList.remove("flash"); void box.offsetWidth; box.classList.add("flash");
+  });
+});
 $("cityInput").addEventListener("input", (e) => { pickCity = e.target.value; savePending(); paintFundPicks(); });
 $("buildBtn").onclick = () => {
   const city = (pickCity || "").trim();
@@ -375,6 +398,10 @@ function renderQuestion() {
   img.alt = q.q;
   $("qText").textContent = q.q;
   $("multiHint").hidden = !q.multi;
+  $("qInfoBtn").hidden = !q.info;
+  $("qInfoBtn").classList.remove("open");
+  $("qInfoPanel").hidden = true;
+  $("qInfoPanel").textContent = q.info || "";
 
   pendingSel = new Set(saved && Array.isArray(saved.o) ? saved.o : []);
   const box = $("qOptions");
@@ -648,4 +675,18 @@ $("retakeBtn").onclick = () => {
   } else {
     show("view-auth");
   }
+})();
+
+/* v5: question info toggle + scroll reveal */
+$("qInfoBtn").onclick = () => {
+  const p = $("qInfoPanel");
+  p.hidden = !p.hidden;
+  $("qInfoBtn").classList.toggle("open", !p.hidden);
+};
+(() => {
+  if (!("IntersectionObserver" in window)) { document.querySelectorAll(".reveal").forEach(el => el.classList.add("inview")); return; }
+  const io = new IntersectionObserver(es => es.forEach(en => {
+    if (en.isIntersecting) { en.target.classList.add("inview"); io.unobserve(en.target); }
+  }), { threshold: 0.1 });
+  document.querySelectorAll(".reveal").forEach(el => io.observe(el));
 })();

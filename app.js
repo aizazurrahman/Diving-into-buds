@@ -132,11 +132,14 @@ function fixOrder(s) {
   // Pull open gated follow-ups up to sit directly behind their parent, so
   // a chain reads as a chain (parent → follow-up → follow-up) instead of
   // being separated by whatever filler swapped in for a closed-gate sibling.
+  // The insertion point must stay ahead of the user's current position:
+  // placing a follow-up at or behind s.pos strands it — forward navigation
+  // only scans from s.pos + 1, so it would be skipped until wrap-around.
   const gateParents = [...new Set(QBANK.filter(c => c.gate).map(c => c.gate.q))];
   for (const pid of gateParents) {
     const pIdx = s.order.indexOf(pid);
     if (pIdx < 0 || !s.answers[pid]) continue;
-    let insertAt = pIdx + 1;
+    let insertAt = Math.max(pIdx + 1, s.pos + 1);
     for (const kid of QBANK.filter(c => c.gate && c.gate.q === pid)) {
       if (s.answers[kid.id]) continue;
       const kIdx = s.order.indexOf(kid.id);

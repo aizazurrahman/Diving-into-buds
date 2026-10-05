@@ -129,6 +129,22 @@ function fixOrder(s) {
     }
     if (rep) { used.add(rep); s.order[i] = rep; }
   }
+  // Pull open gated follow-ups up to sit directly behind their parent, so
+  // a chain reads as a chain (parent → follow-up → follow-up) instead of
+  // being separated by whatever filler swapped in for a closed-gate sibling.
+  const gateParents = [...new Set(QBANK.filter(c => c.gate).map(c => c.gate.q))];
+  for (const pid of gateParents) {
+    const pIdx = s.order.indexOf(pid);
+    if (pIdx < 0 || !s.answers[pid]) continue;
+    let insertAt = pIdx + 1;
+    for (const kid of QBANK.filter(c => c.gate && c.gate.q === pid)) {
+      if (s.answers[kid.id]) continue;
+      const kIdx = s.order.indexOf(kid.id);
+      if (kIdx < 0 || !playable(kid, s)) continue;
+      if (kIdx > insertAt) { s.order.splice(kIdx, 1); s.order.splice(insertAt, 0, kid.id); insertAt++; }
+      else if (kIdx === insertAt) insertAt++;
+    }
+  }
   s.reserve = pool.filter(id => !used.has(id) && !s.order.includes(id));
 }
 
@@ -491,13 +507,16 @@ function paintOptions() {
     } else if (bd) bd.remove();
   });
 }
-// After any answer commit: meats changes and gate-parent changes re-shape the tail.
+// After any answer commit: if a gate parent's answer changed, clear its
+// children's stale answers. The order itself is re-shaped in the Next
+// handler (fixOrder) — never here: fixOrder swaps are one-way, so running
+// it mid-selection (e.g. on each tap of the meats multi-select, when only
+// the first meat is registered) would permanently swap out questions that
+// the user's final selection would have kept playable.
 function afterAnswer(q, prevJson) {
-  if (q.id === "op-meats" || q.id === "op-meats-halal") fixOrder(st);
   const nowJson = JSON.stringify(st.answers[q.id] || null);
   if (nowJson !== prevJson && QBANK.some(c => c.gate && c.gate.q === q.id)) {
     QBANK.filter(c => c.gate && c.gate.q === q.id).forEach(c => { delete st.answers[c.id]; });
-    fixOrder(st);
   }
   saveState();
 }
@@ -542,6 +561,7 @@ $("weightSlider").addEventListener("input", (e) => {
   if (q && st.answers[q.id]) { st.answers[q.id].w = pendingW; saveState(); }
 });
 $("nextBtn").onclick = () => {
+  fixOrder(st); // shape the tail with the just-committed answer before advancing
   if (answeredCount(st) >= TOTAL) return finish();
   let t = findNext(st.pos + 1);
   if (t === -1) t = findNext(0);

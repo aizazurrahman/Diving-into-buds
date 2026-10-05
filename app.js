@@ -144,6 +144,7 @@ $("authForm").addEventListener("submit", async (ev) => {
 $("logoutBtn").onclick = async () => {
   if (sb) await sb.auth.signOut();
   sessionUser = null;
+  setMode("login");
   show("view-auth");
 };
 

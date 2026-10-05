@@ -86,7 +86,7 @@ function buildOrder(s) {
   const openersAll = byDeck("opener");
   const openers = [...openersAll.filter(q => q.multi), ...openersAll.filter(q => !q.multi)].slice(0, 5);
   const roots = byDeck(F.roots), glob = byDeck("global"), bridge = byDeck("bridge");
-  const chains = F.roots === "hyderabad" ? byDeck("hydro") : [];
+  const chains = byDeck({ hyderabad: "hydro", asia: "asiachain", americas: "amechain", europe: "eurchain" }[F.roots] || "hydro");
   const palate = byDeck("palate");
   const composed = [
     ...openers,

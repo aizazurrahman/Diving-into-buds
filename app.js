@@ -63,8 +63,18 @@ function visibleOpts(q, s) {
   q.options.forEach((o, i) => { if (optVisible(o, diet, meats)) out.push({ o, i }); });
   return out;
 }
+function gateOpen(q, s) {
+  if (!q.gate) return true;
+  const pa = s.answers[q.gate.q];
+  if (!pa) return true; // parent not answered yet — the gate is decided later
+  const pq = QBANK_BY_ID[q.gate.q];
+  if (!pq) return true;
+  const labels = (Array.isArray(pa.o) ? pa.o : [pa.o]).map(i => (pq.options[i] || {}).t || "");
+  return labels.some(t => t.includes(q.gate.has));
+}
 function playable(q, s) {
   if (!s.builtFor || !q.diets.includes(s.builtFor.diet)) return false;
+  if (!gateOpen(q, s)) return false;
   return visibleOpts(q, s).length >= 2;
 }
 
@@ -76,18 +86,25 @@ function buildOrder(s) {
   const openersAll = byDeck("opener");
   const openers = [...openersAll.filter(q => q.multi), ...openersAll.filter(q => !q.multi)].slice(0, 5);
   const roots = byDeck(F.roots), glob = byDeck("global"), bridge = byDeck("bridge");
-  const order = [
+  const chains = F.roots === "hyderabad" ? byDeck("hydro") : [];
+  const palate = byDeck("palate");
+  const composed = [
     ...openers,
-    ...roots.slice(0, 11), ...glob.slice(0, 7),
-    ...roots.slice(11, 22), ...bridge.slice(0, 10), ...glob.slice(7, 13)
+    ...chains,
+    ...palate.slice(0, 5),
+    ...roots.slice(0, 11), ...glob.slice(0, 6),
+    ...palate.slice(5, 10),
+    ...roots.slice(11, 22), ...bridge.slice(0, 8), ...glob.slice(6, 11)
   ];
-  const inOrder = new Set(order.map(q => q.id));
+  const seen = new Set();
+  const order = composed.filter(q => !seen.has(q.id) && seen.add(q.id));
   for (const q of valid) {
     if (order.length >= TOTAL) break;
-    if (!inOrder.has(q.id)) { order.push(q); inOrder.add(q.id); }
+    if (!seen.has(q.id)) { order.push(q); seen.add(q.id); }
   }
   s.order = order.slice(0, TOTAL).map(q => q.id);
-  s.reserve = valid.filter(q => !inOrder.has(q.id)).map(q => q.id);
+  const inFinal = new Set(s.order);
+  s.reserve = valid.filter(q => !inFinal.has(q.id)).map(q => q.id);
   s.pos = 0;
 }
 // After the meats answer changes, swap any now-unplayable upcoming questions
@@ -101,10 +118,14 @@ function fixOrder(s) {
     const q = QBANK_BY_ID[s.order[i]];
     if (!q || s.answers[q.id] || playable(q, s)) continue;
     let rep = null;
-    for (const cid of pool) {
-      if (used.has(cid) || s.order.includes(cid)) continue;
-      const cq = QBANK_BY_ID[cid];
-      if (cq && !s.answers[cid] && playable(cq, s)) { rep = cid; break; }
+    // Prefer a replacement from the same deck, so swaps keep the run's mix.
+    for (const pass of [q.deck, null]) {
+      for (const cid of pool) {
+        if (used.has(cid) || s.order.includes(cid)) continue;
+        const cq = QBANK_BY_ID[cid];
+        if (cq && !s.answers[cid] && playable(cq, s) && (pass === null || cq.deck === pass)) { rep = cid; break; }
+      }
+      if (rep) break;
     }
     if (rep) { used.add(rep); s.order[i] = rep; }
   }
@@ -364,6 +385,7 @@ $("restartBtn").onclick = () => {
 /* ————— Quiz ————— */
 let pendingW = 1;
 let pendingSel = new Set(); // multi-select working set (original option indices)
+let pendingRank = []; // ranked top-2 working list (ordered option indices)
 const currentQ = () => QBANK_BY_ID[st.order[st.pos]];
 
 function findNext(fromPos) {
@@ -397,23 +419,31 @@ function renderQuestion() {
   if (url) img.src = url;
   img.alt = q.q;
   $("qText").textContent = q.q;
-  $("multiHint").hidden = !q.multi;
+  $("multiHint").hidden = !(q.multi || q.rank);
+  $("multiHint").textContent = q.rank ? "🥇 Tap your #1 pick first — then your #2." : "✋ Pick all that apply — then hit Next.";
   $("qInfoBtn").hidden = !q.info;
   $("qInfoBtn").classList.remove("open");
   $("qInfoPanel").hidden = true;
   $("qInfoPanel").textContent = q.info || "";
 
   pendingSel = new Set(saved && Array.isArray(saved.o) ? saved.o : []);
+  pendingRank = saved && saved.r ? [...saved.o] : [];
   const box = $("qOptions");
   box.innerHTML = "";
   visibleOpts(q, st).forEach(({ o, i }) => {
-    const picked = q.multi ? pendingSel.has(i) : (saved && saved.o === i);
+    const picked = q.rank ? pendingRank.includes(i) : q.multi ? pendingSel.has(i) : (saved && saved.o === i);
     const b = document.createElement("button");
     b.type = "button";
-    b.className = "opt" + (q.multi ? " multi" : "") + (picked ? " picked" : "");
+    b.className = "opt" + (q.multi ? " multi" : "") + (q.rank ? " rank" : "") + (picked ? " picked" : "");
     b.textContent = o.t;
+    if (q.rank && pendingRank.includes(i)) {
+      const bd = document.createElement("span");
+      bd.className = "rank-badge";
+      bd.textContent = pendingRank.indexOf(i) === 0 ? "1st" : "2nd";
+      b.appendChild(bd);
+    }
     b.setAttribute("aria-pressed", picked ? "true" : "false");
-    b.onclick = () => (q.multi ? toggleOption(i) : selectOption(i));
+    b.onclick = () => (q.rank ? toggleRank(i) : q.multi ? toggleOption(i) : selectOption(i));
     box.appendChild(b);
   });
 
@@ -421,7 +451,7 @@ function renderQuestion() {
   $("weightSlider").value = pendingW;
   updateSliderLabel();
 
-  const hasAnswer = q.multi ? pendingSel.size > 0 : !!saved;
+  const hasAnswer = q.rank ? pendingRank.length > 0 : q.multi ? pendingSel.size > 0 : !!saved;
   $("nextBtn").disabled = !hasAnswer;
   $("nextBtn").textContent = hasAnswer && n >= TOTAL - 1 && findNext(0) === -1 ? "Finish — see my profile 🎉" : "Next →";
   $("backBtn").style.visibility = st.pos === 0 ? "hidden" : "visible";
@@ -442,35 +472,68 @@ function refreshAfterAnswer() {
   $("nextBtn").disabled = false;
   $("nextBtn").textContent = n >= TOTAL - 1 && findNext(0) === -1 ? "Finish — see my profile 🎉" : "Next →";
 }
+function paintOptions() {
+  const q = currentQ();
+  const vis = visibleOpts(q, st);
+  [...$("qOptions").children].forEach((b, bi) => {
+    const entry = vis[bi];
+    if (!entry) return;
+    let picked = false, badge = "";
+    if (q.rank) { const ix = pendingRank.indexOf(entry.i); picked = ix >= 0; badge = ix === 0 ? "1st" : ix === 1 ? "2nd" : ""; }
+    else if (q.multi) picked = pendingSel.has(entry.i);
+    else picked = !!(st.answers[q.id] && st.answers[q.id].o === entry.i);
+    b.classList.toggle("picked", picked);
+    b.setAttribute("aria-pressed", picked ? "true" : "false");
+    let bd = b.querySelector(".rank-badge");
+    if (badge) {
+      if (!bd) { bd = document.createElement("span"); bd.className = "rank-badge"; b.appendChild(bd); }
+      bd.textContent = badge;
+    } else if (bd) bd.remove();
+  });
+}
+// After any answer commit: meats changes and gate-parent changes re-shape the tail.
+function afterAnswer(q, prevJson) {
+  if (q.id === "op-meats" || q.id === "op-meats-halal") fixOrder(st);
+  const nowJson = JSON.stringify(st.answers[q.id] || null);
+  if (nowJson !== prevJson && QBANK.some(c => c.gate && c.gate.q === q.id)) {
+    QBANK.filter(c => c.gate && c.gate.q === q.id).forEach(c => { delete st.answers[c.id]; });
+    fixOrder(st);
+  }
+  saveState();
+}
 function selectOption(oi) {
   const q = currentQ();
+  const prev = JSON.stringify(st.answers[q.id] || null);
   st.answers[q.id] = { o: oi, w: pendingW };
-  if (q.id === "op-meats" || q.id === "op-meats-halal") fixOrder(st);
-  saveState();
-  [...$("qOptions").children].forEach((b, bi) => {
-    const vis = visibleOpts(q, st);
-    const picked = vis[bi] && vis[bi].i === oi;
-    b.classList.toggle("picked", !!picked);
-    b.setAttribute("aria-pressed", picked ? "true" : "false");
-  });
+  afterAnswer(q, prev);
+  paintOptions();
   refreshAfterAnswer();
 }
 function toggleOption(oi) {
   const q = currentQ();
+  const prev = JSON.stringify(st.answers[q.id] || null);
   if (pendingSel.has(oi)) pendingSel.delete(oi); else pendingSel.add(oi);
   if (pendingSel.size) st.answers[q.id] = { o: [...pendingSel].sort((a, b) => a - b), w: pendingW };
   else delete st.answers[q.id];
-  if (q.id === "op-meats" || q.id === "op-meats-halal") fixOrder(st);
-  saveState();
-  [...$("qOptions").children].forEach((b, bi) => {
-    const vis = visibleOpts(q, st);
-    const picked = vis[bi] && pendingSel.has(vis[bi].i);
-    b.classList.toggle("picked", !!picked);
-    b.setAttribute("aria-pressed", picked ? "true" : "false");
-  });
+  afterAnswer(q, prev);
+  paintOptions();
   $("nextBtn").disabled = pendingSel.size === 0;
   refreshAfterAnswer();
   if (pendingSel.size === 0) $("nextBtn").disabled = true;
+}
+function toggleRank(oi) {
+  const q = currentQ();
+  const ix = pendingRank.indexOf(oi);
+  if (ix >= 0) pendingRank.splice(ix, 1);
+  else if (pendingRank.length < 2) pendingRank.push(oi);
+  else pendingRank[1] = oi;
+  if (pendingRank.length) st.answers[q.id] = { o: [...pendingRank], w: pendingW, r: 1 };
+  else delete st.answers[q.id];
+  saveState();
+  paintOptions();
+  $("nextBtn").disabled = pendingRank.length === 0;
+  refreshAfterAnswer();
+  if (pendingRank.length === 0) $("nextBtn").disabled = true;
 }
 $("weightSlider").addEventListener("input", (e) => {
   pendingW = parseInt(e.target.value, 10) || 1;
@@ -500,7 +563,7 @@ document.addEventListener("keydown", (e) => {
   const q = currentQ(); if (!q) return;
   const vis = visibleOpts(q, st);
   const num = parseInt(e.key, 10);
-  if (num >= 1 && num <= vis.length) (q.multi ? toggleOption : selectOption)(vis[num - 1].i);
+  if (num >= 1 && num <= vis.length) (q.rank ? toggleRank : q.multi ? toggleOption : selectOption)(vis[num - 1].i);
   else if (e.key === "ArrowRight" && !$("nextBtn").disabled && document.activeElement.id !== "weightSlider") $("nextBtn").click();
   else if (e.key === "ArrowLeft" && document.activeElement.id !== "weightSlider") $("backBtn").click();
 });
@@ -554,27 +617,39 @@ function computeResult(s) {
     const picks = (Array.isArray(a.o) ? a.o : [a.o]).map(i => q.options[i]).filter(Boolean);
     const w = a.w || 1;
     wSum += w; wCount++;
-    picks.forEach(opt => {
-      (opt.tags || []).forEach(t => { tagCount[t] = (tagCount[t] || 0) + w; });
-      [["spice", "spice"], ["sweet", "sweet"], ["adv", "adv"]].forEach(([f, k]) => {
-        if (typeof opt[f] === "number") { meters[k][0] += opt[f] * w; meters[k][1] += w; }
-      });
+    picks.forEach((opt, pi) => {
+      // Ranked picks: #1 counts fully, #2 counts half. Dislike picks count against.
+      const mult = q.hate ? -1 : (a.r ? (pi === 0 ? 1 : 0.5) : 1);
+      (opt.tags || []).forEach(t => { tagCount[t] = (tagCount[t] || 0) + w * mult; });
+      if (!q.hate) {
+        [["spice", "spice"], ["sweet", "sweet"], ["adv", "adv"]].forEach(([f, k]) => {
+          if (typeof opt[f] === "number") { meters[k][0] += opt[f] * w * Math.abs(mult); meters[k][1] += w * Math.abs(mult); }
+        });
+      }
     });
     detail.push({ qid, q: q.q, deck: q.deck, picks: picks.map(p => p.t), weight: w });
   });
-  const topTags = Object.entries(tagCount).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([t]) => t);
+  const posTags = Object.entries(tagCount).filter(([, c]) => c > 0).sort((a, b) => b[1] - a[1]);
+  const topTags = posTags.slice(0, 5).map(([t]) => t);
   const affinities = {};
-  Object.entries(tagCount).sort((a, b) => b[1] - a[1]).slice(0, 8).forEach(([t, c]) => { affinities[t] = c; });
-  const nogo = s.answers["op-nogo"];
-  const aversions = nogo && Array.isArray(nogo.o)
-    ? nogo.o.map(i => (QBANK_BY_ID["op-nogo"].options[i] || {}).t).filter(t => t && !/^Nothing/.test(t))
-    : [];
+  posTags.slice(0, 8).forEach(([t, c]) => { affinities[t] = Math.round(c * 10) / 10; });
+  // Aversions come from every "dislike" question (incl. the hard-no's opener).
+  const aversions = [];
+  s.order.forEach(qid => {
+    const q = QBANK_BY_ID[qid]; const a = s.answers[qid];
+    if (!q || !a || !q.hate) return;
+    (Array.isArray(a.o) ? a.o : [a.o]).forEach(i => {
+      const t = (q.options[i] || {}).t;
+      if (t && !/^Nothing|^None of these/i.test(t) && !aversions.includes(t)) aversions.push(t);
+    });
+  });
   const meterPct = {};
   Object.entries(meters).forEach(([k, [sum, wt]]) => { meterPct[k] = wt ? Math.round(100 * sum / (3 * wt)) : 0; });
   // Recommendations: diet-safe, tag-matched, other regions first.
   const meats = chosenMeats(s);
   const scored = RECS
     .filter(r => optVisible(r, s.builtFor.diet, meats))
+    .filter(r => !aversions.some(av => av.length > 3 && r.dish.toLowerCase().includes(av.toLowerCase().split(" ")[0])))
     .map(r => ({
       r,
       score: r.match.filter(t => topTags.includes(t)).length * 2 + (r.region !== s.builtFor.roots ? 1 : 0)
@@ -604,7 +679,10 @@ function renderResults() {
   const names = { spice: "🌶️ Heat level", sweet: "🍮 Sweet tooth", adv: "🧭 Adventurousness" };
   $("profileMeters").innerHTML = Object.entries(res.meters).map(([k, pct]) =>
     `<div class="meter"><div class="mhead"><span>${names[k]}</span><span>${meterLabel(k, pct)}</span></div>
-     <div class="track"><div class="fill" style="width:${pct}%"></div></div></div>`).join("");
+     <div class="track"><div class="fill" style="width:0%" data-w="${pct}"></div></div></div>`).join("");
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.querySelectorAll("#profileMeters .fill").forEach(f => { f.style.width = f.dataset.w + "%"; });
+  }));
   $("profileNote").textContent = `Weighted by your confidence slider — your average pick strength was ${res.avgConfidence} / 5. Strong opinions shaped this profile most.`;
   $("profileRecs").innerHTML = res.recs.map(r =>
     `<div class="rec"><span class="r-emoji">${(RECS.find(x => x.dish === r.dish) || {}).emoji || "🍽️"}</span>
@@ -689,4 +767,26 @@ $("qInfoBtn").onclick = () => {
     if (en.isIntersecting) { en.target.classList.add("inview"); io.unobserve(en.target); }
   }), { threshold: 0.1 });
   document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+})();
+
+/* v6: scroll-linked gradient drift — the page glow slowly shifts hue as you scroll */
+(() => {
+  if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const rootEl = document.documentElement;
+  const stops = [[168, 85, 247], [217, 70, 239], [99, 102, 241], [168, 85, 247]];
+  let ticking = false;
+  function paint() {
+    ticking = false;
+    const max = document.body.scrollHeight - innerHeight;
+    const p = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
+    const seg = p * (stops.length - 1);
+    const i = Math.min(stops.length - 2, Math.floor(seg));
+    const f = seg - i;
+    const c = stops[i].map((v, k) => Math.round(v + (stops[i + 1][k] - v) * f));
+    rootEl.style.setProperty("--glowA", `rgba(${c[0]},${c[1]},${c[2]},.30)`);
+    rootEl.style.setProperty("--glowB", `rgba(${c[2]},${c[1]},${c[0]},.16)`);
+  }
+  addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(paint); } }, { passive: true });
+  addEventListener("resize", paint);
+  paint();
 })();

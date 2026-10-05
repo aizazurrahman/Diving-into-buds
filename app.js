@@ -9,7 +9,7 @@
 
 const SUPABASE_URL = "https://lhygxgwyprkhhkuaozuk.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeWd4Z3d5cHJraGhrdWFvenVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExNjU3MjcsImV4cCI6MjEwNjc0MTcyN30.upttjjbTEyv4JZTR8NpM94TAsgtV7PznYEeR_ZeRvn8";
-const SHEETS_ENDPOINT = ""; // ← Apps Script web-app URL for Google Sheets (set when Aizaz deploys it)
+const SHEETS_ENDPOINT = "https://script.google.com/macros/s/AKfycbwX1iyUOYO8r1rTEKXjStql1hFOvCzw2O9UcvpoJ3-BO65QJcHgtRVFTxK4yluzgd-0/exec"; // Aizaz's Apps Script web app (Google Sheets)
 const sb = (window.supabase && SUPABASE_URL && !SUPABASE_ANON_KEY.includes("PASTE_"))
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   : null;

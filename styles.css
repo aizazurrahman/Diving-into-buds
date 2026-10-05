@@ -13,6 +13,7 @@
   --grad: linear-gradient(120deg, #F06423, #E4572E 55%, #D9432A);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;

@@ -168,7 +168,7 @@ function show(view) {
   ["view-auth", "view-fund", "view-home", "view-quiz", "view-results"].forEach(v => { $(v).hidden = v !== view; });
   const u = currentUser();
   $("userbox").hidden = !u;
-  if (u) $("userEmail").textContent = u;
+  $("userEmail").textContent = u || "";
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 

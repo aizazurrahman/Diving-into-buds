@@ -20,7 +20,8 @@ const store = {
   set(k, v) { localStorage.setItem(k, JSON.stringify(v)); },
   del(k) { localStorage.removeItem(k); }
 };
-const TOTAL = 50;
+const DEFAULT_TOTAL = 50;
+const runTotal = (s) => (s && s.builtFor && s.builtFor.count) || DEFAULT_TOTAL;
 const WEIGHT_WORDS = { 1: "Almost a tie", 2: "Leaning this way", 3: "Pretty sure", 4: "Strong pick", 5: "No contest" };
 const DIET_LABELS = { everything: "Everything", vegetarian: "Vegetarian", vegan: "Vegan", halal: "Everything Halal" };
 const ROOT_LABELS = { hyderabad: "Hyderabad", asia: "Asia", americas: "Americas", europe: "Europe" };
@@ -88,27 +89,33 @@ function buildOrder(s) {
   const roots = byDeck(F.roots), glob = byDeck("global"), bridge = byDeck("bridge");
   const chains = byDeck({ hyderabad: "hydro", asia: "asiachain", americas: "amechain", europe: "eurchain" }[F.roots] || "hydro");
   const palate = byDeck("palate");
-  const composed = [
-    ...openers,
-    ...chains,
-    ...palate.slice(0, 5),
-    ...roots.slice(0, 11), ...glob.slice(0, 6),
-    ...palate.slice(5, 10),
-    ...roots.slice(11, 22), ...bridge.slice(0, 8), ...glob.slice(6, 11)
-  ];
+  const total = F.count || DEFAULT_TOTAL;
+  // The full set composes in priority order; a shorter run takes the most
+  // important questions first: openers, the eating-style chain, palate
+  // essentials, then a roots / global / bridge mix.
+  const composed = total < DEFAULT_TOTAL
+    ? [...openers, ...chains, ...palate.slice(0, 5), ...roots.slice(0, 7), ...glob.slice(0, 2), ...bridge.slice(0, 2)]
+    : [
+        ...openers,
+        ...chains,
+        ...palate.slice(0, 5),
+        ...roots.slice(0, 11), ...glob.slice(0, 6),
+        ...palate.slice(5, 10),
+        ...roots.slice(11, 22), ...bridge.slice(0, 8), ...glob.slice(6, 11)
+      ];
   const seen = new Set();
   const order = composed.filter(q => !seen.has(q.id) && seen.add(q.id));
   for (const q of valid) {
-    if (order.length >= TOTAL) break;
+    if (order.length >= total) break;
     if (!seen.has(q.id)) { order.push(q); seen.add(q.id); }
   }
-  s.order = order.slice(0, TOTAL).map(q => q.id);
+  s.order = order.slice(0, total).map(q => q.id);
   const inFinal = new Set(s.order);
   s.reserve = valid.filter(q => !inFinal.has(q.id)).map(q => q.id);
   s.pos = 0;
 }
 // After the meats answer changes, swap any now-unplayable upcoming questions
-// for reserve questions so the run always stays at 50.
+// for reserve questions so the run always stays at its chosen length.
 function fixOrder(s) {
   if (!s.builtFor) return;
   const inOrder = new Set(s.order);
@@ -274,14 +281,16 @@ function routeAfterLogin() {
 }
 
 /* ————— Fundamentals ————— */
-let pickDiet = null, pickRoots = null, pickCity = "";
-function savePending() { store.set("dib_pending_fund", { diet: pickDiet, roots: pickRoots, city: pickCity }); }
+let pickDiet = null, pickRoots = null, pickCity = "", pickCount = null;
+function savePending() { store.set("dib_pending_fund", { diet: pickDiet, roots: pickRoots, city: pickCity, count: pickCount }); }
 function initFundPicks() {
   const saved = (st && st.fundamentals) || store.get("dib_pending_fund", null);
   pickDiet = saved ? saved.diet : null;
   pickRoots = saved ? saved.roots : null;
-  pickCity = saved && saved.city ? saved.city : "";
+  pickCount = saved && saved.count ? saved.count : null;
+  pickCity = saved && saved.city ? canonicalCity(saved.city) : "";
   $("cityInput").value = pickCity;
+  $("cityInput").classList.remove("invalid");
   paintFundPicks();
 }
 function paintFundPicks() {
@@ -293,8 +302,12 @@ function paintFundPicks() {
     const on = b.dataset.roots === pickRoots;
     b.classList.toggle("picked", on); b.setAttribute("aria-checked", on ? "true" : "false");
   });
-  $("buildBtn").disabled = !(pickDiet && pickRoots && (pickCity || "").trim().length >= 2);
-  $("buildBtn").textContent = st && st.builtFor ? "Rebuild my 50 questions →" : "Build my 50 questions →";
+  document.querySelectorAll("#countGrid .fund-opt").forEach(b => {
+    const on = Number(b.dataset.count) === pickCount;
+    b.classList.toggle("picked", on); b.setAttribute("aria-checked", on ? "true" : "false");
+  });
+  $("buildBtn").disabled = !(pickDiet && pickRoots && pickCity && pickCount);
+  $("buildBtn").textContent = st && st.builtFor ? "Rebuild my questions →" : "Build my questions →";
 }
 document.querySelectorAll("#dietGrid .fund-opt").forEach(b => b.onclick = () => {
   pickDiet = b.dataset.diet; savePending(); paintFundPicks();
@@ -302,9 +315,12 @@ document.querySelectorAll("#dietGrid .fund-opt").forEach(b => b.onclick = () => 
 document.querySelectorAll("#rootsGrid .fund-opt").forEach(b => b.onclick = () => {
   pickRoots = b.dataset.roots; savePending(); paintFundPicks();
 });
+document.querySelectorAll("#countGrid .fund-opt").forEach(b => b.onclick = () => {
+  pickCount = Number(b.dataset.count); savePending(); paintFundPicks();
+});
 const FUND_INFO = {
   diet: {
-    everything: "Everything — no restrictions at all. The first question asks which meats you eat, so your 50 stay relevant: pick chicken-only and mutton biryani quietly leaves the set.",
+    everything: "Everything — no restrictions at all. The first question asks which meats you eat, so your questions stay relevant: pick chicken-only and mutton biryani quietly leaves the set.",
     vegetarian: "Vegetarian — no meat and no seafood in any option, ever. Dairy and eggs still appear (paneer, curd rice, egg dishes), so this is not the vegan set.",
     vegan: "Vegan — fully plant-based: no meat, seafood, dairy, eggs or honey in any option. Your questions swap in plant dishes that stand on their own.",
     halal: "Everything Halal — the full spread, halal-style: no pork and no alcohol anywhere in your questions. You still pick your meats first, just like Everything."
@@ -325,13 +341,395 @@ document.querySelectorAll(".fi").forEach(el => {
     box.classList.remove("flash"); void box.offsetWidth; box.classList.add("flash");
   });
 });
-$("cityInput").addEventListener("input", (e) => { pickCity = e.target.value; savePending(); paintFundPicks(); });
+/* City type-ahead: users pick from a list of major world cities, so the
+   value feeding Maps links and the results model is always a clean,
+   canonical "City, Country" — no typos from free typing. */
+const CITIES = [
+  "Hyderabad, India",
+  "Bengaluru, India",
+  "Mumbai, India",
+  "Delhi, India",
+  "Chennai, India",
+  "Kolkata, India",
+  "Pune, India",
+  "Ahmedabad, India",
+  "Jaipur, India",
+  "Lucknow, India",
+  "Kochi, India",
+  "Panaji, India",
+  "Indore, India",
+  "Bhopal, India",
+  "Chandigarh, India",
+  "Coimbatore, India",
+  "Nagpur, India",
+  "Surat, India",
+  "Vadodara, India",
+  "Visakhapatnam, India",
+  "Patna, India",
+  "Guwahati, India",
+  "Thiruvananthapuram, India",
+  "Mysuru, India",
+  "Madurai, India",
+  "Varanasi, India",
+  "Agra, India",
+  "Kanpur, India",
+  "Ranchi, India",
+  "Bhubaneswar, India",
+  "Dehradun, India",
+  "Amritsar, India",
+  "Ludhiana, India",
+  "Udaipur, India",
+  "Jodhpur, India",
+  "Karachi, Pakistan",
+  "Lahore, Pakistan",
+  "Islamabad, Pakistan",
+  "Hyderabad, Pakistan",
+  "Faisalabad, Pakistan",
+  "Rawalpindi, Pakistan",
+  "Multan, Pakistan",
+  "Peshawar, Pakistan",
+  "Dhaka, Bangladesh",
+  "Chattogram, Bangladesh",
+  "Khulna, Bangladesh",
+  "Sylhet, Bangladesh",
+  "Colombo, Sri Lanka",
+  "Kandy, Sri Lanka",
+  "Kathmandu, Nepal",
+  "Pokhara, Nepal",
+  "Dubai, United Arab Emirates",
+  "Abu Dhabi, United Arab Emirates",
+  "Sharjah, United Arab Emirates",
+  "Riyadh, Saudi Arabia",
+  "Jeddah, Saudi Arabia",
+  "Mecca, Saudi Arabia",
+  "Medina, Saudi Arabia",
+  "Dammam, Saudi Arabia",
+  "Doha, Qatar",
+  "Kuwait City, Kuwait",
+  "Muscat, Oman",
+  "Manama, Bahrain",
+  "London, United Kingdom",
+  "Manchester, United Kingdom",
+  "Birmingham, United Kingdom",
+  "Leeds, United Kingdom",
+  "Glasgow, United Kingdom",
+  "Edinburgh, United Kingdom",
+  "Liverpool, United Kingdom",
+  "Bristol, United Kingdom",
+  "Sheffield, United Kingdom",
+  "Cardiff, United Kingdom",
+  "Belfast, United Kingdom",
+  "Newcastle, United Kingdom",
+  "Leicester, United Kingdom",
+  "Nottingham, United Kingdom",
+  "Oxford, United Kingdom",
+  "Cambridge, United Kingdom",
+  "Brighton, United Kingdom",
+  "York, United Kingdom",
+  "Dublin, Ireland",
+  "Cork, Ireland",
+  "Galway, Ireland",
+  "New York, United States",
+  "Los Angeles, United States",
+  "Chicago, United States",
+  "Houston, United States",
+  "Phoenix, United States",
+  "Philadelphia, United States",
+  "San Antonio, United States",
+  "San Diego, United States",
+  "Dallas, United States",
+  "Austin, United States",
+  "San Jose, United States",
+  "Columbus, United States",
+  "Charlotte, United States",
+  "San Francisco, United States",
+  "Seattle, United States",
+  "Denver, United States",
+  "Washington DC, United States",
+  "Boston, United States",
+  "Nashville, United States",
+  "Portland, United States",
+  "Las Vegas, United States",
+  "Miami, United States",
+  "Atlanta, United States",
+  "Minneapolis, United States",
+  "Tampa, United States",
+  "Sacramento, United States",
+  "Orlando, United States",
+  "Detroit, United States",
+  "Honolulu, United States",
+  "Milwaukee, United States",
+  "Baltimore, United States",
+  "Salt Lake City, United States",
+  "New Orleans, United States",
+  "Oklahoma City, United States",
+  "Memphis, United States",
+  "Louisville, United States",
+  "Raleigh, United States",
+  "Toronto, Canada",
+  "Vancouver, Canada",
+  "Montreal, Canada",
+  "Calgary, Canada",
+  "Ottawa, Canada",
+  "Edmonton, Canada",
+  "Winnipeg, Canada",
+  "Quebec City, Canada",
+  "Halifax, Canada",
+  "Victoria, Canada",
+  "Mexico City, Mexico",
+  "Guadalajara, Mexico",
+  "Monterrey, Mexico",
+  "Puebla, Mexico",
+  "Tijuana, Mexico",
+  "Cancún, Mexico",
+  "Mérida, Mexico",
+  "São Paulo, Brazil",
+  "Rio de Janeiro, Brazil",
+  "Brasília, Brazil",
+  "Salvador, Brazil",
+  "Fortaleza, Brazil",
+  "Belo Horizonte, Brazil",
+  "Manaus, Brazil",
+  "Curitiba, Brazil",
+  "Recife, Brazil",
+  "Porto Alegre, Brazil",
+  "Buenos Aires, Argentina",
+  "Santiago, Chile",
+  "Lima, Peru",
+  "Bogotá, Colombia",
+  "Medellín, Colombia",
+  "Quito, Ecuador",
+  "Montevideo, Uruguay",
+  "Asunción, Paraguay",
+  "La Paz, Bolivia",
+  "Caracas, Venezuela",
+  "Panama City, Panama",
+  "San José, Costa Rica",
+  "Havana, Cuba",
+  "Santo Domingo, Dominican Republic",
+  "San Juan, Puerto Rico",
+  "Paris, France",
+  "Lyon, France",
+  "Marseille, France",
+  "Nice, France",
+  "Bordeaux, France",
+  "Toulouse, France",
+  "Berlin, Germany",
+  "Munich, Germany",
+  "Hamburg, Germany",
+  "Frankfurt, Germany",
+  "Cologne, Germany",
+  "Stuttgart, Germany",
+  "Düsseldorf, Germany",
+  "Madrid, Spain",
+  "Barcelona, Spain",
+  "Valencia, Spain",
+  "Seville, Spain",
+  "Bilbao, Spain",
+  "Rome, Italy",
+  "Milan, Italy",
+  "Naples, Italy",
+  "Turin, Italy",
+  "Florence, Italy",
+  "Venice, Italy",
+  "Bologna, Italy",
+  "Amsterdam, Netherlands",
+  "Rotterdam, Netherlands",
+  "Utrecht, Netherlands",
+  "The Hague, Netherlands",
+  "Brussels, Belgium",
+  "Antwerp, Belgium",
+  "Ghent, Belgium",
+  "Vienna, Austria",
+  "Salzburg, Austria",
+  "Graz, Austria",
+  "Zurich, Switzerland",
+  "Geneva, Switzerland",
+  "Basel, Switzerland",
+  "Bern, Switzerland",
+  "Lisbon, Portugal",
+  "Porto, Portugal",
+  "Athens, Greece",
+  "Thessaloniki, Greece",
+  "Stockholm, Sweden",
+  "Gothenburg, Sweden",
+  "Malmö, Sweden",
+  "Oslo, Norway",
+  "Bergen, Norway",
+  "Copenhagen, Denmark",
+  "Aarhus, Denmark",
+  "Helsinki, Finland",
+  "Tampere, Finland",
+  "Reykjavik, Iceland",
+  "Warsaw, Poland",
+  "Kraków, Poland",
+  "Gdańsk, Poland",
+  "Poznań, Poland",
+  "Prague, Czechia",
+  "Brno, Czechia",
+  "Budapest, Hungary",
+  "Bucharest, Romania",
+  "Sofia, Bulgaria",
+  "Zagreb, Croatia",
+  "Belgrade, Serbia",
+  "Ljubljana, Slovenia",
+  "Bratislava, Slovakia",
+  "Vilnius, Lithuania",
+  "Riga, Latvia",
+  "Tallinn, Estonia",
+  "Kyiv, Ukraine",
+  "Istanbul, Türkiye",
+  "Ankara, Türkiye",
+  "Izmir, Türkiye",
+  "Cairo, Egypt",
+  "Alexandria, Egypt",
+  "Lagos, Nigeria",
+  "Abuja, Nigeria",
+  "Nairobi, Kenya",
+  "Accra, Ghana",
+  "Johannesburg, South Africa",
+  "Cape Town, South Africa",
+  "Durban, South Africa",
+  "Addis Ababa, Ethiopia",
+  "Dar es Salaam, Tanzania",
+  "Luanda, Angola",
+  "Maputo, Mozambique",
+  "Casablanca, Morocco",
+  "Marrakech, Morocco",
+  "Tunis, Tunisia",
+  "Algiers, Algeria",
+  "Tel Aviv, Israel",
+  "Jerusalem, Israel",
+  "Beirut, Lebanon",
+  "Amman, Jordan",
+  "Tehran, Iran",
+  "Baghdad, Iraq",
+  "Kabul, Afghanistan",
+  "Beijing, China",
+  "Shanghai, China",
+  "Guangzhou, China",
+  "Shenzhen, China",
+  "Chengdu, China",
+  "Xi'an, China",
+  "Wuhan, China",
+  "Hangzhou, China",
+  "Nanjing, China",
+  "Chongqing, China",
+  "Hong Kong",
+  "Taipei, Taiwan",
+  "Tokyo, Japan",
+  "Osaka, Japan",
+  "Kyoto, Japan",
+  "Nagoya, Japan",
+  "Fukuoka, Japan",
+  "Sapporo, Japan",
+  "Seoul, South Korea",
+  "Busan, South Korea",
+  "Incheon, South Korea",
+  "Bangkok, Thailand",
+  "Chiang Mai, Thailand",
+  "Phuket, Thailand",
+  "Hanoi, Vietnam",
+  "Ho Chi Minh City, Vietnam",
+  "Da Nang, Vietnam",
+  "Kuala Lumpur, Malaysia",
+  "Penang, Malaysia",
+  "Johor Bahru, Malaysia",
+  "Singapore",
+  "Jakarta, Indonesia",
+  "Surabaya, Indonesia",
+  "Bandung, Indonesia",
+  "Denpasar, Indonesia",
+  "Manila, Philippines",
+  "Cebu, Philippines",
+  "Davao, Philippines",
+  "Yangon, Myanmar",
+  "Phnom Penh, Cambodia",
+  "Vientiane, Laos",
+  "Ulaanbaatar, Mongolia",
+  "Almaty, Kazakhstan",
+  "Tashkent, Uzbekistan",
+  "Baku, Azerbaijan",
+  "Tbilisi, Georgia",
+  "Yerevan, Armenia",
+  "Sydney, Australia",
+  "Melbourne, Australia",
+  "Brisbane, Australia",
+  "Perth, Australia",
+  "Adelaide, Australia",
+  "Canberra, Australia",
+  "Gold Coast, Australia",
+  "Hobart, Australia",
+  "Darwin, Australia",
+  "Auckland, New Zealand",
+  "Wellington, New Zealand",
+  "Christchurch, New Zealand",
+  "Hamilton, New Zealand",
+  "Suva, Fiji"
+];
+function canonicalCity(v) {
+  const t = (v || "").trim().toLowerCase();
+  if (!t) return "";
+  return CITIES.find(c => c.toLowerCase() === t) || CITIES.find(c => c.split(",")[0].trim().toLowerCase() === t) || "";
+}
+let cityMatches = [], cityActive = -1;
+function closeCityMenu() { $("cityMenu").hidden = true; $("cityInput").setAttribute("aria-expanded", "false"); cityActive = -1; }
+function pickCityValue(c) {
+  pickCity = c;
+  $("cityInput").value = c;
+  $("cityInput").classList.remove("invalid");
+  closeCityMenu(); savePending(); paintFundPicks();
+}
+function paintCityMenu() {
+  const menu = $("cityMenu");
+  if (!cityMatches.length) {
+    menu.innerHTML = `<div class="city-none">No matching city in the list yet — try a nearby major city.</div>`;
+  } else {
+    menu.innerHTML = cityMatches.map((c, i) => {
+      const cut = c.indexOf(",");
+      return `<button type="button" class="city-item${i === cityActive ? " active" : ""}" data-city="${c}" role="option">${c.slice(0, cut)}<span class="cc">${c.slice(cut)}</span></button>`;
+    }).join("");
+    menu.querySelectorAll(".city-item").forEach(b => b.addEventListener("mousedown", (e) => { e.preventDefault(); pickCityValue(b.dataset.city); }));
+  }
+  menu.hidden = false;
+  $("cityInput").setAttribute("aria-expanded", "true");
+}
+$("cityInput").addEventListener("input", (e) => {
+  const v = e.target.value, t = v.trim().toLowerCase();
+  pickCity = canonicalCity(v); // only a list pick (or exact match) counts
+  e.target.classList.toggle("invalid", !!t && !pickCity);
+  if (!t) { closeCityMenu(); savePending(); paintFundPicks(); return; }
+  const starts = CITIES.filter(c => c.split(",")[0].trim().toLowerCase().startsWith(t));
+  const incl = CITIES.filter(c => !starts.includes(c) && c.toLowerCase().includes(t));
+  cityMatches = [...starts, ...incl].slice(0, 8);
+  cityActive = cityMatches.length ? 0 : -1;
+  paintCityMenu(); savePending(); paintFundPicks();
+});
+$("cityInput").addEventListener("keydown", (e) => {
+  if ($("cityMenu").hidden) return;
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+    if (!cityMatches.length) return;
+    cityActive = (cityActive + (e.key === "ArrowDown" ? 1 : -1) + cityMatches.length) % cityMatches.length;
+    paintCityMenu();
+  } else if (e.key === "Enter") {
+    if (cityActive >= 0 && cityMatches[cityActive]) { e.preventDefault(); pickCityValue(cityMatches[cityActive]); }
+  } else if (e.key === "Escape") closeCityMenu();
+});
+$("cityInput").addEventListener("blur", () => {
+  setTimeout(() => { // let a menu click land first
+    const canon = canonicalCity($("cityInput").value);
+    if (canon) pickCityValue(canon);
+    else { pickCity = ""; $("cityInput").classList.toggle("invalid", !!$("cityInput").value.trim()); paintFundPicks(); }
+    closeCityMenu();
+  }, 120);
+});
 $("buildBtn").onclick = () => {
-  const city = (pickCity || "").trim();
-  if (!pickDiet || !pickRoots || city.length < 2) return;
-  const F = { diet: pickDiet, roots: pickRoots, city };
+  const city = pickCity;
+  if (!pickDiet || !pickRoots || !city || !pickCount) return;
+  const F = { diet: pickDiet, roots: pickRoots, city, count: pickCount };
   const prev = st.builtFor;
-  if (prev && prev.diet === F.diet && prev.roots === F.roots) {
+  if (prev && prev.diet === F.diet && prev.roots === F.roots && (prev.count || DEFAULT_TOTAL) === F.count) {
     // City added/changed only — questions don't depend on it, keep progress.
     st.fundamentals = F; st.builtFor = F;
     if (st.result) st.result = computeResult(st);
@@ -341,7 +739,7 @@ $("buildBtn").onclick = () => {
     return;
   }
   if ((prev || st.finished) && answeredCount(st) > 0 &&
-      !confirm("New diet or roots mean a fresh set of 50 questions — your current answers will be cleared. Continue?")) return;
+      !confirm("New settings mean a fresh set of questions — your current answers will be cleared. Continue?")) return;
   st.fundamentals = F; st.builtFor = F;
   st.answers = {}; st.finished = false; st.result = null; st.sheetSent = false;
   buildOrder(st);
@@ -367,20 +765,22 @@ function renderHome() {
   change.hidden = !st.builtFor;
   if (!st.builtFor) {
     $("homeTitle").textContent = "One quick step first 🧭";
-    $("homeText").textContent = "Pick your three fundamentals — your diet, your roots and the city you live in — and we'll build your 50 questions around them.";
+    $("homeText").textContent = "Pick your diet, your roots and the city you live in — and we'll build your questions around them.";
     $("primaryAction").textContent = "Pick my fundamentals →";
   } else if (st.finished) {
     $("homeTitle").textContent = "Your taste profile is ready 🎉";
-    $("homeText").textContent = "You answered all 50 questions. Come see what your taste buds had to say — and which world flavours to meet next.";
+    $("homeText").textContent = st.result && st.result.partial
+      ? `You ended early after ${n} answers, so this profile is based on limited information. Come see what your taste buds had to say — or retake the questions for the complete picture.`
+      : "You've answered all your questions. Come see what your taste buds had to say — and which world flavours to meet next.";
     $("primaryAction").textContent = "See my taste profile";
   } else if (n > 0) {
     $("homeTitle").textContent = "Welcome back 👋";
-    $("homeText").textContent = `You've answered ${n} of ${TOTAL} questions — everything, slider weights included, is saved to your account. Pick up right where you left off, on any device.`;
+    $("homeText").textContent = `You've answered ${n} questions — everything, slider weights included, is saved to your account. Pick up right where you left off, on any device.`;
     $("primaryAction").textContent = `Continue — question ${n + 1}`;
   } else {
     $("homeTitle").textContent = "Ready to dive in?";
-    $("homeText").textContent = `Your 50 questions are built around ${ROOT_LABELS[st.builtFor.roots]} roots and a ${DIET_LABELS[st.builtFor.diet]} diet. About 5 minutes — save & exit anytime.`;
-    $("primaryAction").textContent = "Start the 50 questions";
+    $("homeText").textContent = `Your questions are built around ${ROOT_LABELS[st.builtFor.roots]} roots and a ${DIET_LABELS[st.builtFor.diet]} diet. About ${st.builtFor.count === 25 ? 3 : 5} minutes — save & exit anytime.`;
+    $("primaryAction").textContent = "Start the questions";
   }
 }
 $("primaryAction").onclick = () => {
@@ -425,9 +825,10 @@ function renderQuestion() {
   const n = answeredCount(st);
   const posInRun = st.order.indexOf(q.id) + 1;
 
-  $("qCounter").textContent = `Question ${posInRun} of ${TOTAL}`;
-  $("progressBar").style.width = (n / TOTAL * 100) + "%";
+  $("qCounter").textContent = `Question ${posInRun}`;
+  $("progressBar").style.width = (n / runTotal(st) * 100) + "%";
   $("progressWrap").setAttribute("aria-valuenow", n);
+  $("progressWrap").setAttribute("aria-valuemax", runTotal(st));
   $("qSection").textContent = DECK_LABELS[q.deck] || "";
   $("qSub").textContent = DECK_SUBS[q.deck] || "";
 
@@ -472,9 +873,10 @@ function renderQuestion() {
 
   const hasAnswer = q.rank ? pendingRank.length > 0 : q.multi ? pendingSel.size > 0 : !!saved;
   $("nextBtn").disabled = !hasAnswer;
-  $("nextBtn").textContent = hasAnswer && n >= TOTAL - 1 && findNext(0) === -1 ? "Finish — see my profile 🎉" : "Next →";
+  $("nextBtn").textContent = hasAnswer && n >= runTotal(st) - 1 && findNext(0) === -1 ? "Finish — see my profile 🎉" : "Next →";
   $("backBtn").style.visibility = st.pos === 0 ? "hidden" : "visible";
   $("savedNote").textContent = n ? `✓ ${n} answer${n > 1 ? "s" : ""} saved` : "";
+  paintEndBtn();
 
   const inner = $("qInner");
   inner.style.animation = "none"; void inner.offsetWidth; inner.style.animation = "";
@@ -483,13 +885,21 @@ function renderQuestion() {
   $("qText").focus({ preventScroll: true });
 }
 function updateSliderLabel() { $("sliderVal").textContent = `${pendingW} · ${WEIGHT_WORDS[pendingW]}`; }
+function paintEndBtn() {
+  const showEnd = !!st && !st.finished && answeredCount(st) >= 10;
+  $("endBtn").hidden = !showEnd;
+  $("endInfoBtn").hidden = !showEnd;
+  if (!showEnd) $("endInfoPanel").hidden = true;
+}
 function refreshAfterAnswer() {
   const n = answeredCount(st);
-  $("progressBar").style.width = (n / TOTAL * 100) + "%";
+  $("progressBar").style.width = (n / runTotal(st) * 100) + "%";
   $("progressWrap").setAttribute("aria-valuenow", n);
+  $("progressWrap").setAttribute("aria-valuemax", runTotal(st));
   $("savedNote").textContent = `✓ ${n} answer${n > 1 ? "s" : ""} saved`;
   $("nextBtn").disabled = false;
-  $("nextBtn").textContent = n >= TOTAL - 1 && findNext(0) === -1 ? "Finish — see my profile 🎉" : "Next →";
+  $("nextBtn").textContent = n >= runTotal(st) - 1 && findNext(0) === -1 ? "Finish — see my profile 🎉" : "Next →";
+  paintEndBtn();
 }
 function paintOptions() {
   const q = currentQ();
@@ -565,7 +975,7 @@ $("weightSlider").addEventListener("input", (e) => {
 });
 $("nextBtn").onclick = () => {
   fixOrder(st); // shape the tail with the just-committed answer before advancing
-  if (answeredCount(st) >= TOTAL) return finish();
+  if (answeredCount(st) >= runTotal(st)) return finish();
   let t = findNext(st.pos + 1);
   if (t === -1) t = findNext(0);
   if (t === -1) return finish();
@@ -706,7 +1116,7 @@ function renderResults() {
   requestAnimationFrame(() => requestAnimationFrame(() => {
     document.querySelectorAll("#profileMeters .fill").forEach(f => { f.style.width = f.dataset.w + "%"; });
   }));
-  $("profileNote").textContent = `Weighted by your confidence slider — your average pick strength was ${res.avgConfidence} / 5. Strong opinions shaped this profile most.`;
+  $("profileNote").textContent = (res.partial ? `⚠️ You ended early after ${res.answered || res.detail.length} answers, so this profile is based on limited information — answer more questions for a sharper picture. ` : "") + `Weighted by your confidence slider — your average pick strength was ${res.avgConfidence} / 5. Strong opinions shaped this profile most.`;
   $("profileRecs").innerHTML = res.recs.map(r =>
     `<div class="rec"><span class="r-emoji">${(RECS.find(x => x.dish === r.dish) || {}).emoji || "🍽️"}</span>
      <div><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong><p>${r.why}</p>${res.city ? `<a class="r-find" target="_blank" rel="noopener" href="https://www.google.com/maps/search/${encodeURIComponent(r.dish + " near " + res.city)}">📍 Find it near you in ${res.city} →</a>` : ""}</div></div>`).join("");
@@ -724,21 +1134,28 @@ async function sendToSheets() {
     saveState();
   } catch (e) { console.warn("Sheets save failed:", e); }
 }
-function finish() {
+function finish(early) {
   st.finished = true;
   st.result = computeResult(st);
+  if (early) { st.result.partial = true; st.result.answered = answeredCount(st); }
   saveState();
   sendToSheets();
   renderResults();
   show("view-results");
 }
+$("endBtn").onclick = () => { if (st && !st.finished && answeredCount(st) >= 10) finish(true); };
+$("endInfoBtn").onclick = () => {
+  const p = $("endInfoPanel");
+  p.hidden = !p.hidden;
+  $("endInfoBtn").classList.toggle("open", !p.hidden);
+};
 $("csvBtn").onclick = () => {
   const res = st.result || computeResult(st);
   const esc = (v) => `"${String(v == null ? "" : v).replace(/"/g, '""')}"`;
   const rows = [
     ["Diving into Buds — taste profile results"],
     ["Email", res.email], ["Diet", DIET_LABELS[res.diet] || res.diet], ["Roots", ROOT_LABELS[res.roots] || res.roots],
-    ["City", res.city || ""],
+    ["City", res.city || ""], ["Questions answered", res.detail.length], ["Ended early", res.partial ? "Yes" : "No"],
     ["Completed", res.completedAt], ["Top traits", res.topTags.join(", ")],
     ["Affinities", Object.entries(res.affinities || {}).map(([k, v]) => `${k}:${v}`).join(", ")],
     ["Hard no's", (res.aversions || []).join(", ")],
@@ -796,7 +1213,7 @@ $("qInfoBtn").onclick = () => {
 (() => {
   if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const rootEl = document.documentElement;
-  const stops = [[168, 85, 247], [217, 70, 239], [99, 102, 241], [168, 85, 247]];
+  const stops = [[139, 92, 246], [217, 70, 239], [79, 70, 229], [147, 51, 234], [139, 92, 246]];
   let ticking = false;
   function paint() {
     ticking = false;
@@ -806,8 +1223,14 @@ $("qInfoBtn").onclick = () => {
     const i = Math.min(stops.length - 2, Math.floor(seg));
     const f = seg - i;
     const c = stops[i].map((v, k) => Math.round(v + (stops[i + 1][k] - v) * f));
-    rootEl.style.setProperty("--glowA", `rgba(${c[0]},${c[1]},${c[2]},.30)`);
-    rootEl.style.setProperty("--glowB", `rgba(${c[2]},${c[1]},${c[0]},.16)`);
+    const pulse = Math.sin(p * Math.PI);
+    rootEl.style.setProperty("--glowA", `rgba(${c[0]},${c[1]},${c[2]},${(0.40 + 0.16 * pulse).toFixed(3)})`);
+    rootEl.style.setProperty("--glowB", `rgba(${c[2]},${c[1]},${c[0]},${(0.26 + 0.12 * pulse).toFixed(3)})`);
+    // The glows also travel as you scroll, so the shift is unmistakable.
+    rootEl.style.setProperty("--gx1", (12 + p * 48) + "%");
+    rootEl.style.setProperty("--gy1", (-6 + p * 34) + "%");
+    rootEl.style.setProperty("--gx2", (105 - p * 62) + "%");
+    rootEl.style.setProperty("--gy2", (22 + p * 48) + "%");
   }
   addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(paint); } }, { passive: true });
   addEventListener("resize", paint);

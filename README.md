@@ -13,4 +13,4 @@ This repo serves as a landing page into your taste buds.
 
 Hosted free on GitHub Pages. Any static host works too — just serve the files.
 
-> Note: accounts are a front-end demo stored in the browser (localStorage), since GitHub Pages has no server or database. For production accounts, plug in a backend like Firebase or Supabase.
+> Accounts are real: sign-up/login and progress are powered by Supabase (email/password auth + a Postgres `progress` table with row-level security), so your taste profile follows you across devices.

@@ -1,8 +1,15 @@
-// Diving into Buds — app logic (v2)
-// Accounts & progress live in this browser (localStorage) — GitHub Pages is
-// static hosting, so an "account" here is per-browser, perfect for a demo/MVP.
-// Every answer is { o: optionIndex, w: weight 1–5 } — the confidence slider.
-// Weights multiply what an answer contributes to the taste profile.
+// Diving into Buds — app logic (v3, real accounts via Supabase)
+// Accounts live in Supabase Auth; progress lives in the `progress` table
+// (one row per user, locked down with row-level security). The browser keeps
+// a local cache of the quiz state so the quiz itself stays instant — every
+// change is synced to the cloud, and the cloud wins on sign-in.
+// Answers are { o: optionIndex, w: weight 1–5 } — the confidence slider.
+
+const SUPABASE_URL = "https://lhygxgwyprkhhkuaozuk.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeWd4Z3d5cHJraGhrdWFvenVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExNjU3MjcsImV4cCI6MjEwNjc0MTcyN30.upttjjbTEyv4JZTR8NpM94TAsgtV7PznYEeR_ZeRvn8";
+const sb = (window.supabase && SUPABASE_URL && !SUPABASE_ANON_KEY.includes("PASTE_"))
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
 
 const $ = (id) => document.getElementById(id);
 const store = {
@@ -13,21 +20,9 @@ const store = {
 const TOTAL = QUESTIONS.length;
 const WEIGHT_WORDS = { 1: "Almost a tie", 2: "Leaning this way", 3: "Pretty sure", 4: "Strong pick", 5: "No contest" };
 
-/* ————— Password hashing (demo-grade) ————— */
-async function hashPw(pw) {
-  const salted = "dib::" + pw;
-  if (window.crypto && crypto.subtle) {
-    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(salted));
-    return "sha256:" + [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
-  }
-  let h = 5381;
-  for (let i = 0; i < salted.length; i++) h = ((h * 33) ^ salted.charCodeAt(i)) >>> 0;
-  return "djb2:" + h.toString(16);
-}
-
-/* ————— Session, users, quiz state ————— */
-const getUsers = () => store.get("dib_users", {});
-const currentUser = () => store.get("dib_session", null);
+/* ————— Session & quiz cache ————— */
+let sessionUser = null; // { id, email }
+const currentUser = () => (sessionUser ? sessionUser.email : null);
 const quizKey = (email) => "dib_quiz_" + email;
 
 function getQuiz(email) {
@@ -38,8 +33,52 @@ function getQuiz(email) {
   });
   return q;
 }
-const saveQuiz = (email, q) => store.set(quizKey(email), q);
+function saveQuiz(email, q) {
+  store.set(quizKey(email), q);
+  if (sessionUser && sessionUser.email === email) scheduleSync(q);
+}
 const answeredCount = (q) => Object.keys(q.answers).length;
+
+/* ————— Cloud sync ————— */
+let syncTimer = null;
+function scheduleSync(q) {
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => upsertNow(q), 400);
+}
+async function upsertNow(q) {
+  if (!sb || !sessionUser) return;
+  const { error } = await sb.from("progress").upsert({
+    user_id: sessionUser.id,
+    answers: q.answers,
+    current_q: q.current,
+    finished: q.finished,
+    updated_at: new Date().toISOString()
+  });
+  if (error) console.warn("Progress sync failed (will retry on next change):", error.message);
+}
+// On sign-in: cloud is the source of truth. If the cloud is empty but this
+// browser still holds demo-era answers for the same email, offer to import.
+async function hydrateFromCloud() {
+  const email = sessionUser.email;
+  const { data: rows, error } = await sb.from("progress")
+    .select("answers, current_q, finished").eq("user_id", sessionUser.id).limit(1);
+  if (error) return; // offline or hiccup — keep the local cache
+  const row = rows && rows[0];
+  const cloudQ = row
+    ? { answers: row.answers || {}, current: row.current_q || 0, finished: !!row.finished }
+    : { answers: {}, current: 0, finished: false };
+  const local = getQuiz(email);
+  const cloudN = answeredCount(cloudQ), localN = answeredCount(local);
+  if (cloudN === 0 && localN > 0) {
+    if (confirm(`We found ${localN} answer${localN > 1 ? "s" : ""} saved in this browser from before accounts went live. Import them into your account?`)) {
+      await upsertNow(local);
+    } else {
+      store.set(quizKey(email), cloudQ);
+    }
+  } else if (cloudN > 0) {
+    store.set(quizKey(email), cloudQ);
+  }
+}
 
 /* ————— Views ————— */
 function show(view) {
@@ -63,28 +102,50 @@ function setMode(mode) {
 $("tabLogin").onclick = () => setMode("login");
 $("tabSignup").onclick = () => setMode("signup");
 function authFail(msg) { const e = $("authError"); e.textContent = msg; e.hidden = false; }
+function friendlyAuthError(error) {
+  const m = (error && error.message) || "Something went wrong.";
+  if (/invalid login credentials/i.test(m)) return "Wrong email or password — try again.";
+  if (/already registered/i.test(m)) return "An account with this email already exists — try logging in.";
+  if (/password should be at least/i.test(m)) return "Password needs at least 6 characters.";
+  if (/unable to validate email/i.test(m)) return "That email doesn't look right — try again?";
+  return m;
+}
 
 $("authForm").addEventListener("submit", async (ev) => {
   ev.preventDefault();
+  if (!sb) return authFail("Couldn't reach the account service — check your connection and reload the page.");
   const email = $("authEmail").value.trim().toLowerCase();
   const pw = $("authPassword").value;
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return authFail("That email doesn't look right — try again?");
   if (pw.length < 6) return authFail("Password needs at least 6 characters.");
-  const users = getUsers();
-  const hash = await hashPw(pw);
-  if (authMode === "signup") {
-    if (users[email]) return authFail("An account with this email already exists — try logging in.");
-    users[email] = { pw: hash, created: Date.now() };
-    store.set("dib_users", users);
-  } else {
-    if (!users[email]) return authFail("No account found for this email — sign up first?");
-    if (users[email].pw !== hash) return authFail("Wrong password — try again.");
+  const btn = $("authSubmit");
+  btn.disabled = true;
+  const original = btn.textContent;
+  btn.textContent = "One moment…";
+  try {
+    if (authMode === "signup") {
+      const { data, error } = await sb.auth.signUp({ email, password: pw });
+      if (error) return authFail(friendlyAuthError(error));
+      if (!data.session) return authFail("Account created — check your email to confirm it, then log in.");
+      sessionUser = { id: data.user.id, email: data.user.email };
+    } else {
+      const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+      if (error) return authFail(friendlyAuthError(error));
+      sessionUser = { id: data.user.id, email: data.user.email };
+    }
+    await hydrateFromCloud();
+    renderHome();
+    show("view-home");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
   }
-  store.set("dib_session", email);
-  renderHome();
-  show("view-home");
 });
-$("logoutBtn").onclick = () => { store.del("dib_session"); show("view-auth"); };
+$("logoutBtn").onclick = async () => {
+  if (sb) await sb.auth.signOut();
+  sessionUser = null;
+  show("view-auth");
+};
 
 /* ————— Home ————— */
 function renderHome() {
@@ -99,7 +160,7 @@ function renderHome() {
     restart.hidden = false;
   } else if (n > 0) {
     $("homeTitle").textContent = "Welcome back 👋";
-    $("homeText").textContent = `You've answered ${n} of ${TOTAL} questions — everything, slider weights included, is saved. Pick up right where you left off.`;
+    $("homeText").textContent = `You've answered ${n} of ${TOTAL} questions — everything, slider weights included, is saved to your account. Pick up right where you left off, on any device.`;
     $("primaryAction").textContent = `Continue — question ${n + 1}`;
     restart.hidden = false;
   } else {
@@ -118,9 +179,12 @@ $("primaryAction").onclick = () => {
   renderQuestion();
   show("view-quiz");
 };
-$("restartBtn").onclick = () => {
+$("restartBtn").onclick = async () => {
   if (!confirm("Start over? Your saved answers will be cleared.")) return;
-  store.del(quizKey(currentUser()));
+  const email = currentUser();
+  const fresh = { answers: {}, current: 0, finished: false };
+  store.set(quizKey(email), fresh);
+  await upsertNow(fresh);
   renderHome();
 };
 
@@ -172,7 +236,6 @@ function renderQuestion() {
   $("backBtn").style.visibility = i === 0 ? "hidden" : "visible";
   $("savedNote").textContent = n ? `✓ ${n} answer${n > 1 ? "s" : ""} saved` : "";
 
-  // gentle re-entry animation + preload the next photo
   const inner = $("qInner");
   inner.style.animation = "none"; void inner.offsetWidth; inner.style.animation = "";
   const nxt = QUESTIONS[i + 1];
@@ -283,11 +346,26 @@ function renderResults() {
   const avg = wCount ? (wSum / wCount).toFixed(1) : "1.0";
   $("profileNote").textContent = `Weighted by your confidence slider — your average pick strength was ${avg} / 5. Strong opinions shaped this profile most.`;
 }
-$("retakeBtn").onclick = () => {
-  store.del(quizKey(currentUser()));
+$("retakeBtn").onclick = async () => {
+  const email = currentUser();
+  const fresh = { answers: {}, current: 0, finished: false };
+  store.set(quizKey(email), fresh);
+  await upsertNow(fresh);
   renderHome();
   show("view-home");
 };
 
 /* ————— Boot ————— */
-if (currentUser()) { renderHome(); show("view-home"); } else { show("view-auth"); }
+(async function init() {
+  store.del("dib_session"); // legacy v2 key, no longer used
+  if (!sb) { show("view-auth"); return; }
+  const { data } = await sb.auth.getSession();
+  if (data && data.session && data.session.user) {
+    sessionUser = { id: data.session.user.id, email: data.session.user.email };
+    await hydrateFromCloud();
+    renderHome();
+    show("view-home");
+  } else {
+    show("view-auth");
+  }
+})();

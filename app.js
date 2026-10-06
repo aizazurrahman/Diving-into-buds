@@ -57,6 +57,8 @@ function optVisible(opt, diet, meats) {
   if (diet === "vegetarian") return d === "vegan" || d === "veg";
   if (d === "alcohol") return diet === "everything";
   if (d === "meat:pork") return diet === "everything" && (!meats || meats.includes("pork"));
+  if (d === "meat:fish") return !meats || meats.includes("fish") || meats.includes("seafood");
+  if (d === "meat:seafood") return !meats || meats.includes("seafood");
   if (d.startsWith("meat:")) return !meats || meats.includes(d.slice(5));
   return true; // 'vegan' / 'veg' classes are fine for everything & halal
 }
@@ -72,7 +74,8 @@ function gateOpen(q, s) {
   if (!pa) return true; // parent not answered yet — the gate is decided later
   const pq = QBANK_BY_ID[q.gate.q];
   if (!pq) return true;
-  const labels = (Array.isArray(pa.o) ? pa.o : [pa.o]).map(i => (pq.options[i] || {}).t || "");
+  const pickedIdx = pa.r ? [pa.o[0]] : (Array.isArray(pa.o) ? pa.o : [pa.o]);
+  const labels = pickedIdx.map(i => (pq.options[i] || {}).t || "");
   return labels.some(t => t.includes(q.gate.has));
 }
 function playable(q, s) {
@@ -89,33 +92,41 @@ function buildOrder(s) {
   const F = s.builtFor, diet = F.diet;
   const valid = QBANK.filter(q => q.diets.includes(diet) && q.options.filter(o => optVisible(o, diet, null)).length >= 2);
   const byDeck = (d) => valid.filter(q => q.deck === d);
-  const openersAll = byDeck("opener");
-  const openers = [...openersAll.filter(q => q.multi), ...openersAll.filter(q => !q.multi)].slice(0, 5);
-  const roots = byDeck(F.roots), glob = byDeck("global"), bridge = byDeck("bridge");
-  const chains = byDeck({ hyderabad: "hydro", eastasia: "asiachain", unitedstates: "usachain", europe: "eurchain", southasia: "souchain", middleeast: "midchain", africa: "africhain", latinamerica: "latchain" }[F.roots] || "hydro");
-  const palate = byDeck("palate");
-  const total = DEFAULT_TOTAL;
+  const chainDeck = { hyderabad: "hydro", eastasia: "asiachain", unitedstates: "usachain", europe: "eurchain", southasia: "souchain", middleeast: "midchain", africa: "africhain", latinamerica: "latchain" }[F.roots] || "hydro";
+  // — Regional 20 (Aizaz's v10 structure): the diet warm-up, the roots' own
+  // dislike list, spice + dessert warm-ups, the eating-style chain, then the
+  // roots deck. Closed chain branches swap out for roots-deck questions from
+  // the reserve, so the served 20 stays regional.
+  const dietOpener = byDeck("opener").filter(q => q.id.startsWith("op-meats") || q.id.startsWith("op-protein")).slice(0, 1);
+  const rootsDeckAll = byDeck(F.roots);
+  const rootsNogo = rootsDeckAll.filter(q => q.hate).slice(0, 1);
+  const rootsRest = rootsDeckAll.filter(q => !q.hate);
+  const heatSweet = ["op-heat", "op-sweet"].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
+  const chains = byDeck(chainDeck);
+  const regional = [...dietOpener, ...rootsNogo, ...heatSweet, ...chains, ...rootsRest].slice(0, 20);
+  // — Global 30: palate + bridge + global decks, rotated per roots so each
+  // group meets a different slice of the world.
+  const rot = Object.keys(ROOT_LABELS).indexOf(F.roots);
+  const rotate = (arr, n) => arr.length ? [...arr.slice(n % arr.length), ...arr.slice(0, n % arr.length)] : arr;
   const salad = ["pal-25", "pal-26"].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
-  // The set composes in priority order: openers, the eating-style chain,
-  // the salad check, palate essentials, then a roots / global / bridge mix.
-  const composed = [
-    ...openers,
-    ...chains,
-    ...salad,
-    ...palate.slice(0, 5),
-    ...roots.slice(0, 10), ...glob.slice(0, 3),
-    ...palate.slice(5, 10),
-    ...roots.slice(10, 18), ...bridge.slice(0, 8), ...glob.slice(3, 5)
-  ];
+  const palateRest = rotate(byDeck("palate").filter(q => !salad.includes(q)), rot * 3);
+  const palatePick = [...salad, ...palateRest].slice(0, 10);
+  const bridgePick = rotate(byDeck("bridge"), rot * 2).slice(0, 8);
+  const globalPick = rotate(byDeck("global"), rot * 5).slice(0, 12);
+  const composed = [...regional, ...palatePick, ...bridgePick, ...globalPick];
   const seen = new Set();
   const order = composed.filter(q => !seen.has(q.id) && seen.add(q.id));
   for (const q of valid) {
-    if (order.length >= total) break;
+    if (order.length >= DEFAULT_TOTAL) break;
     if (!seen.has(q.id)) { order.push(q); seen.add(q.id); }
   }
-  s.order = order.slice(0, total).map(q => q.id);
+  s.order = order.slice(0, DEFAULT_TOTAL).map(q => q.id);
   const inFinal = new Set(s.order);
-  s.reserve = valid.filter(q => !inFinal.has(q.id)).map(q => q.id);
+  // Reserve: the user's own roots + chain questions first, so swaps keep
+  // the run's regional flavour.
+  const ownFirst = valid.filter(q => (q.deck === F.roots || q.deck === chainDeck) && !inFinal.has(q.id));
+  const restReserve = valid.filter(q => q.deck !== F.roots && q.deck !== chainDeck && !inFinal.has(q.id));
+  s.reserve = [...ownFirst, ...restReserve].map(q => q.id);
   s.pos = 0;
 }
 // After the meats answer changes, swap any now-unplayable upcoming questions
@@ -844,7 +855,7 @@ function renderQuestion() {
   img.alt = q.q;
   $("qText").textContent = q.q;
   $("multiHint").hidden = !(q.multi || q.rank);
-  $("multiHint").textContent = q.rank ? "🥇 Tap your #1 pick first — then your #2." : "✋ Pick all that apply — then hit Next.";
+  $("multiHint").textContent = q.rank ? (q.rank === 3 ? "🥇 Tap in order — your #1 first, then #2, then #3." : "🥇 Tap your #1 pick first — then your #2.") : "✋ Pick all that apply — then hit Next.";
   $("qInfoBtn").hidden = !q.info;
   $("qInfoBtn").classList.remove("open");
   $("qInfoPanel").hidden = true;
@@ -863,7 +874,7 @@ function renderQuestion() {
     if (q.rank && pendingRank.includes(i)) {
       const bd = document.createElement("span");
       bd.className = "rank-badge";
-      bd.textContent = pendingRank.indexOf(i) === 0 ? "1st" : "2nd";
+      bd.textContent = ["1st", "2nd", "3rd"][pendingRank.indexOf(i)] || "";
       b.appendChild(bd);
     }
     b.setAttribute("aria-pressed", picked ? "true" : "false");
@@ -912,7 +923,7 @@ function paintOptions() {
     const entry = vis[bi];
     if (!entry) return;
     let picked = false, badge = "";
-    if (q.rank) { const ix = pendingRank.indexOf(entry.i); picked = ix >= 0; badge = ix === 0 ? "1st" : ix === 1 ? "2nd" : ""; }
+    if (q.rank) { const ix = pendingRank.indexOf(entry.i); picked = ix >= 0; badge = ["1st", "2nd", "3rd"][ix] || ""; }
     else if (q.multi) picked = pendingSel.has(entry.i);
     else picked = !!(st.answers[q.id] && st.answers[q.id].o === entry.i);
     b.classList.toggle("picked", picked);
@@ -949,7 +960,7 @@ function toggleOption(oi) {
   const q = currentQ();
   const prev = JSON.stringify(st.answers[q.id] || null);
   if (pendingSel.has(oi)) pendingSel.delete(oi); else pendingSel.add(oi);
-  if (pendingSel.size) st.answers[q.id] = { o: [...pendingSel].sort((a, b) => a - b), w: pendingW };
+  if (pendingSel.size) st.answers[q.id] = { o: [...pendingSel], w: pendingW };
   else delete st.answers[q.id];
   afterAnswer(q, prev);
   paintOptions();
@@ -960,9 +971,10 @@ function toggleOption(oi) {
 function toggleRank(oi) {
   const q = currentQ();
   const ix = pendingRank.indexOf(oi);
+  const maxR = typeof q.rank === "number" ? q.rank : 2;
   if (ix >= 0) pendingRank.splice(ix, 1);
-  else if (pendingRank.length < 2) pendingRank.push(oi);
-  else pendingRank[1] = oi;
+  else if (pendingRank.length < maxR) pendingRank.push(oi);
+  else pendingRank[maxR - 1] = oi;
   if (pendingRank.length) st.answers[q.id] = { o: [...pendingRank], w: pendingW, r: 1 };
   else delete st.answers[q.id];
   saveState();
@@ -1065,7 +1077,7 @@ function computeResult(s) {
     wSum += w; wCount++;
     picks.forEach((opt, pi) => {
       // Ranked picks: #1 counts fully, #2 counts half. Dislike picks count against.
-      const mult = q.hate ? -1 : (a.r ? (pi === 0 ? 1 : 0.5) : 1);
+      const mult = q.hate ? -1 : (a.r ? 1 / (pi + 1) : 1);
       (opt.tags || []).forEach(t => { tagCount[t] = (tagCount[t] || 0) + w * mult; });
       if (!q.hate) {
         [["spice", "spice"], ["sweet", "sweet"], ["adv", "adv"]].forEach(([f, k]) => {

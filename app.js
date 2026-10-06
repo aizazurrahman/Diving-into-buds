@@ -1061,12 +1061,19 @@ const RECS = [
 function meterLabel(kind, pct) {
   if (kind === "spice") return pct >= 66 ? "Chilli chaser" : pct >= 33 ? "Warm & balanced" : "Gentle palate";
   if (kind === "sweet") return pct >= 66 ? "Serious sweet tooth" : pct >= 33 ? "Sweet in moderation" : "Savoury soul";
+  if (kind === "smoky") return pct >= 66 ? "Smoke chaser" : pct >= 33 ? "Kissed by smoke" : "Smoke-free zone";
+  if (kind === "tangy") return pct >= 66 ? "Tang hunter" : pct >= 33 ? "Bright & balanced" : "Low-acid soul";
+  if (kind === "creamy") return pct >= 66 ? "Rich & indulgent" : pct >= 33 ? "Comfortably creamy" : "Light & lean";
+  if (kind === "fresh") return pct >= 66 ? "Fresh-first palate" : pct >= 33 ? "Fresh accents" : "Cooked & cosy";
+  if (kind === "classic") return pct >= 66 ? "Tradition keeper" : pct >= 33 ? "Classic-leaning" : "Novelty seeker";
   return pct >= 66 ? "Fearless taster" : pct >= 33 ? "Curious explorer" : "Creature of habit";
 }
 let altRecsCache = [];
 function computeResult(s) {
   const tagCount = {};
   const meters = { spice: [0, 0], sweet: [0, 0], adv: [0, 0] };
+  const tagMeters = { smoky: 0, tangy: 0, creamy: 0, fresh: 0, classic: 0 };
+  let tagDenom = 0;
   const detail = [];
   let wSum = 0, wCount = 0;
   s.order.forEach(qid => {
@@ -1083,6 +1090,8 @@ function computeResult(s) {
         [["spice", "spice"], ["sweet", "sweet"], ["adv", "adv"]].forEach(([f, k]) => {
           if (typeof opt[f] === "number") { meters[k][0] += opt[f] * w * Math.abs(mult); meters[k][1] += w * Math.abs(mult); }
         });
+        const aw = w * Math.abs(mult); tagDenom += aw;
+        (opt.tags || []).forEach(t => { if (t in tagMeters) tagMeters[t] += aw; });
       }
     });
     detail.push({ qid, q: q.q, deck: q.deck, picks: picks.map(p => p.t), weight: w });
@@ -1103,6 +1112,7 @@ function computeResult(s) {
   });
   const meterPct = {};
   Object.entries(meters).forEach(([k, [sum, wt]]) => { meterPct[k] = wt ? Math.round(100 * sum / (3 * wt)) : 0; });
+  Object.entries(tagMeters).forEach(([k, sum]) => { meterPct[k] = tagDenom ? Math.round(100 * sum / tagDenom) : 0; });
   // Recommendations: diet-safe, tag-matched, other regions first.
   const meats = chosenMeats(s);
   const scored = RECS
@@ -1116,13 +1126,13 @@ function computeResult(s) {
   const recs = [];
   const regionCount = {};
   scored.forEach(({ r }) => {
-    if (recs.length >= 5 || recs.find(x => x.dish === r.dish)) return;
-    if ((regionCount[r.region] || 0) >= 2) return; // spread the five discoveries across regions
+    if (recs.length >= 10 || recs.find(x => x.dish === r.dish)) return;
+    if ((regionCount[r.region] || 0) >= 2) return; // spread the ten discoveries across regions
     recs.push(r); regionCount[r.region] = (regionCount[r.region] || 0) + 1;
   });
   const more = [];
   scored.forEach(({ r }) => {
-    if (more.length >= 5 || recs.find(x => x.dish === r.dish) || more.find(x => x.dish === r.dish)) return;
+    if (more.length >= 10 || recs.find(x => x.dish === r.dish) || more.find(x => x.dish === r.dish)) return;
     more.push(r);
   });
   altRecsCache = more.map(r => ({ dish: r.dish, from: r.from, why: r.why }));
@@ -1154,7 +1164,7 @@ function renderResults() {
   const affLabels = Object.keys(res.affinities || {}).map(t => TAG_LABELS[t]).filter(Boolean).slice(0, 8);
   $("profileAffinities").innerHTML = affLabels.length ? `<h3 class="rec-title2">✨ Flavours you're drawn to</h3><div class="traits">${affLabels.map(l => `<span class="trait">${l}</span>`).join("")}</div>` : "";
   $("profileAversions").innerHTML = (res.aversions || []).length ? `<h3 class="rec-title2">🚫 Your hard no's</h3><div class="traits">${res.aversions.map(a => `<span class="trait no">${a}</span>`).join("")}</div><p class="neg-note">We will never match you with these.</p>` : "";
-  const names = { spice: "🌶️ Heat level", sweet: "🍮 Sweet tooth", adv: "🧭 Adventurousness" };
+  const names = { spice: "🌶️ Heat level", sweet: "🍮 Sweet tooth", adv: "🧭 Adventurousness", smoky: "🔥 Smoke & char", tangy: "🍋 Tang & sour", creamy: "🥛 Rich & creamy", fresh: "🌿 Fresh & bright", classic: "💛 Comfort & classic" };
   $("profileMeters").innerHTML = Object.entries(res.meters).map(([k, pct]) =>
     `<div class="meter"><div class="mhead"><span>${names[k]}</span><span>${meterLabel(k, pct)}</span></div>
      <div class="track"><div class="fill" style="width:0%" data-w="${pct}"></div></div></div>`).join("");
@@ -1214,6 +1224,7 @@ $("csvBtn").onclick = () => {
     ["Affinities", Object.entries(res.affinities || {}).map(([k, v]) => `${k}:${v}`).join(", ")],
     ["Hard no's", (res.aversions || []).join(", ")],
     ["Heat %", res.meters.spice], ["Sweet %", res.meters.sweet], ["Adventure %", res.meters.adv],
+    ["Smoke %", res.meters.smoky], ["Tang %", res.meters.tangy], ["Creamy %", res.meters.creamy], ["Fresh %", res.meters.fresh], ["Classic %", res.meters.classic],
     ["Average confidence", res.avgConfidence], [],
     ["#", "Question", "Section", "Your pick(s)", "Confidence"]
   ];

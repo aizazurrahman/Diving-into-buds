@@ -1,3 +1,4 @@
+button { touch-action: manipulation; }
 :root {
   --bg: #F1EBFA;
   --ink: #211631;
@@ -214,6 +215,7 @@ input[type="email"]:focus, input[type="password"]:focus { outline: none; border-
 .options { display: grid; gap: 10px; padding: 14px 24px 4px; }
 .opt {
   font: inherit; text-align: left; padding: 15px 18px; border-radius: 14px; cursor: pointer;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
   border: 1.5px solid var(--line); background: #fff; font-weight: 500; font-size: 1rem; color: var(--ink);
   transition: border-color .13s ease, background .13s ease, transform .1s ease;
   animation: optin .3s cubic-bezier(.22,.8,.36,1) both; position: relative;

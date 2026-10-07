@@ -391,3 +391,13 @@ footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 18
 .more-recs { display: block; margin: 14px auto 2px; }
 .more-recs[hidden] { display: none; }
 #profileAffinities .traits, #profileAversions .traits { justify-content: flex-start; }
+
+/* v19 flavour axes */
+.axis { margin: 12px 0; }
+.a-head { display: flex; justify-content: space-between; font-weight: 600; font-size: .95rem; }
+.a-lean { color: #7C3AED; }
+.a-track { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+.a-pole { font-size: .75rem; color: #6B7280; white-space: nowrap; }
+.a-bar { position: relative; flex: 1; height: 8px; border-radius: 99px; background: linear-gradient(90deg, #DDD6FE, #7C3AED); }
+.a-marker { position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 3px solid #4C1D95; transform: translate(-50%, -50%); }
+.r-axes { font-size: .82rem; color: #7C3AED; margin-top: 2px; }

@@ -240,6 +240,12 @@ function fixOrder(s) {
     }
   }
   s.reserve = pool.filter(id => !used.has(id) && !s.order.includes(id));
+  // The spice → temperature pair is inseparable (Aizaz's standing rule):
+  // swaps and gate promotions above must never wedge anything between them.
+  if (!s.answers['op-spice'] && !s.answers['op-temp'] && !(s.skipped && (s.skipped['op-spice'] || s.skipped['op-temp']))) {
+    const si = s.order.indexOf('op-spice'), ti = s.order.indexOf('op-temp');
+    if (si >= 0 && ti >= 0 && ti !== si + 1) { s.order.splice(ti, 1); s.order.splice(si + 1, 0, 'op-temp'); }
+  }
 }
 
 /* ————— Persistence (local cache + Supabase) ————— */
@@ -891,13 +897,20 @@ $("primaryAction").onclick = () => {
   show("view-quiz");
 };
 $("changeFundBtn").onclick = () => { initFundPicks(); show("view-fund"); };
-$("restartBtn").onclick = () => {
+// Start over: a COMPLETE run reset — answers, skips, navigation history and
+// any cached recommendations all go (an earlier version left skips behind,
+// which silently suppressed questions in the fresh run). Fundamentals stay.
+function doRestart() {
   if (!confirm("Start over? Your saved answers will be cleared (fundamentals stay the same).")) return;
-  st.answers = {}; st.finished = false; st.result = null; st.sheetSent = false;
+  st.answers = {}; st.skipped = {}; st.seen = []; st.navAt = -1; st.pos = 0;
+  st.finished = false; st.result = null; st.sheetSent = false; st.altRecs = null;
   buildOrder(st);
   saveState();
   renderHome();
-};
+  show("view-home");
+}
+$("restartBtn").onclick = doRestart;
+$("quizRestartBtn").onclick = doRestart;
 
 /* ————— Quiz ————— */
 let pendingW = 1;
@@ -1495,13 +1508,7 @@ $("csvBtn").onclick = () => {
   a.click();
   URL.revokeObjectURL(a.href);
 };
-$("retakeBtn").onclick = () => {
-  st.answers = {}; st.finished = false; st.result = null; st.sheetSent = false;
-  buildOrder(st);
-  saveState();
-  renderHome();
-  show("view-home");
-};
+$("retakeBtn").onclick = doRestart;
 
 /* ————— Boot ————— */
 (async function init() {

@@ -920,6 +920,14 @@ function renderQuestion() {
     if (t >= 0) { st.pos = t; q = currentQ(); }
   }
   st.seen = st.seen || [];
+  // Sessions restored from before the seen-history existed (or synced from
+  // another device) arrive with an empty or partial history, which left Back
+  // with nothing to step to. Rebuild the missing head from the run order —
+  // everything at or behind the current position was displayed to get here.
+  if (st.order.length) {
+    if (!st.seen.length) st.seen = st.order.slice(0, st.pos + 1);
+    else { const head = st.order.indexOf(st.seen[0]); if (head > 0) st.seen = [...st.order.slice(0, head), ...st.seen]; }
+  }
   if (q && !st.seen.includes(q.id)) st.seen.push(q.id); // the displayed sequence Back/Next browse
   const saved = st.answers[q.id];
   const n = answeredCount(st);
@@ -1050,10 +1058,12 @@ function afterAnswer(q, prevJson) {
 function selectOption(oi) {
   const q = currentQ();
   const prev = JSON.stringify(st.answers[q.id] || null);
-  st.answers[q.id] = { o: oi, w: pendingW };
+  if (st.answers[q.id] && st.answers[q.id].o === oi) delete st.answers[q.id]; // tapping your own pick again clears it — every question type can deselect
+  else st.answers[q.id] = { o: oi, w: pendingW };
   afterAnswer(q, prev);
   paintOptions();
   refreshAfterAnswer();
+  if (!st.answers[q.id]) $("nextBtn").disabled = true;
 }
 function toggleOption(oi) {
   const q = currentQ();
@@ -1121,12 +1131,22 @@ $("skipBtn").onclick = () => {
   st.skipped = st.skipped || {};
   st.skipped[q.id] = true;
   afterAnswer(q, prev); // clears stale gate-children answers if this was a parent
-  // A skip no longer shrinks the run: a replacement question (same deck /
-  // same fundamentals family first) joins the tail, so the user still
-  // answers the full set and the profile stays holistic.
+  // Skip swaps the question out IN PLACE (Aizaz, 2026-10-07): the
+  // replacement (same deck / same fundamentals family first) takes the slot
+  // right after the skipped question and is shown immediately as the new
+  // current question — the user never advances past an unanswered slot, and
+  // the run still totals the full set of answers.
   const repId = replacementFor(st, q);
-  if (repId) { st.order.push(repId); st.reserve = st.reserve.filter(id => id !== repId); }
   st.navAt = -1;
+  if (repId) {
+    st.order.splice(st.pos + 1, 0, repId);
+    st.reserve = st.reserve.filter(id => id !== repId);
+    fixOrder(st);
+    st.pos = st.order.indexOf(repId);
+    saveState();
+    renderQuestion();
+    return;
+  }
   fixOrder(st);
   let t = findNext(st.pos);
   if (t === -1) t = findNext(0);

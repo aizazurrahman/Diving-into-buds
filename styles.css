@@ -195,7 +195,7 @@ input[type="email"]:focus, input[type="password"]:focus { outline: none; border-
 
 .qcard { padding: 0 0 18px; overflow: hidden; }
 .qinner { animation: qin .34s cubic-bezier(.22,.8,.36,1) both; }
-@keyframes qin { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes qin { from { opacity: 0; } to { opacity: 1; } }
 .qimg {
   position: relative; height: 300px; background: linear-gradient(135deg, #C4B5FD, #7C3AED 60%, #5B21B6);
   display: flex; align-items: center; justify-content: center;
@@ -223,7 +223,7 @@ input[type="email"]:focus, input[type="password"]:focus { outline: none; border-
 .opt:nth-child(4) { animation-delay: .12s; }
 .opt:nth-child(5) { animation-delay: .16s; }
 .opt:nth-child(6) { animation-delay: .2s; }
-@keyframes optin { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes optin { from { opacity: 0; } to { opacity: 1; } }
 .opt:hover { border-color: var(--accent); background: #F7F2FF; }
 .opt:active { transform: scale(.99); }
 .opt.picked { border-color: var(--accent); background: #EFE8FF; font-weight: 600; box-shadow: inset 0 0 0 1px var(--accent); }

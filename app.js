@@ -27,6 +27,7 @@ const DIET_LABELS = { everything: "Everything", vegetarian: "Vegetarian", vegan:
 const ROOT_LABELS = { hyderabad: "Hyderabad, India", southasia: "South Asia", eastasia: "East/Southeast Asia", middleeast: "Middle-Eastern", unitedstates: "United States", europe: "Europe", africa: "Africa", latinamerica: "Latin America & The Caribbean" };
 const LEGACY_ROOTS = { asia: "eastasia", americas: "unitedstates" };
 function normRootsValue(v) { return LEGACY_ROOTS[v] || v; }
+function rootsLabelOf(o) { return [o && o.roots, o && o.roots2].filter(Boolean).map(r => ROOT_LABELS[r] || r).join(" + "); }
 const ROOT_EMOJI = { hyderabad: "🏰", southasia: "🍛", eastasia: "🥢", middleeast: "🧆", unitedstates: "🍔", europe: "🥐", africa: "🌍", latinamerica: "🌮" };
 
 /* ————— State ————— */
@@ -97,18 +98,35 @@ function buildOrder(s) {
   const F = s.builtFor, diet = F.diet;
   const valid = QBANK.filter(q => q.diets.includes(diet) && q.options.filter(o => optVisible(o, diet, null)).length >= 2);
   const byDeck = (d) => valid.filter(q => q.deck === d);
-  const chainDeck = { hyderabad: "hydro", eastasia: "asiachain", unitedstates: "usachain", europe: "eurchain", southasia: "souchain", middleeast: "midchain", africa: "africhain", latinamerica: "latchain" }[F.roots] || "hydro";
+  const chainDeckOf = (r) => ({ hyderabad: "hydro", eastasia: "asiachain", unitedstates: "usachain", europe: "eurchain", southasia: "souchain", middleeast: "midchain", africa: "africhain", latinamerica: "latchain" }[r] || "hydro");
+  const chainDeck = chainDeckOf(F.roots);
+  const rootsList = [F.roots, F.roots2].filter(Boolean);
   // — Regional 20 (Aizaz's v10 structure): the diet warm-up, the roots' own
   // dislike list, spice + dessert warm-ups, the eating-style chain, then the
   // roots deck. Closed chain branches swap out for roots-deck questions from
   // the reserve, so the served 20 stays regional.
   const dietOpener = byDeck("opener").filter(q => q.id.startsWith("op-meats") || q.id.startsWith("op-protein")).slice(0, 1);
-  const rootsDeckAll = byDeck(F.roots);
-  const rootsNogo = rootsDeckAll.filter(q => q.hate).slice(0, 1);
-  const rootsRest = rootsDeckAll.filter(q => !q.hate);
   const heatSweet = ["op-spice", "op-temp", "op-sweet"].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
-  const chains = byDeck(chainDeck);
-  const regional = [...dietOpener, ...rootsNogo, ...heatSweet, ...chains, ...rootsRest].slice(0, 20);
+  const eggQ = diet === "vegetarian" ? ["op-eggs"].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q)) : [];
+  let regional;
+  if (rootsList.length === 2) {
+    // Two roots: both dislike lists, then a blend of both eating-style chains
+    // (anchors + kind questions interleaved). Closed branches swap out via the
+    // reserve, which pulls in the open branches' extras and both roots decks —
+    // the served 20 self-balances toward the picks the user actually makes.
+    const nogos = rootsList.flatMap(r => byDeck(r).filter(q => q.hate).slice(0, 1));
+    const core = (r) => { const cd = byDeck(chainDeckOf(r)); return [...cd.filter(q => !q.gate), ...cd.filter(q => q.gate && q.id.includes("-k-"))]; };
+    const zip = (a, b) => { const out = []; for (let i = 0; i < Math.max(a.length, b.length); i++) { if (a[i]) out.push(a[i]); if (b[i]) out.push(b[i]); } return out; };
+    const blend = zip(core(rootsList[0]), core(rootsList[1]));
+    const restZip = zip(byDeck(rootsList[0]).filter(q => !q.hate), byDeck(rootsList[1]).filter(q => !q.hate));
+    regional = [...dietOpener, ...nogos, ...heatSweet, ...eggQ, ...blend, ...restZip].slice(0, 20);
+  } else {
+    const rootsDeckAll = byDeck(F.roots);
+    const rootsNogo = rootsDeckAll.filter(q => q.hate).slice(0, 1);
+    const rootsRest = rootsDeckAll.filter(q => !q.hate);
+    const chains = byDeck(chainDeck);
+    regional = [...dietOpener, ...rootsNogo, ...heatSweet, ...eggQ, ...chains, ...rootsRest].slice(0, 20);
+  }
   // — Global 30: palate + bridge + global decks, rotated per roots so each
   // group meets a different slice of the world.
   const rot = Object.keys(ROOT_LABELS).indexOf(F.roots);
@@ -117,7 +135,13 @@ function buildOrder(s) {
   const palateRest = rotate(byDeck("palate").filter(q => !salad.includes(q)), rot * 3);
   const palatePick = [...salad, ...palateRest].slice(0, 10);
   const bridgePick = rotate(byDeck("bridge"), rot * 2).slice(0, 8);
-  const globalPick = rotate(byDeck("global"), rot * 5).slice(0, 12);
+  // Fixed global slots (like the salad pair): the fish gateway parent and, for
+  // Everything users, the alcohol question — signal questions whose answers
+  // unlock whole dish leagues must reach every user they apply to, not just
+  // the roots whose rotation happens to pass them.
+  const fishQ = ["glo-fish"].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
+  const alcQ = diet === "everything" ? ["glo-alc"].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q)) : [];
+  const globalPick = [...fishQ, ...alcQ, ...rotate(byDeck("global").filter(q => !fishQ.includes(q) && !alcQ.includes(q)), rot * 5)].slice(0, 12);
   const composed = [...regional, ...palatePick, ...bridgePick, ...globalPick];
   const seen = new Set();
   const order = composed.filter(q => !seen.has(q.id) && seen.add(q.id));
@@ -141,8 +165,9 @@ function buildOrder(s) {
   const inFinal = new Set(s.order);
   // Reserve: the user's own roots + chain questions first, so swaps keep
   // the run's regional flavour.
-  const ownFirst = valid.filter(q => (q.deck === F.roots || q.deck === chainDeck) && !inFinal.has(q.id));
-  const restReserve = valid.filter(q => q.deck !== F.roots && q.deck !== chainDeck && !inFinal.has(q.id));
+  const ownDecks = new Set(rootsList.flatMap(r => [r, chainDeckOf(r)]));
+  const ownFirst = valid.filter(q => ownDecks.has(q.deck) && !inFinal.has(q.id));
+  const restReserve = valid.filter(q => !ownDecks.has(q.deck) && !inFinal.has(q.id));
   s.reserve = [...ownFirst, ...restReserve].map(q => q.id);
   s.pos = 0;
 }
@@ -228,7 +253,7 @@ async function hydrate() {
   const cloudAnswers = {};
   Object.keys(rawAnswers).forEach(k => { if (QBANK_BY_ID[k]) cloudAnswers[k] = rawAnswers[k]; });
   const fund = row.fundamentals || rawAnswers.__fund || null;
-  if (fund) fund.roots = normRootsValue(fund.roots);
+  if (fund) { fund.roots = normRootsValue(fund.roots); if (fund.roots2) fund.roots2 = normRootsValue(fund.roots2); }
   const result = row.result || rawAnswers.__result || null;
   if (fund && (Object.keys(cloudAnswers).length || row.finished || local.builtFor)) {
     st = blankState();
@@ -320,12 +345,14 @@ function routeAfterLogin() {
 }
 
 /* ————— Fundamentals ————— */
-let pickDiet = null, pickRoots = null, pickCity = "";
-function savePending() { store.set("dib_pending_fund", { diet: pickDiet, roots: pickRoots, city: pickCity }); }
+let pickDiet = null, pickRoots = null, pickRoots2 = null, pickCity = "";
+function savePending() { store.set("dib_pending_fund", { diet: pickDiet, roots: pickRoots, roots2: pickRoots2, city: pickCity }); }
 function initFundPicks() {
   const saved = (st && st.fundamentals) || store.get("dib_pending_fund", null);
   pickDiet = saved ? saved.diet : null;
   pickRoots = saved ? normRootsValue(saved.roots) : null;
+  pickRoots2 = saved && saved.roots2 ? normRootsValue(saved.roots2) : null;
+  if (pickRoots2 === pickRoots) pickRoots2 = null;
   pickCity = saved && saved.city ? canonicalCity(saved.city) : "";
   $("cityInput").value = pickCity;
   $("cityInput").classList.remove("invalid");
@@ -337,8 +364,8 @@ function paintFundPicks() {
     b.classList.toggle("picked", on); b.setAttribute("aria-checked", on ? "true" : "false");
   });
   document.querySelectorAll("#rootsGrid .fund-opt").forEach(b => {
-    const on = b.dataset.roots === pickRoots;
-    b.classList.toggle("picked", on); b.setAttribute("aria-checked", on ? "true" : "false");
+    const on = b.dataset.roots === pickRoots, on2 = b.dataset.roots === pickRoots2;
+    b.classList.toggle("picked", on); b.classList.toggle("picked2", on2); b.setAttribute("aria-checked", on || on2 ? "true" : "false");
   });
   $("buildBtn").disabled = !(pickDiet && pickRoots && pickCity);
   $("buildBtn").textContent = st && st.builtFor ? "Rebuild my questions →" : "Build my questions →";
@@ -347,7 +374,13 @@ document.querySelectorAll("#dietGrid .fund-opt").forEach(b => b.onclick = () => 
   pickDiet = b.dataset.diet; savePending(); paintFundPicks();
 });
 document.querySelectorAll("#rootsGrid .fund-opt").forEach(b => b.onclick = () => {
-  pickRoots = b.dataset.roots; savePending(); paintFundPicks();
+  const r = b.dataset.roots;
+  if (r === pickRoots) { pickRoots = pickRoots2; pickRoots2 = null; } // tap primary off: second root steps up
+  else if (r === pickRoots2) pickRoots2 = null;
+  else if (!pickRoots) pickRoots = r;
+  else if (!pickRoots2) pickRoots2 = r;
+  else pickRoots2 = r; // both slots full — replace the second
+  savePending(); paintFundPicks();
 });
 const FUND_INFO = {
   diet: {
@@ -762,9 +795,9 @@ $("cityInput").addEventListener("blur", () => {
 $("buildBtn").onclick = () => {
   const city = pickCity;
   if (!pickDiet || !pickRoots || !city) return;
-  const F = { diet: pickDiet, roots: pickRoots, city };
+  const F = { diet: pickDiet, roots: pickRoots, roots2: pickRoots2 || null, city };
   const prev = st.builtFor;
-  if (prev && prev.diet === F.diet && prev.roots === F.roots) {
+  if (prev && prev.diet === F.diet && prev.roots === F.roots && (prev.roots2 || null) === F.roots2) {
     // City added/changed only — questions don't depend on it, keep progress.
     st.fundamentals = F; st.builtFor = F;
     if (st.result) st.result = computeResult(st);
@@ -776,7 +809,7 @@ $("buildBtn").onclick = () => {
   if ((prev || st.finished) && answeredCount(st) > 0 &&
       !confirm("New settings mean a fresh set of questions — your current answers will be cleared. Continue?")) return;
   st.fundamentals = F; st.builtFor = F;
-  st.answers = {}; st.finished = false; st.result = null; st.sheetSent = false;
+  st.answers = {}; st.skipped = {}; st.finished = false; st.result = null; st.sheetSent = false;
   buildOrder(st);
   saveState();
   st.pos = 0;
@@ -794,7 +827,7 @@ function renderHome() {
   const n = answeredCount(st);
   const restart = $("restartBtn"), change = $("changeFundBtn");
   $("fundSummary").textContent = st.builtFor
-    ? `Your fundamentals: ${DIET_LABELS[st.builtFor.diet]} · ${ROOT_EMOJI[st.builtFor.roots]} ${ROOT_LABELS[st.builtFor.roots]} roots${st.builtFor.city ? ` · 📍 ${st.builtFor.city}` : ""}`
+    ? `Your fundamentals: ${DIET_LABELS[st.builtFor.diet]} · ${ROOT_EMOJI[st.builtFor.roots]} ${rootsLabelOf(st.builtFor)} roots${st.builtFor.city ? ` · 📍 ${st.builtFor.city}` : ""}`
     : "";
   restart.hidden = !(n > 0 || st.finished);
   change.hidden = !st.builtFor;
@@ -814,7 +847,7 @@ function renderHome() {
     $("primaryAction").textContent = `Continue — question ${n + 1}`;
   } else {
     $("homeTitle").textContent = "Ready to dive in?";
-    $("homeText").textContent = `Your questions are built around ${ROOT_LABELS[st.builtFor.roots]} roots and a ${DIET_LABELS[st.builtFor.diet]} diet. About 10 minutes — save & exit anytime.`;
+    $("homeText").textContent = `Your questions are built around ${rootsLabelOf(st.builtFor)} roots and a ${DIET_LABELS[st.builtFor.diet]} diet. About 10 minutes — save & exit anytime.`;
     $("primaryAction").textContent = "Start the questions";
   }
 }
@@ -905,6 +938,13 @@ function renderQuestion() {
   pendingW = saved ? saved.w : 1;
   $("weightSlider").value = pendingW;
   updateSliderLabel();
+  const sliderHint = $("sliderHint");
+  if (sliderHint) {
+    const firstRanked = q.rank && !Object.values(st.answers).some(a => a && a.r);
+    sliderHint.textContent = firstRanked
+      ? "First ranked question — this slider is how much your picks matter: 1 means the others nearly won, 5 means no contest. It steers your whole profile."
+      : "1 means the other options nearly won. 5 means this pick, no debate.";
+  }
 
   const hasAnswer = q.rank ? pendingRank.length > 0 : q.multi ? pendingSel.size > 0 : !!saved;
   $("nextBtn").disabled = !hasAnswer;
@@ -1072,7 +1112,7 @@ const RECS = [
   { dish: "Veggie burrito bowl", yt: "https://www.youtube.com/watch?v=f558hrjpOrw", from: "Mexico · Latin America", region: "latinamerica", diet: "vegan", emoji: "🌯", match: ["rice", "fresh", "healthy"], why: "Rice, beans, salsa, guac — the build-your-own thali, Mexican edition." },
   { dish: "Mapo tofu", yt: "https://www.youtube.com/watch?v=_BfTqhtfGTM", from: "Sichuan · East Asia", region: "eastasia", diet: "vegan", emoji: "🌶️", match: ["spice", "adventure"], why: "Silky tofu in a chilli-bean lava with numbing Sichuan pepper. Your heat tolerance, upgraded." },
   { dish: "Thai green curry with tofu", yt: "https://www.youtube.com/watch?v=Fv-ADFgtrRg", from: "Thailand · Southeast Asia", region: "eastasia", diet: "vegan", emoji: "🍛", match: ["creamy", "spice"], why: "Coconut, basil and green chilli — salan energy in a whole new accent." },
-  { dish: "Shakshuka", yt: "https://www.youtube.com/watch?v=Uow78qBAWRk", from: "The Mediterranean", region: "middleeast", diet: "veg", emoji: "🍳", match: ["tangy", "home"], why: "Eggs poached in spiced tomato sauce — breakfast, lunch and dinner argue over it." },
+  { dish: "Shakshuka", yt: "https://www.youtube.com/watch?v=Uow78qBAWRk", from: "The Mediterranean", region: "middleeast", diet: "veg", egg: true, emoji: "🍳", match: ["tangy", "home"], why: "Eggs poached in spiced tomato sauce — breakfast, lunch and dinner argue over it." },
   { dish: "Ratatouille", yt: "https://www.youtube.com/watch?v=rjJCetszgNM", from: "France · Europe", region: "europe", diet: "vegan", emoji: "🍆", match: ["home", "healthy", "fresh"], why: "Slow-stewed vegetables with herbs — proof that simple veg, cooked patiently, wins." },
   { dish: "Elote — street corn", yt: "https://www.youtube.com/watch?v=vsfUpBRm7fI", from: "Mexico · Latin America", region: "latinamerica", diet: "veg", emoji: "🌽", match: ["street", "tangy"], why: "Charred corn, lime, chilli, cheese — chaat's long-lost Mexican sibling." },
   { dish: "Mushroom pierogi", yt: "https://www.youtube.com/watch?v=qWwqdORZwmQ", from: "Poland · Europe", region: "europe", diet: "vegan", emoji: "🥟", match: ["home", "classic"], why: "Dumplings with sauerkraut and mushroom — momos that emigrated and got cosy." },
@@ -1114,7 +1154,34 @@ const RECS = [
   { dish: "Feijoada", yt: "https://www.youtube.com/watch?v=eS5_wWS0IDc", from: "Brazil · Latin America", region: "latinamerica", diet: "meat:pork", emoji: "🫘", match: ["home", "meat"], why: "Black beans and pork, simmered for hours — Brazil's Saturday ritual." },
   { dish: "Bunny chow", yt: "https://www.youtube.com/watch?v=bOhddTWSJPQ", from: "Durban · Africa", region: "africa", diet: "meat:chicken", emoji: "🍞", match: ["spice", "street"], why: "Curry served inside a hollowed loaf — Durban's edible bowl." },
   { dish: "Doro wat", yt: "https://www.youtube.com/watch?v=6QjW6QWXxD4", from: "Ethiopia · Africa", region: "africa", diet: "meat:chicken", emoji: "🍗", match: ["spice", "home"], why: "Chicken braised in berbere and browned onion, eaten with injera." },
-  { dish: "Bánh mì", yt: "https://www.youtube.com/watch?v=7gL-vCsDtkE", from: "Vietnam · Southeast Asia", region: "eastasia", diet: "meat:pork", emoji: "🥖", match: ["fresh", "street"], why: "Crisp baguette, pâté, pickles and herbs — two food cultures in one bite." }
+  { dish: "Bánh mì", yt: "https://www.youtube.com/watch?v=7gL-vCsDtkE", from: "Vietnam · Southeast Asia", region: "eastasia", diet: "meat:pork", emoji: "🥖", match: ["fresh", "street"], why: "Crisp baguette, pâté, pickles and herbs — two food cultures in one bite." },
+  { dish: "Coq au vin", yt: "https://www.youtube.com/watch?v=2PSW4AiktyA", from: "France · Europe", region: "europe", diet: "meat:chicken", alc: true, emoji: "🍷", match: ["classic", "home"], why: "Chicken braised in red wine until the sauce turns to velvet." },
+  { dish: "Boeuf bourguignon", yt: "https://www.youtube.com/watch?v=Mx3rD6LKCbQ", from: "France · Europe", region: "europe", diet: "meat:beef", alc: true, emoji: "🍲", match: ["classic", "creamy"], why: "Beef slow-cooked in Burgundy wine — France's deepest stew." },
+  { dish: "Beer-battered fish & chips", yt: "https://www.youtube.com/watch?v=vNb7gj9VFJo", from: "Britain · Europe", region: "europe", diet: "meat:fish", alc: true, emoji: "🍺", match: ["street", "classic"], why: "Crisp beer batter, soft fish, salt and vinegar — seaside law." },
+  { dish: "Tiramisu", yt: "https://www.youtube.com/watch?v=NwZMODDf-WI", from: "Italy · Europe", region: "europe", diet: "veg", alc: true, emoji: "🍰", match: ["sweet", "creamy", "coffee"], why: "Espresso-soaked layers under mascarpone clouds — pick-me-up, literally." },
+  { dish: "Maafe", yt: "https://youtu.be/yHovQCzeUP0", from: "West Africa", region: "africa", diet: "vegan", emoji: "🥜", match: ["creamy", "home"], why: "Groundnut stew — peanuts simmered into a rich, savoury sauce over rice." },
+  { dish: "Fesenjān", yt: "https://www.youtube.com/watch?v=opJpBLTr8a0", from: "Persia · Middle East", region: "middleeast", diet: "meat:chicken", emoji: "🍗", match: ["tangy", "sweet"], why: "Chicken in walnut-and-pomegranate sauce — dark, sweet, sour." },
+  { dish: "Khachapuri", yt: "https://www.youtube.com/watch?v=YmpZlbUT5XA", from: "Georgia · Europe", region: "europe", diet: "veg", emoji: "🧀", match: ["creamy", "classic"], why: "A boat of molten cheese with a yolk in the middle — tear, dip, repeat." },
+  { dish: "Okonomiyaki", yt: "https://www.youtube.com/watch?v=f2IEoi7Gu1U", from: "Osaka · East Asia", region: "eastasia", diet: "meat:pork", emoji: "🥞", match: ["street", "adventure"], why: "Savoury cabbage pancake off the grill, lacquered and dancing with bonito." },
+  { dish: "Curry laksa", yt: "https://www.youtube.com/watch?v=iRzdTGe2vqc", from: "Malaysia · Southeast Asia", region: "eastasia", diet: "meat:seafood", emoji: "🍜", match: ["soup", "spice", "creamy"], why: "Coconut curry broth, noodles and seafood — a whole market in one bowl." },
+  { dish: "Tonkotsu ramen", yt: "https://www.youtube.com/watch?v=Pln23pOMNlU", from: "Japan · East Asia", region: "eastasia", diet: "meat:pork", emoji: "🍜", match: ["soup", "noodle", "creamy"], why: "Pork broth boiled to milkiness — ramen at its richest." },
+  { dish: "Moussaka", yt: "https://www.youtube.com/watch?v=m1sJNFln-7E", from: "Greece · Europe", region: "europe", diet: "meat:lamb", emoji: "🍆", match: ["creamy", "home"], why: "Aubergine and spiced lamb under a béchamel blanket." },
+  { dish: "Goulash", yt: "https://www.youtube.com/watch?v=qPBJ6dRkv58", from: "Hungary · Europe", region: "europe", diet: "meat:beef", emoji: "🥘", match: ["home", "spice"], why: "Paprika beef stew — deep red, slow and warming." },
+  { dish: "Aguachile", yt: "https://www.youtube.com/watch?v=y5JWgfHv40E", from: "Sinaloa · Latin America", region: "latinamerica", diet: "meat:seafood", raw: true, emoji: "🍤", match: ["fresh", "tangy", "spice"], why: "Shrimp in lime-and-chilli water — ceviche's fiercer cousin." },
+  { dish: "Tacos al pastor", yt: "https://www.youtube.com/watch?v=WpCJkecTcxg", from: "Mexico · Latin America", region: "latinamerica", diet: "meat:pork", emoji: "🌮", match: ["street", "smoky"], why: "Marinated pork shaved off the trompo, pineapple on top." },
+  { dish: "Pupusas", yt: "https://www.youtube.com/watch?v=BU77zV4xrXo", from: "El Salvador · Latin America", region: "latinamerica", diet: "veg", emoji: "🫓", match: ["street", "creamy"], why: "Stuffed corn cakes with curtido crunch and salsa." },
+  { dish: "Jerk chicken", yt: "https://www.youtube.com/watch?v=Q4ku2YHVJWI", from: "Jamaica · The Caribbean", region: "latinamerica", diet: "meat:chicken", emoji: "🍗", match: ["spice", "smoky"], why: "Allspice and Scotch-bonnet fire, smoked low over pimento wood." },
+  { dish: "Piri piri chicken", yt: "https://www.youtube.com/watch?v=gC8voPWJV9U", from: "Mozambique · Africa", region: "africa", diet: "meat:chicken", emoji: "🌶️", match: ["spice", "smoky"], why: "Flame-grilled chicken under bird's-eye chilli sauce." },
+  { dish: "Chicken tagine", yt: "https://www.youtube.com/watch?v=QIPtx_t4_KE", from: "Morocco · Africa", region: "africa", diet: "meat:chicken", emoji: "🍋", match: ["home", "tangy"], why: "Slow-cooked with preserved lemon and olives — Morocco's signature pot." },
+  { dish: "Bobotie", yt: "https://www.youtube.com/watch?v=WW-PDbGJTBY", from: "South Africa", region: "africa", diet: "meat:beef", emoji: "🍮", match: ["sweet", "home"], why: "Cape Malay spiced mince baked under a golden custard top." },
+  { dish: "Som tam", yt: "https://www.youtube.com/watch?v=phn9ed4_Imo", from: "Thailand · Southeast Asia", region: "eastasia", diet: "meat:seafood", emoji: "🥒", match: ["fresh", "tangy", "spice"], why: "Green papaya pounded with lime, chilli and dried shrimp — sweet-sour-fire." },
+  { dish: "Khao soi", yt: "https://www.youtube.com/watch?v=X50pWy7WAXo", from: "Chiang Mai · Southeast Asia", region: "eastasia", diet: "meat:chicken", emoji: "🍜", match: ["soup", "creamy", "spice"], why: "Curry noodle soup with a crisp noodle crown." },
+  { dish: "Butter chicken", yt: "https://www.youtube.com/watch?v=VHfhCXkJh34", from: "Delhi · South Asia", region: "southasia", diet: "meat:chicken", emoji: "🍛", match: ["creamy", "classic"], why: "Tandoori chicken folded into tomato-butter silk." },
+  { dish: "Nihari", yt: "https://www.youtube.com/watch?v=KYR-wx44Pw4", from: "Old Delhi · South Asia", region: "southasia", diet: "meat:beef", emoji: "🍖", match: ["spice", "home"], why: "Beef shank braised for hours in a deep, dark gravy." },
+  { dish: "Haleem", yt: "https://www.youtube.com/watch?v=mewkdzt04v0", from: "Hyderabad", region: "hyderabad", diet: "meat:beef", emoji: "🍲", match: ["home", "spice"], why: "Wheat, lentils and beef pounded to silk — Hyderabad's patience dish." },
+  { dish: "Smash burger", yt: "https://www.youtube.com/watch?v=GC1e2fK4PFk", from: "United States", region: "unitedstates", diet: "meat:beef", emoji: "🍔", match: ["classic", "meat"], why: "Lacy crisp edges, molten cheese, soft bun — the diner, perfected." },
+  { dish: "Lobster roll", yt: "https://www.youtube.com/watch?v=3llW37YhBu0", from: "Maine · United States", region: "unitedstates", diet: "meat:seafood", emoji: "🦞", match: ["fresh", "creamy"], why: "Sweet lobster piled into a buttered, toasted roll." },
+  { dish: "Poutine", yt: "https://www.youtube.com/watch?v=FJONxxDPUdU", from: "Québec · Canada", region: "unitedstates", diet: "veg", emoji: "🍟", match: ["creamy", "classic"], why: "Fries, gravy and squeaky cheese curds — Québec's gift to the world." }
 ];
 function meterLabel(kind, pct) {
   if (kind === "spice") return pct >= 66 ? "Chilli chaser" : pct >= 33 ? "Warm & balanced" : "Gentle palate";
@@ -1133,7 +1200,7 @@ function computeResult(s) {
   const tagMeters = { smoky: 0, tangy: 0, creamy: 0, fresh: 0, classic: 0 };
   let tagDenom = 0;
   const detail = [];
-  let wSum = 0, wCount = 0, rawOk = false;
+  let wSum = 0, wCount = 0, rawOk = false, alcOk = false, eggOk = false;
   s.order.forEach(qid => {
     const a = s.answers[qid]; if (!a) return;
     const q = QBANK_BY_ID[qid]; if (!q) return;
@@ -1144,7 +1211,9 @@ function computeResult(s) {
       // Ranked picks: #1 counts fully, #2 counts half. Dislike picks count against.
       const mult = q.hate ? -1 : (a.r ? 1 / (pi + 1) : 1);
       if ((opt.tags || []).includes("rawok")) rawOk = true; // user opened the raw league (sashimi, tartare, ceviche…)
-      (opt.tags || []).forEach(t => { if (t !== "rawok") tagCount[t] = (tagCount[t] || 0) + w * mult; });
+      if ((opt.tags || []).includes("alcok")) alcOk = true; // user is fine with alcohol-cooked dishes
+      if ((opt.tags || []).includes("eggok")) eggOk = true; // vegetarian who eats eggs
+      (opt.tags || []).forEach(t => { if (t !== "rawok" && t !== "alcok" && t !== "eggok") tagCount[t] = (tagCount[t] || 0) + w * mult; });
       if (!q.hate) {
         [["spice", "spice"], ["sweet", "sweet"], ["adv", "adv"]].forEach(([f, k]) => {
           if (typeof opt[f] === "number") { meters[k][0] += opt[f] * w * Math.abs(mult); meters[k][1] += w * Math.abs(mult); }
@@ -1174,13 +1243,16 @@ function computeResult(s) {
   Object.entries(tagMeters).forEach(([k, sum]) => { meterPct[k] = tagDenom ? Math.round(100 * sum / tagDenom) : 0; });
   // Recommendations: diet-safe, tag-matched, other regions first.
   const meats = chosenMeats(s);
+  const ownRoots = [s.builtFor.roots, s.builtFor.roots2].filter(Boolean);
   const scored = RECS
     .filter(r => optVisible(r, s.builtFor.diet, meats))
     .filter(r => !r.raw || rawOk) // raw dishes only for users who opened the raw league
+    .filter(r => !r.alc || alcOk) // alcohol-cooked dishes only for users who opened that door
+    .filter(r => !r.egg || s.builtFor.diet !== "vegetarian" || eggOk) // egg dishes: only no-egg vegetarians are filtered
     .filter(r => !aversions.some(av => av.length > 3 && r.dish.toLowerCase().includes(av.toLowerCase().split(" ")[0])))
     .map(r => ({
       r,
-      score: r.match.filter(t => topTags.includes(t)).length * 2 + (r.region !== s.builtFor.roots ? 1 : 0)
+      score: r.match.filter(t => topTags.includes(t)).length * 2 + (ownRoots.includes(r.region) ? 0 : 1)
     }))
     .sort((a, b) => b.score - a.score);
   // Pure score order, no per-region quota: the best 15 matches win, wherever
@@ -1198,7 +1270,7 @@ function computeResult(s) {
   altRecsCache = more.map(r => ({ dish: r.dish, from: r.from, why: r.why, yt: r.yt || "" }));
   return {
     email: sessionUser ? sessionUser.email : "",
-    diet: s.builtFor.diet, roots: s.builtFor.roots, city: s.builtFor.city || "",
+    diet: s.builtFor.diet, roots: s.builtFor.roots, roots2: s.builtFor.roots2 || null, city: s.builtFor.city || "",
     topTags, affinities, aversions, meters: meterPct,
     avgConfidence: wCount ? +(wSum / wCount).toFixed(2) : 1,
     detail, recs: recs.map(r => ({ dish: r.dish, from: r.from, why: r.why, yt: r.yt || "" })),
@@ -1279,7 +1351,7 @@ $("csvBtn").onclick = () => {
   const esc = (v) => `"${String(v == null ? "" : v).replace(/"/g, '""')}"`;
   const rows = [
     ["Diving into Buds — taste profile results"],
-    ["Email", res.email], ["Diet", DIET_LABELS[res.diet] || res.diet], ["Roots", ROOT_LABELS[res.roots] || res.roots],
+    ["Email", res.email], ["Diet", DIET_LABELS[res.diet] || res.diet], ["Roots", rootsLabelOf(res)],
     ["City", res.city || ""], ["Questions answered", res.detail.length], ["Ended early", res.partial ? "Yes" : "No"],
     ["Completed", res.completedAt], ["Top traits", res.topTags.join(", ")],
     ["Affinities", Object.entries(res.affinities || {}).map(([k, v]) => `${k}:${v}`).join(", ")],

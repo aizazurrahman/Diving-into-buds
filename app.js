@@ -828,6 +828,7 @@ $("cityInput").addEventListener("blur", () => {
     closeCityMenu();
   }, 120);
 });
+let fundArmAt = 0;
 $("buildBtn").onclick = () => {
   const city = pickCity;
   if (!pickDiet || !pickRoots || !city) return;
@@ -842,8 +843,16 @@ $("buildBtn").onclick = () => {
     else { renderHome(); show("view-home"); }
     return;
   }
-  if ((prev || st.finished) && answeredCount(st) > 0 &&
-      !confirm("New settings mean a fresh set of questions — your current answers will be cleared. Continue?")) return;
+  // Same two-tap arm as Start over (no native confirm() anywhere — some
+  // webviews suppress it, which silently blocked this flow too).
+  if ((prev || st.finished) && answeredCount(st) > 0 && Date.now() - fundArmAt > 4000) {
+    fundArmAt = Date.now();
+    const b = $("buildBtn"); const oldLabel = b.textContent;
+    b.textContent = "⚠️ New settings clear your current answers — tap again to continue";
+    setTimeout(() => { if (b.textContent.startsWith("⚠️")) b.textContent = oldLabel; }, 4000);
+    return;
+  }
+  fundArmAt = 0;
   st.fundamentals = F; st.builtFor = F;
   st.answers = {}; st.skipped = {}; st.finished = false; st.result = null; st.sheetSent = false;
   buildOrder(st);
@@ -900,8 +909,23 @@ $("changeFundBtn").onclick = () => { initFundPicks(); show("view-fund"); };
 // Start over: a COMPLETE run reset — answers, skips, navigation history and
 // any cached recommendations all go (an earlier version left skips behind,
 // which silently suppressed questions in the fresh run). Fundamentals stay.
-function doRestart() {
-  if (!confirm("Start over? Your saved answers will be cleared (fundamentals stay the same).")) return;
+// Confirmation is a two-tap in-page arm, NOT the native confirm() dialog:
+// native dialogs are suppressed outright by some mobile webviews, which
+// made Start over look dead. First tap arms (button relabels), second
+// tap within 4s performs the reset.
+let restartArmAt = 0;
+function doRestart(e) {
+  const btn = e && e.currentTarget;
+  if (Date.now() - restartArmAt > 4000) {
+    restartArmAt = Date.now();
+    if (btn) {
+      const oldLabel = btn.textContent;
+      btn.textContent = "Tap again to confirm — answers will be cleared";
+      setTimeout(() => { if (btn.textContent.startsWith("Tap again to confirm")) btn.textContent = oldLabel; }, 4000);
+    }
+    return;
+  }
+  restartArmAt = 0;
   st.answers = {}; st.skipped = {}; st.seen = []; st.navAt = -1; st.pos = 0;
   st.finished = false; st.result = null; st.sheetSent = false; st.altRecs = null;
   buildOrder(st);

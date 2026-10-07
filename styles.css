@@ -177,6 +177,7 @@ input[type="email"]:focus, input[type="password"]:focus { outline: none; border-
   color: var(--accent-dark); text-decoration: none;
 }
 .r-find:hover { text-decoration: underline; }
+.yt-logo { width: 21px; height: 15px; vertical-align: -2px; margin-right: 6px; }
 
 /* ——— quiz ——— */
 .quiz-sticky {

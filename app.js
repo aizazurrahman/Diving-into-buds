@@ -1249,17 +1249,31 @@ function computeResult(s) {
   // Recommendations: diet-safe, tag-matched, other regions first.
   const meats = chosenMeats(s);
   const ownRoots = [s.builtFor.roots, s.builtFor.roots2].filter(Boolean);
+  // — Recommendation scoring (v13): strength × rarity, not top-5 membership.
+  // Each of a dish's match tags contributes the user's actual accumulated
+  // weight for that tag (signed — flavours the user pushed against drag a
+  // dish down), scaled by how RARE the tag is across the question bank. A
+  // match on a distinctive tag (biryani, fermented) says far more about a
+  // palate than one on a ubiquitous tag (classic) — the old binary model
+  // priced them identically, let broad-tagged dishes (Tahdig: rice + biryani
+  // + classic) hit the ceiling for almost any profile, and let defining but
+  // rarely-fed tags like biryani never crack the top 5 at all. Breadth is
+  // normalised by sqrt(tag count), so a 3-tag dish no longer beats a precise
+  // 2-tag match by default. The out-of-roots bonus stays as a small nudge.
+  const TAG_FREQ = {};
+  QBANK.forEach(q => q.options.forEach(o => (o.tags || []).forEach(t => { TAG_FREQ[t] = (TAG_FREQ[t] || 0) + 1; })));
+  const TAG_TOTAL = Object.values(TAG_FREQ).reduce((a, b) => a + b, 0) || 1;
+  const rarity = (t) => Math.log2(1 + TAG_TOTAL / (TAG_FREQ[t] || TAG_TOTAL));
+  const maxPos = Math.max(1, ...Object.values(tagCount));
+  const dishScore = (r) => r.match.reduce((acc, t) => acc + ((tagCount[t] || 0) / maxPos) * rarity(t), 0) / Math.sqrt(r.match.length) + (ownRoots.includes(r.region) ? 0 : 0.35);
   const scored = RECS
     .filter(r => optVisible(r, s.builtFor.diet, meats))
     .filter(r => !r.raw || rawOk) // raw dishes only for users who opened the raw league
     .filter(r => !r.alc || alcOk) // alcohol-cooked dishes only for users who opened that door
     .filter(r => !r.egg || s.builtFor.diet !== "vegetarian" || eggOk) // egg dishes: only no-egg vegetarians are filtered
     .filter(r => !aversions.some(av => av.length > 3 && r.dish.toLowerCase().includes(av.toLowerCase().split(" ")[0])))
-    .map(r => ({
-      r,
-      score: r.match.filter(t => topTags.includes(t)).length * 2 + (ownRoots.includes(r.region) ? 0 : 1)
-    }))
-    .sort((a, b) => b.score - a.score);
+    .map(r => ({ r, score: dishScore(r), matched: r.match.filter(t => (tagCount[t] || 0) > 0).length }))
+    .sort((a, b) => b.score - a.score || b.matched - a.matched);
   // Pure score order, no per-region quota: the best 15 matches win, wherever
   // in the world they come from.
   const recs = [];
@@ -1285,7 +1299,7 @@ function computeResult(s) {
 function recCardsHtml(list, res) {
   return list.map(r =>
     `<div class="rec"><span class="r-emoji">${(RECS.find(x => x.dish === r.dish) || {}).emoji || "🍽️"}</span>
-     <div><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong><p>${r.why}</p>${r.yt ? `<a class="r-find" target="_blank" rel="noopener" href="${r.yt}">▶ Watch it being made →</a> ` : ""}${res.city ? `<a class="r-find" target="_blank" rel="noopener" href="https://www.google.com/maps/search/${encodeURIComponent(r.dish + " near " + res.city)}">📍 Find it near you in ${res.city} →</a>` : ""}</div></div>`).join("");
+     <div><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong><p>${r.why}</p>${r.yt ? `<a class="r-find" target="_blank" rel="noopener" href="${r.yt}"><svg class="yt-logo" viewBox="0 0 28 20" aria-hidden="true"><path fill="#FF0000" d="M27.4 3.1c-.3-1.2-1.3-2.2-2.5-2.5C22.7 0 14 0 14 0S5.3 0 3.1.6C1.9.9.9 1.9.6 3.1.1 5.2 0 8.9 0 10s0 4.8.6 6.9c.3 1.2 1.3 2.2 2.5 2.5C5.3 20 14 20 14 20s8.7 0 10.9-.6c1.2-.3 2.2-1.3 2.5-2.5.5-2.1.6-6.9.6-6.9s0-4.8-.6-6.9z"/><path fill="#fff" d="M11.2 14.3V5.7l7.4 4.3z"/></svg>Watch it being made →</a> ` : ""}${res.city ? `<a class="r-find" target="_blank" rel="noopener" href="https://www.google.com/maps/search/${encodeURIComponent(r.dish + " near " + res.city)}">📍 Find it near you in ${res.city} →</a>` : ""}</div></div>`).join("");
 }
 let lastResult = null, recsAltShown = false;
 function renderResults() {

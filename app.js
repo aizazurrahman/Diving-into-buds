@@ -149,13 +149,18 @@ function buildOrder(s) {
     if (order.length >= DEFAULT_TOTAL) break;
     if (!seen.has(q.id)) { order.push(q); seen.add(q.id); }
   }
-  // Gate-children of any composed parent (the global gateway chains) travel
-  // with their parent: insert them directly behind it now. Closed gates are
-  // swapped back out by fixOrder as answers land; the tail slice may drop a
-  // child, in which case the orphan rule keeps it unserved.
-  const withKids = [];
+  // Gate-children of composed GLOBAL parents (the fish/beef gateway chains)
+  // travel with their parents: insert them directly behind them, inside the
+  // global segment's 30-question budget (the slice drops rotated tail
+  // questions, never the fixed slots at its head). Regional chain extras are
+  // NOT inserted here: in dual-root runs there are two chains' worth, and
+  // inserting them at build time ballooned the regional block and sliced the
+  // entire global segment away (v12 live-QA catch). They sit at the head of
+  // the reserve instead and swap in when their branch opens.
+  const gStart = regional.length;
+  const withKids = [...order.slice(0, gStart)];
   const inOrder = new Set(order.map(q => q.id));
-  for (const q of order) {
+  for (const q of order.slice(gStart)) {
     withKids.push(q);
     for (const kid of QBANK.filter(c => c.gate && c.gate.q === q.id)) {
       if (!inOrder.has(kid.id) && valid.includes(kid)) { withKids.push(kid); inOrder.add(kid.id); }

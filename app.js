@@ -37,7 +37,7 @@ const currentUser = () => (sessionUser ? sessionUser.email : null);
 const stateKey = (email) => "dib_v4_" + email;
 
 function blankState() {
-  return { fundamentals: null, builtFor: null, order: [], reserve: [], answers: {}, skipped: {}, pos: 0, finished: false, result: null, sheetSent: false };
+  return { fundamentals: null, builtFor: null, order: [], reserve: [], answers: {}, skipped: {}, pos: 0, seen: [], navAt: -1, finished: false, result: null, sheetSent: false };
 }
 function answeredCount(s) { return Object.keys(s.answers).filter(k => QBANK_BY_ID[k]).length; }
 
@@ -64,7 +64,8 @@ function optVisible(opt, diet, meats) {
   return true; // 'vegan' / 'veg' classes are fine for everything & halal
 }
 function visibleOpts(q, s) {
-  const diet = s.builtFor.diet, meats = chosenMeats(s);
+  const diet = s.builtFor.diet;
+  const meats = (q.id === "op-meats" || q.id === "op-meats-halal") ? null : chosenMeats(s);
   const out = [];
   q.options.forEach((o, i) => { if (optVisible(o, diet, meats)) out.push({ o, i }); });
   return out;
@@ -178,6 +179,27 @@ function buildOrder(s) {
 }
 // After the meats answer changes, swap any now-unplayable upcoming questions
 // for reserve questions so the run always stays at its chosen length.
+const GLOBAL_DECKS = new Set(["palate", "bridge", "global"]);
+function deckFamily(q) { return GLOBAL_DECKS.has(q.deck) ? "global" : "regional"; }
+// When a question is skipped, pick its replacement from the reserve: same
+// deck first (same fundamentals), then the same regional/global family,
+// then anything playable. Guards keep the run's invariants: not already in
+// the run, unanswered, not skipped, playable right now, and no sim-group
+// clash with anything the run already serves.
+function replacementFor(s, skippedQ) {
+  const simsInRun = new Set(s.order.map(id => (QBANK_BY_ID[id] || {}).sim).filter(Boolean));
+  const fam = deckFamily(skippedQ);
+  const passes = [c => c.deck === skippedQ.deck, c => deckFamily(c) === fam, () => true];
+  for (const pass of passes) {
+    for (const cid of s.reserve) {
+      if (s.order.includes(cid) || s.answers[cid] || (s.skipped && s.skipped[cid])) continue;
+      const cq = QBANK_BY_ID[cid];
+      if (!cq || (cq.sim && simsInRun.has(cq.sim)) || !pass(cq) || !playable(cq, s)) continue;
+      return cid;
+    }
+  }
+  return null;
+}
 function fixOrder(s) {
   if (!s.builtFor) return;
   const inOrder = new Set(s.order);
@@ -236,6 +258,7 @@ async function upsertNow() {
   if (st.builtFor) answersPayload.__fund = st.builtFor;
   if (st.result) answersPayload.__result = st.result;
   if (st.skipped && Object.keys(st.skipped).length) answersPayload.__skipped = st.skipped;
+  if (st.seen && st.seen.length) answersPayload.__nav = { seen: st.seen };
   const base = {
     user_id: sessionUser.id, answers: answersPayload,
     current_q: st.pos, finished: st.finished, updated_at: new Date().toISOString()
@@ -267,6 +290,8 @@ async function hydrate() {
     st.skipped = rawAnswers.__skipped || local.skipped || {};
     st.finished = !!row.finished; st.result = result; st.sheetSent = !!result;
     buildOrder(st); fixOrder(st);
+    st.seen = (((rawAnswers.__nav || {}).seen) || local.seen || []).filter(id => st.order.includes(id));
+    st.navAt = -1;
     st.pos = Math.max(0, Math.min(row.current_q || 0, st.order.length - 1));
     store.set(stateKey(email), st);
   } else {
@@ -890,13 +915,15 @@ function findNext(fromPos) {
 function renderQuestion() {
   let q = currentQ();
   if (!q) return;
-  if (!st.answers[q.id] && !playable(q, st)) { // safety: never strand the user
+  if (!st.answers[q.id] && !playable(q, st) && !(st.skipped && st.skipped[q.id])) { // safety: never strand the user (a skipped question may still be VIEWED via Back)
     const t = findNext(st.pos);
     if (t >= 0) { st.pos = t; q = currentQ(); }
   }
+  st.seen = st.seen || [];
+  if (q && !st.seen.includes(q.id)) st.seen.push(q.id); // the displayed sequence Back/Next browse
   const saved = st.answers[q.id];
   const n = answeredCount(st);
-  const posInRun = st.order.indexOf(q.id) + 1;
+  const posInRun = Math.min(st.order.indexOf(q.id) + 1, runTotal(st));
 
   $("qCounter").textContent = `Question ${posInRun}`;
   $("progressBar").style.width = (n / runTotal(st) * 100) + "%";
@@ -935,6 +962,7 @@ function renderQuestion() {
       bd.textContent = ["1st", "2nd", "3rd"][pendingRank.indexOf(i)] || "";
       b.appendChild(bd);
     }
+    b.dataset.oi = i;
     b.setAttribute("aria-pressed", picked ? "true" : "false");
     b.onclick = () => (q.rank ? toggleRank(i) : q.multi ? toggleOption(i) : selectOption(i));
     box.appendChild(b);
@@ -954,7 +982,12 @@ function renderQuestion() {
   const hasAnswer = q.rank ? pendingRank.length > 0 : q.multi ? pendingSel.size > 0 : !!saved;
   $("nextBtn").disabled = !hasAnswer;
   $("nextBtn").textContent = hasAnswer && n >= runTotal(st) - 1 && findNext(0) === -1 ? "Finish — see my profile 🎉" : "Next →";
-  $("backBtn").style.visibility = st.pos === 0 ? "hidden" : "visible";
+  const seenIdx = st.seen ? st.seen.indexOf(q.id) : -1;
+  const browsing = st.navAt >= 0 && seenIdx >= 0 && seenIdx < (st.seen || []).length - 1;
+  if (browsing) { $("nextBtn").disabled = false; $("nextBtn").textContent = "Next →"; }
+  $("backBtn").style.visibility = (seenIdx > 0 || st.pos > 0) ? "visible" : "hidden";
+  const skipB = $("skipBtn");
+  if (skipB) skipB.style.display = (st.skipped && st.skipped[q.id]) ? "none" : "";
   $("savedNote").textContent = n ? `✓ ${n} answer${n > 1 ? "s" : ""} saved` : "";
   paintEndBtn();
 
@@ -984,8 +1017,8 @@ function refreshAfterAnswer() {
 function paintOptions() {
   const q = currentQ();
   const vis = visibleOpts(q, st);
-  [...$("qOptions").children].forEach((b, bi) => {
-    const entry = vis[bi];
+  [...$("qOptions").children].forEach((b) => {
+    const entry = vis.find(v => v.i === Number(b.dataset.oi));
     if (!entry) return;
     let picked = false, badge = "";
     if (q.rank) { const ix = pendingRank.indexOf(entry.i); picked = ix >= 0; badge = ["1st", "2nd", "3rd"][ix] || ""; }
@@ -1007,6 +1040,7 @@ function paintOptions() {
 // the first meat is registered) would permanently swap out questions that
 // the user's final selection would have kept playable.
 function afterAnswer(q, prevJson) {
+  if (st.answers[q.id] && st.skipped) delete st.skipped[q.id]; // answering a question you once skipped un-skips it
   const nowJson = JSON.stringify(st.answers[q.id] || null);
   if (nowJson !== prevJson && QBANK.some(c => c.gate && c.gate.q === q.id)) {
     QBANK.filter(c => c.gate && c.gate.q === q.id).forEach(c => { delete st.answers[c.id]; });
@@ -1042,6 +1076,7 @@ function toggleRank(oi) {
   else pendingRank[maxR - 1] = oi;
   if (pendingRank.length) st.answers[q.id] = { o: [...pendingRank], w: pendingW, r: 1 };
   else delete st.answers[q.id];
+  if (st.answers[q.id] && st.skipped) delete st.skipped[q.id];
   saveState();
   paintOptions();
   $("nextBtn").disabled = pendingRank.length === 0;
@@ -1055,6 +1090,20 @@ $("weightSlider").addEventListener("input", (e) => {
   if (q && st.answers[q.id]) { st.answers[q.id].w = pendingW; saveState(); }
 });
 $("nextBtn").onclick = () => {
+  // Browsing back through questions already seen: Next walks forward through
+  // that same displayed sequence first — it must not leap to the frontier
+  // until the user has caught up with where they left off.
+  const cur = currentQ();
+  const ci = cur && st.seen ? st.seen.indexOf(cur.id) : -1;
+  if (st.navAt >= 0 && ci >= 0 && ci < st.seen.length - 1) {
+    const ni = ci + 1;
+    st.navAt = ni >= st.seen.length - 1 ? -1 : ni;
+    st.pos = st.order.indexOf(st.seen[ni]);
+    saveState();
+    renderQuestion();
+    return;
+  }
+  st.navAt = -1;
   fixOrder(st); // shape the tail with the just-committed answer before advancing
   if (answeredCount(st) >= runTotal(st)) return finish();
   let t = findNext(st.pos + 1);
@@ -1072,6 +1121,12 @@ $("skipBtn").onclick = () => {
   st.skipped = st.skipped || {};
   st.skipped[q.id] = true;
   afterAnswer(q, prev); // clears stale gate-children answers if this was a parent
+  // A skip no longer shrinks the run: a replacement question (same deck /
+  // same fundamentals family first) joins the tail, so the user still
+  // answers the full set and the profile stays holistic.
+  const repId = replacementFor(st, q);
+  if (repId) { st.order.push(repId); st.reserve = st.reserve.filter(id => id !== repId); }
+  st.navAt = -1;
   fixOrder(st);
   let t = findNext(st.pos);
   if (t === -1) t = findNext(0);
@@ -1081,7 +1136,18 @@ $("skipBtn").onclick = () => {
   renderQuestion();
 };
 $("backBtn").onclick = () => {
-  st.pos = Math.max(0, st.pos - 1);
+  // Back goes to the question that was displayed immediately before this
+  // one — even if it was skipped (it renders ready for a second look;
+  // answering it there un-skips it).
+  const cur = currentQ();
+  st.seen = st.seen || [];
+  let ci = cur ? st.seen.indexOf(cur.id) : -1;
+  if (ci === -1) ci = st.seen.length; // restored session: step back from the end of the known sequence
+  if (ci <= 0) return;
+  st.navAt = ci - 1;
+  const ti = st.order.indexOf(st.seen[st.navAt]);
+  if (ti < 0) return;
+  st.pos = ti;
   saveState();
   renderQuestion();
 };
@@ -1229,6 +1295,20 @@ function computeResult(s) {
     });
     detail.push({ qid, q: q.q, deck: q.deck, picks: picks.map(p => p.t), weight: w });
   });
+  // Skipped questions still say something (Aizaz, 2026-10-07): dodging a
+  // topic usually means it isn't central to this palate. Apply a small
+  // negative weight to each flavour tag the skipped question would have
+  // explored — a fraction of one real pick, capped per tag — so skips shade
+  // the profile without steering it.
+  const SKIP_W = 0.35, SKIP_CAP = 1.4;
+  const skipTags = {};
+  Object.keys(s.skipped || {}).forEach(qid => {
+    const q = QBANK_BY_ID[qid]; if (!q) return;
+    const tags = new Set();
+    q.options.forEach(o => (o.tags || []).forEach(t => { if (t !== "rawok" && t !== "alcok" && t !== "eggok") tags.add(t); }));
+    tags.forEach(t => { skipTags[t] = Math.min(SKIP_CAP, (skipTags[t] || 0) + SKIP_W); });
+  });
+  Object.entries(skipTags).forEach(([t, v]) => { tagCount[t] = (tagCount[t] || 0) - v; });
   const posTags = Object.entries(tagCount).filter(([, c]) => c > 0).sort((a, b) => b[1] - a[1]);
   const topTags = posTags.slice(0, 5).map(([t]) => t);
   const affinities = {};
@@ -1353,7 +1433,7 @@ function finish(early) {
   st.result = computeResult(st);
   st.altRecs = altRecsCache;
   const skippedInRun = st.skipped ? Object.keys(st.skipped).filter(id => st.order.includes(id)).length : 0;
-  if (early || skippedInRun) { st.result.partial = true; st.result.answered = answeredCount(st); st.result.skipped = skippedInRun; st.result.early = !!early; }
+  if (early || answeredCount(st) < runTotal(st)) { st.result.partial = true; st.result.answered = answeredCount(st); st.result.skipped = skippedInRun; st.result.early = !!early; }
   saveState();
   sendToSheets();
   renderResults();

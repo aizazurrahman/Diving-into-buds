@@ -931,7 +931,12 @@ function renderQuestion() {
   if (q && !st.seen.includes(q.id)) st.seen.push(q.id); // the displayed sequence Back/Next browse
   const saved = st.answers[q.id];
   const n = answeredCount(st);
-  const posInRun = Math.min(st.order.indexOf(q.id) + 1, runTotal(st));
+  // The counter numbers the questions that COUNT toward the run's total:
+  // a skipped question consumes no number — its replacement takes the same
+  // number it would have had (skip Q4 -> the replacement is the new Q4).
+  const upto = st.order.slice(0, st.order.indexOf(q.id) + 1);
+  const skippedBefore = upto.filter(id => id !== q.id && st.skipped && st.skipped[id]).length;
+  const posInRun = Math.min(upto.length - skippedBefore, runTotal(st));
 
   $("qCounter").textContent = `Question ${posInRun}`;
   $("progressBar").style.width = (n / runTotal(st) * 100) + "%";

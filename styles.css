@@ -291,7 +291,8 @@ footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 18
   .fund-grid { grid-template-columns: 1fr; }
   .qtext, .options, .qmeta, .multi-hint { padding-left: 18px; padding-right: 18px; }
   .slider-block { margin-left: 18px; margin-right: 18px; }
-  .quiz-foot { padding-left: 18px; padding-right: 18px; }
+  .quiz-foot { padding-left: 18px; padding-right: 18px; flex-wrap: wrap; }
+  .quiz-foot .saved-note { order: 4; width: 100%; text-align: center; }
   .slider-head { flex-direction: column; gap: 2px; }
 }
 @media (prefers-reduced-motion: reduce) {

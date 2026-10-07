@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=11">
+<link rel="stylesheet" href="styles.css?v=12">
 </head>
 <body>
 
@@ -80,7 +80,8 @@
     <div class="card fund-card reveal">
       <div class="big-emoji">🧭</div>
       <h2>Before you dive in</h2>
-      <p class="lede">Your diet and roots build your questions. Your city powers the restaurant suggestions at the end.</p>
+      <p class="lede">Your diet and roots build your questions. Your city powers our recommendations</p>
+      <p class="lede">Expect this to take 15–20 minutes—your patience between questions is greatly appreciated.</p>
 
       <h3 class="fund-label">Fundamental 1 · Pick your diet</h3>
       <div class="fund-grid" id="dietGrid" role="radiogroup" aria-label="Pick your diet">
@@ -176,6 +177,7 @@
       <div class="quiz-foot">
         <button class="btn ghost small" id="backBtn" type="button">← Back</button>
         <span class="saved-note" id="savedNote" aria-live="polite"></span>
+        <button class="btn ghost small" id="skipBtn" type="button" title="Skip this question if it doesn't apply to you">Skip — doesn't apply to me →</button>
         <button class="btn primary small" id="nextBtn" type="button" disabled>Next →</button>
       </div>
     </div>
@@ -192,7 +194,7 @@
       <p class="fineprint" id="profileNote"></p>
       <div id="profileAffinities"></div>
       <div id="profileAversions"></div>
-      <h3 class="rec-title">🌍 Flavours to meet next</h3>
+      <h3 class="rec-title">Your personalized picks, Handpicked based on what you love 🌍</h3>
       <p class="rec-sub">Matched to your profile — similar enough to love, new enough to explore.</p>
       <div class="recs" id="profileRecs"></div>
       <button class="btn ghost more-recs" id="moreRecsBtn" type="button" hidden>🎲 Show me different flavours</button>
@@ -208,9 +210,9 @@
 <footer>Made with 🌶️ and curiosity · Diving into Buds</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="questions.js?v=14"></script>
-<script src="questions2.js?v=6"></script>
-<script src="questions3.js?v=3"></script>
-<script src="app.js?v=20"></script>
+<script src="questions.js?v=15"></script>
+<script src="questions2.js?v=7"></script>
+<script src="questions3.js?v=4"></script>
+<script src="app.js?v=21"></script>
 </body>
 </html>

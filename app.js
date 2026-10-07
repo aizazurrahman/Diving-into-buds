@@ -36,7 +36,7 @@ const currentUser = () => (sessionUser ? sessionUser.email : null);
 const stateKey = (email) => "dib_v4_" + email;
 
 function blankState() {
-  return { fundamentals: null, builtFor: null, order: [], reserve: [], answers: {}, pos: 0, finished: false, result: null, sheetSent: false };
+  return { fundamentals: null, builtFor: null, order: [], reserve: [], answers: {}, skipped: {}, pos: 0, finished: false, result: null, sheetSent: false };
 }
 function answeredCount(s) { return Object.keys(s.answers).filter(k => QBANK_BY_ID[k]).length; }
 
@@ -70,16 +70,21 @@ function visibleOpts(q, s) {
 }
 function gateOpen(q, s) {
   if (!q.gate) return true;
+  if (s.skipped && s.skipped[q.gate.q]) return false; // a skipped parent opens nothing
   const pa = s.answers[q.gate.q];
   if (!pa) return true; // parent not answered yet — the gate is decided later
   const pq = QBANK_BY_ID[q.gate.q];
   if (!pq) return true;
   const pickedIdx = pa.r ? [pa.o[0]] : (Array.isArray(pa.o) ? pa.o : [pa.o]);
   const labels = pickedIdx.map(i => (pq.options[i] || {}).t || "");
-  return labels.some(t => t.includes(q.gate.has));
+  if (q.gate.has && !labels.some(t => t.includes(q.gate.has))) return false;
+  if (q.gate.hasAny && !labels.some(t => q.gate.hasAny.some(h => t.includes(h)))) return false;
+  if (q.gate.lacks && labels.some(t => t.includes(q.gate.lacks))) return false;
+  return true;
 }
 function playable(q, s) {
   if (!s.builtFor || !q.diets.includes(s.builtFor.diet)) return false;
+  if (s.skipped && s.skipped[q.id]) return false; // skipped questions never re-serve
   // An orphaned follow-up (its parent belongs to another roots' chain and is
   // not part of this run) can never be served.
   if (q.gate && s.order && !s.order.includes(q.gate.q) && !(s.reserve || []).includes(q.gate.q)) return false;
@@ -101,7 +106,7 @@ function buildOrder(s) {
   const rootsDeckAll = byDeck(F.roots);
   const rootsNogo = rootsDeckAll.filter(q => q.hate).slice(0, 1);
   const rootsRest = rootsDeckAll.filter(q => !q.hate);
-  const heatSweet = ["op-heat", "op-sweet"].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
+  const heatSweet = ["op-spice", "op-temp", "op-sweet"].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
   const chains = byDeck(chainDeck);
   const regional = [...dietOpener, ...rootsNogo, ...heatSweet, ...chains, ...rootsRest].slice(0, 20);
   // — Global 30: palate + bridge + global decks, rotated per roots so each
@@ -120,7 +125,19 @@ function buildOrder(s) {
     if (order.length >= DEFAULT_TOTAL) break;
     if (!seen.has(q.id)) { order.push(q); seen.add(q.id); }
   }
-  s.order = order.slice(0, DEFAULT_TOTAL).map(q => q.id);
+  // Gate-children of any composed parent (the global gateway chains) travel
+  // with their parent: insert them directly behind it now. Closed gates are
+  // swapped back out by fixOrder as answers land; the tail slice may drop a
+  // child, in which case the orphan rule keeps it unserved.
+  const withKids = [];
+  const inOrder = new Set(order.map(q => q.id));
+  for (const q of order) {
+    withKids.push(q);
+    for (const kid of QBANK.filter(c => c.gate && c.gate.q === q.id)) {
+      if (!inOrder.has(kid.id) && valid.includes(kid)) { withKids.push(kid); inOrder.add(kid.id); }
+    }
+  }
+  s.order = withKids.slice(0, DEFAULT_TOTAL).map(q => q.id);
   const inFinal = new Set(s.order);
   // Reserve: the user's own roots + chain questions first, so swaps keep
   // the run's regional flavour.
@@ -188,6 +205,7 @@ async function upsertNow() {
   const answersPayload = { ...st.answers };
   if (st.builtFor) answersPayload.__fund = st.builtFor;
   if (st.result) answersPayload.__result = st.result;
+  if (st.skipped && Object.keys(st.skipped).length) answersPayload.__skipped = st.skipped;
   const base = {
     user_id: sessionUser.id, answers: answersPayload,
     current_q: st.pos, finished: st.finished, updated_at: new Date().toISOString()
@@ -216,6 +234,7 @@ async function hydrate() {
     st = blankState();
     st.fundamentals = fund; st.builtFor = fund;
     st.answers = Object.keys(cloudAnswers).length ? cloudAnswers : (local.builtFor && JSON.stringify(local.builtFor) === JSON.stringify(fund) ? local.answers : {});
+    st.skipped = rawAnswers.__skipped || local.skipped || {};
     st.finished = !!row.finished; st.result = result; st.sheetSent = !!result;
     buildOrder(st); fixOrder(st);
     st.pos = Math.max(0, Math.min(row.current_q || 0, st.order.length - 1));
@@ -227,6 +246,7 @@ async function hydrate() {
   if (st.fundamentals) st.fundamentals.roots = normRootsValue(st.fundamentals.roots);
   if (st.builtFor) st.builtFor.roots = normRootsValue(st.builtFor.roots);
   if (st.result) st.result.roots = normRootsValue(st.result.roots);
+  if (!st.skipped) st.skipped = {};
 }
 
 /* ————— Views ————— */
@@ -999,6 +1019,22 @@ $("nextBtn").onclick = () => {
   saveState();
   renderQuestion();
 };
+$("skipBtn").onclick = () => {
+  const q = currentQ();
+  if (!q || st.finished) return;
+  const prev = JSON.stringify(st.answers[q.id] || null);
+  delete st.answers[q.id]; // a skip discards any partial taps on this question
+  st.skipped = st.skipped || {};
+  st.skipped[q.id] = true;
+  afterAnswer(q, prev); // clears stale gate-children answers if this was a parent
+  fixOrder(st);
+  let t = findNext(st.pos);
+  if (t === -1) t = findNext(0);
+  if (t === -1) return finish();
+  st.pos = t;
+  saveState();
+  renderQuestion();
+};
 $("backBtn").onclick = () => {
   st.pos = Math.max(0, st.pos - 1);
   saveState();
@@ -1026,37 +1062,59 @@ const TAG_LABELS = {
   adventure: "🎲 Will try anything once", classic: "💛 Comfort-food classic",
   healthy: "🥗 Fresh & balanced", chai: "🫖 Chai over everything", coffee: "☕ Coffee-powered",
   asia: "🥢 Asia-curious palate", americas: "🌮 Americas explorer", europe: "🥐 European soul",
-  smoky: "🔥 Smoke & char devotee", tangy: "🍋 Tang-chaser", creamy: "🥛 Creamy-comfort seeker", fresh: "🌿 Fresh & bright"
+  smoky: "🔥 Smoke & char devotee", tangy: "🍋 Tang-chaser", creamy: "🥛 Creamy-comfort seeker", fresh: "🌿 Fresh & bright",
+  soup: "🍲 Soup devotee"
 };
 const RECS = [
-  { dish: "Vegetable paella", from: "Spain · Europe", region: "europe", diet: "vegan", emoji: "🥘", match: ["rice", "biryani"], why: "Saffron rice cooked slow in one pan — biryani's Mediterranean cousin, socarrat crust and all." },
-  { dish: "Tahdig — crispy saffron rice", from: "Persia · Middle East", region: "middleeast", diet: "vegan", emoji: "🍚", match: ["rice", "biryani", "classic"], why: "Fragrant rice with a golden, crunchy bottom — the part everyone fights over, as the main event." },
-  { dish: "Jambalaya", from: "Louisiana · United States", region: "unitedstates", diet: "meat:chicken", emoji: "🍤", match: ["rice", "spice", "smoky"], why: "One-pot spiced rice with smoke and heat — a biryani relative that grew up in New Orleans." },
-  { dish: "Veggie burrito bowl", from: "Mexico · Latin America", region: "latinamerica", diet: "vegan", emoji: "🌯", match: ["rice", "fresh", "healthy"], why: "Rice, beans, salsa, guac — the build-your-own thali, Mexican edition." },
-  { dish: "Mapo tofu", from: "Sichuan · East Asia", region: "eastasia", diet: "vegan", emoji: "🌶️", match: ["spice", "adventure"], why: "Silky tofu in a chilli-bean lava with numbing Sichuan pepper. Your heat tolerance, upgraded." },
-  { dish: "Thai green curry with tofu", from: "Thailand · Southeast Asia", region: "eastasia", diet: "vegan", emoji: "🍛", match: ["creamy", "spice"], why: "Coconut, basil and green chilli — salan energy in a whole new accent." },
-  { dish: "Shakshuka", from: "The Mediterranean", region: "middleeast", diet: "veg", emoji: "🍳", match: ["tangy", "home"], why: "Eggs poached in spiced tomato sauce — breakfast, lunch and dinner argue over it." },
-  { dish: "Ratatouille", from: "France · Europe", region: "europe", diet: "vegan", emoji: "🍆", match: ["home", "healthy", "fresh"], why: "Slow-stewed vegetables with herbs — proof that simple veg, cooked patiently, wins." },
-  { dish: "Elote — street corn", from: "Mexico · Latin America", region: "latinamerica", diet: "veg", emoji: "🌽", match: ["street", "tangy"], why: "Charred corn, lime, chilli, cheese — chaat's long-lost Mexican sibling." },
-  { dish: "Mushroom pierogi", from: "Poland · Europe", region: "europe", diet: "vegan", emoji: "🥟", match: ["home", "classic"], why: "Dumplings with sauerkraut and mushroom — momos that emigrated and got cosy." },
-  { dish: "Mushroom ceviche", from: "Peru · Latin America", region: "latinamerica", diet: "vegan", emoji: "🍋", match: ["fresh", "tangy", "adventure"], why: "Lime-cured, onion-sharp, chilli-bright — a flavour wake-up call, no cooking involved." },
-  { dish: "Bibimbap", from: "Korea · East Asia", region: "eastasia", diet: "veg", emoji: "🍲", match: ["rice", "fresh"], why: "A rainbow of vegetables over rice with gochujang — mix it like you mean it." },
-  { dish: "Mushroom risotto", from: "Italy · Europe", region: "europe", diet: "veg", emoji: "🍄", match: ["creamy", "classic"], why: "Rice stirred to silk — khichdi's elegant Italian cousin." },
-  { dish: "Tempeh satay skewers", from: "Indonesia · Southeast Asia", region: "eastasia", diet: "vegan", emoji: "🍢", match: ["smoky", "street"], why: "Charred skewers with peanut sauce — kebab night, Southeast Asian style." },
-  { dish: "Açaí bowl", from: "Brazil · Latin America", region: "latinamerica", diet: "vegan", emoji: "🫐", match: ["sweet", "fresh", "healthy"], why: "Icy purple berries, granola crunch — dessert that behaves like breakfast." },
-  { dish: "Miso soup & onigiri", from: "Japan · East Asia", region: "eastasia", diet: "vegan", emoji: "🍙", match: ["mild", "home"], why: "Quiet, savoury comfort — the gentle end of the flavour spectrum, done perfectly." },
-  { dish: "Yakitori skewers", from: "Japan · East Asia", region: "eastasia", diet: "meat:chicken", emoji: "🍗", match: ["smoky", "street", "meat"], why: "Charcoal-kissed chicken skewers — your kebab instincts, refined to an art." },
-  { dish: "Texas brisket", from: "Texas · United States", region: "unitedstates", diet: "meat:beef", emoji: "🥩", match: ["smoky", "meat"], why: "14 hours of smoke, salt and patience. Slow food at its most serious." },
-  { dish: "Grilled branzino", from: "The Mediterranean · Europe", region: "europe", diet: "meat:seafood", emoji: "🐟", match: ["fresh", "mild"], why: "Whole fish, olive oil, lemon, herbs — coastal simplicity that needs nothing else." },
-  { dish: "Pav bhaji", from: "Mumbai · South Asia", region: "southasia", diet: "veg", emoji: "🍛", match: ["comfort", "street", "spice"], why: "Buttered, mashed, masala-rich vegetables with soft pav rolls — Mumbai's street comfort at full volume." },
-  { dish: "Masala dosa", from: "South India · South Asia", region: "southasia", diet: "vegan", emoji: "🥞", match: ["crisp", "fermented", "tangy"], why: "A shattering-crisp fermented crepe around spiced potato — tang, crunch and comfort in one plate." },
-  { dish: "Muhammara & warm pita", from: "Levant · Middle East", region: "middleeast", diet: "vegan", emoji: "🫓", match: ["tangy", "smoky", "spice"], why: "Roasted peppers and walnuts ground into a fiery-sweet dip — the boldest bowl on the mezze table." },
-  { dish: "Chicken shawarma plate", from: "Levant · Middle East", region: "middleeast", diet: "meat:chicken", emoji: "🌯", match: ["smoky", "spice", "street"], why: "Spit-roasted and shaved thin, with garlic toum and pickles — the great wrap, plated." },
-  { dish: "Party jollof rice", from: "West Africa · Africa", region: "africa", diet: "meat:chicken", emoji: "🍚", match: ["rice", "smoky", "spice"], why: "Tomato-rich rice with the famous smoky bottom — the centrepiece of every West African party." },
-  { dish: "Ethiopian beyaynetu", from: "Ethiopia · Africa", region: "africa", diet: "vegan", emoji: "🫓", match: ["fermented", "spice", "fresh"], why: "A rainbow of lentil, chickpea and vegetable wots over tangy injera — a whole feast on one bread." },
-  { dish: "Arepas con queso", from: "Venezuela · Latin America", region: "latinamerica", diet: "veg", emoji: "🫓", match: ["comfort", "street", "crisp"], why: "Griddled corn cakes with a molten cheese middle — crisp outside, soft within." },
-  { dish: "Nashville hot chicken", from: "Tennessee · United States", region: "unitedstates", diet: "meat:chicken", emoji: "🍗", match: ["spice", "comfort", "crisp"], why: "Fried chicken dredged in cayenne oil, cooled with pickles and white bread — a controlled burn." },
-  { dish: "Seekh kebab, Deccan style", from: "Hyderabad", region: "hyderabad", diet: "meat:lamb", emoji: "🔥", match: ["smoky", "spice", "deccan", "meat"], why: "Hand-minced, coal-smoked, unapologetically spiced — home turf, perfected." }
+  { dish: "Vegetable paella", yt: "https://www.youtube.com/watch?v=DIAFEcEarAA", from: "Spain · Europe", region: "europe", diet: "vegan", emoji: "🥘", match: ["rice", "biryani"], why: "Saffron rice cooked slow in one pan — biryani's Mediterranean cousin, socarrat crust and all." },
+  { dish: "Tahdig — crispy saffron rice", yt: "https://www.youtube.com/watch?v=iNH5Yqms3Yc", from: "Persia · Middle East", region: "middleeast", diet: "vegan", emoji: "🍚", match: ["rice", "biryani", "classic"], why: "Fragrant rice with a golden, crunchy bottom — the part everyone fights over, as the main event." },
+  { dish: "Jambalaya", yt: "https://www.youtube.com/watch?v=FET_VALgHrk", from: "Louisiana · United States", region: "unitedstates", diet: "meat:chicken", emoji: "🍤", match: ["rice", "spice", "smoky"], why: "One-pot spiced rice with smoke and heat — a biryani relative that grew up in New Orleans." },
+  { dish: "Veggie burrito bowl", yt: "https://www.youtube.com/watch?v=f558hrjpOrw", from: "Mexico · Latin America", region: "latinamerica", diet: "vegan", emoji: "🌯", match: ["rice", "fresh", "healthy"], why: "Rice, beans, salsa, guac — the build-your-own thali, Mexican edition." },
+  { dish: "Mapo tofu", yt: "https://www.youtube.com/watch?v=_BfTqhtfGTM", from: "Sichuan · East Asia", region: "eastasia", diet: "vegan", emoji: "🌶️", match: ["spice", "adventure"], why: "Silky tofu in a chilli-bean lava with numbing Sichuan pepper. Your heat tolerance, upgraded." },
+  { dish: "Thai green curry with tofu", yt: "https://www.youtube.com/watch?v=Fv-ADFgtrRg", from: "Thailand · Southeast Asia", region: "eastasia", diet: "vegan", emoji: "🍛", match: ["creamy", "spice"], why: "Coconut, basil and green chilli — salan energy in a whole new accent." },
+  { dish: "Shakshuka", yt: "https://www.youtube.com/watch?v=Uow78qBAWRk", from: "The Mediterranean", region: "middleeast", diet: "veg", emoji: "🍳", match: ["tangy", "home"], why: "Eggs poached in spiced tomato sauce — breakfast, lunch and dinner argue over it." },
+  { dish: "Ratatouille", yt: "https://www.youtube.com/watch?v=rjJCetszgNM", from: "France · Europe", region: "europe", diet: "vegan", emoji: "🍆", match: ["home", "healthy", "fresh"], why: "Slow-stewed vegetables with herbs — proof that simple veg, cooked patiently, wins." },
+  { dish: "Elote — street corn", yt: "https://www.youtube.com/watch?v=vsfUpBRm7fI", from: "Mexico · Latin America", region: "latinamerica", diet: "veg", emoji: "🌽", match: ["street", "tangy"], why: "Charred corn, lime, chilli, cheese — chaat's long-lost Mexican sibling." },
+  { dish: "Mushroom pierogi", yt: "https://www.youtube.com/watch?v=qWwqdORZwmQ", from: "Poland · Europe", region: "europe", diet: "vegan", emoji: "🥟", match: ["home", "classic"], why: "Dumplings with sauerkraut and mushroom — momos that emigrated and got cosy." },
+  { dish: "Mushroom ceviche", yt: "https://www.youtube.com/watch?v=acZSogWWvfY", from: "Peru · Latin America", region: "latinamerica", diet: "vegan", emoji: "🍋", match: ["fresh", "tangy", "adventure"], why: "Lime-cured, onion-sharp, chilli-bright — a flavour wake-up call, no cooking involved." },
+  { dish: "Bibimbap", yt: "https://www.youtube.com/watch?v=i54aNCIgrOQ", from: "Korea · East Asia", region: "eastasia", diet: "veg", emoji: "🍲", match: ["rice", "fresh"], why: "A rainbow of vegetables over rice with gochujang — mix it like you mean it." },
+  { dish: "Mushroom risotto", yt: "https://www.youtube.com/watch?v=JozZZS6s8Kw", from: "Italy · Europe", region: "europe", diet: "veg", emoji: "🍄", match: ["creamy", "classic"], why: "Rice stirred to silk — khichdi's elegant Italian cousin." },
+  { dish: "Tempeh satay skewers", yt: "https://www.youtube.com/watch?v=9K7qgk5JJac", from: "Indonesia · Southeast Asia", region: "eastasia", diet: "vegan", emoji: "🍢", match: ["smoky", "street"], why: "Charred skewers with peanut sauce — kebab night, Southeast Asian style." },
+  { dish: "Açaí bowl", yt: "https://www.youtube.com/watch?v=VtZeq8Ab9_4", from: "Brazil · Latin America", region: "latinamerica", diet: "vegan", emoji: "🫐", match: ["sweet", "fresh", "healthy"], why: "Icy purple berries, granola crunch — dessert that behaves like breakfast." },
+  { dish: "Miso soup & onigiri", yt: "https://www.youtube.com/watch?v=kzhB-Lxa0vU", from: "Japan · East Asia", region: "eastasia", diet: "vegan", emoji: "🍙", match: ["mild", "home"], why: "Quiet, savoury comfort — the gentle end of the flavour spectrum, done perfectly." },
+  { dish: "Yakitori skewers", yt: "https://www.youtube.com/watch?v=tD1ev04a7A0", from: "Japan · East Asia", region: "eastasia", diet: "meat:chicken", emoji: "🍗", match: ["smoky", "street", "meat"], why: "Charcoal-kissed chicken skewers — your kebab instincts, refined to an art." },
+  { dish: "Texas brisket", yt: "https://www.youtube.com/watch?v=uu2Y2pdVaXc", from: "Texas · United States", region: "unitedstates", diet: "meat:beef", emoji: "🥩", match: ["smoky", "meat"], why: "14 hours of smoke, salt and patience. Slow food at its most serious." },
+  { dish: "Grilled branzino", yt: "https://www.youtube.com/watch?v=nkJxV-jK00E", from: "The Mediterranean · Europe", region: "europe", diet: "meat:seafood", emoji: "🐟", match: ["fresh", "mild"], why: "Whole fish, olive oil, lemon, herbs — coastal simplicity that needs nothing else." },
+  { dish: "Pav bhaji", yt: "https://www.youtube.com/watch?v=A8V8jj7sbZs", from: "Mumbai · South Asia", region: "southasia", diet: "veg", emoji: "🍛", match: ["comfort", "street", "spice"], why: "Buttered, mashed, masala-rich vegetables with soft pav rolls — Mumbai's street comfort at full volume." },
+  { dish: "Masala dosa", yt: "https://www.youtube.com/watch?v=lGEXiqeScWI", from: "South India · South Asia", region: "southasia", diet: "vegan", emoji: "🥞", match: ["crisp", "fermented", "tangy"], why: "A shattering-crisp fermented crepe around spiced potato — tang, crunch and comfort in one plate." },
+  { dish: "Muhammara & warm pita", yt: "https://www.youtube.com/watch?v=QSukAbaLTJI", from: "Levant · Middle East", region: "middleeast", diet: "vegan", emoji: "🫓", match: ["tangy", "smoky", "spice"], why: "Roasted peppers and walnuts ground into a fiery-sweet dip — the boldest bowl on the mezze table." },
+  { dish: "Chicken shawarma plate", yt: "https://www.youtube.com/watch?v=gphLFBby1Wo", from: "Levant · Middle East", region: "middleeast", diet: "meat:chicken", emoji: "🌯", match: ["smoky", "spice", "street"], why: "Spit-roasted and shaved thin, with garlic toum and pickles — the great wrap, plated." },
+  { dish: "Party jollof rice", yt: "https://www.youtube.com/watch?v=AJbQP6_0dVM", from: "West Africa · Africa", region: "africa", diet: "meat:chicken", emoji: "🍚", match: ["rice", "smoky", "spice"], why: "Tomato-rich rice with the famous smoky bottom — the centrepiece of every West African party." },
+  { dish: "Ethiopian beyaynetu", yt: "https://www.youtube.com/watch?v=JT1crJ0cIII", from: "Ethiopia · Africa", region: "africa", diet: "vegan", emoji: "🫓", match: ["fermented", "spice", "fresh"], why: "A rainbow of lentil, chickpea and vegetable wots over tangy injera — a whole feast on one bread." },
+  { dish: "Arepas con queso", yt: "https://www.youtube.com/watch?v=6CwEO-1uh4c", from: "Venezuela · Latin America", region: "latinamerica", diet: "veg", emoji: "🫓", match: ["comfort", "street", "crisp"], why: "Griddled corn cakes with a molten cheese middle — crisp outside, soft within." },
+  { dish: "Nashville hot chicken", yt: "https://www.youtube.com/watch?v=jNG9O2GVnHI", from: "Tennessee · United States", region: "unitedstates", diet: "meat:chicken", emoji: "🍗", match: ["spice", "comfort", "crisp"], why: "Fried chicken dredged in cayenne oil, cooled with pickles and white bread — a controlled burn." },
+  { dish: "Seekh kebab, Deccan style", yt: "https://www.youtube.com/watch?v=6QfGRg3jfqw", from: "Hyderabad", region: "hyderabad", diet: "meat:lamb", emoji: "🔥", match: ["smoky", "spice", "deccan", "meat"], why: "Hand-minced, coal-smoked, unapologetically spiced — home turf, perfected." },
+  { dish: "Salmon sashimi & chirashi bowl", yt: "https://www.youtube.com/watch?v=k-LAp5J9lqM", from: "Japan · East Asia", region: "eastasia", diet: "meat:fish", raw: true, emoji: "🍣", match: ["fresh", "adventure"], why: "Raw salmon over seasoned rice — freshness you can taste, knife work you can see." },
+  { dish: "Tuna tartare", yt: "https://www.youtube.com/watch?v=yaOYNFLSAMQ", from: "The Mediterranean · Europe", region: "europe", diet: "meat:fish", raw: true, emoji: "🐟", match: ["fresh", "adventure"], why: "Hand-cut raw tuna, citrus and olive oil — the sea, uncooked and unbothered." },
+  { dish: "Beef carpaccio", yt: "https://www.youtube.com/watch?v=eCX34lm3B18", from: "Italy · Europe", region: "europe", diet: "meat:beef", raw: true, emoji: "🥩", match: ["fresh", "classic"], why: "Beef shaved to silk with lemon and parmesan — raw, but dressed like royalty." },
+  { dish: "Ceviche clásico", yt: "https://www.youtube.com/watch?v=fw4ZaeDWxaw", from: "Peru · Latin America", region: "latinamerica", diet: "meat:fish", raw: true, emoji: "🍋", match: ["fresh", "tangy"], why: "Raw fish 'cooked' in lime and chilli — bright, cold and electric." },
+  { dish: "Gazpacho", yt: "https://www.youtube.com/watch?v=CsHD_1ozBnA", from: "Spain · Europe", region: "europe", diet: "vegan", emoji: "🍅", match: ["fresh", "tangy", "soup"], why: "Andalusia's chilled tomato soup — summer, blended and served ice-cold." },
+  { dish: "Borscht", yt: "https://www.youtube.com/watch?v=-RjawJ8LImM", from: "Eastern Europe", region: "europe", diet: "vegan", emoji: "🥣", match: ["tangy", "home", "soup"], why: "Beetroot soup with real tang — earthy, vivid and warming." },
+  { dish: "Harira", yt: "https://www.youtube.com/watch?v=NCh2MTCAilQ", from: "Morocco · Africa", region: "africa", diet: "vegan", emoji: "🍲", match: ["soup", "home"], why: "Tomato, lentil and chickpea soup — Morocco's bowl of welcome." },
+  { dish: "Ajo blanco", yt: "https://www.youtube.com/watch?v=I5VEZtPV744", from: "Spain · Europe", region: "europe", diet: "vegan", emoji: "🧄", match: ["creamy", "fresh", "soup"], why: "Chilled almond-and-garlic soup, centuries old — gazpacho's pale, creamy ancestor." },
+  { dish: "Gado gado", yt: "https://www.youtube.com/watch?v=_wIVmPSotow", from: "Indonesia · Southeast Asia", region: "eastasia", diet: "vegan", emoji: "🥜", match: ["creamy", "street"], why: "Blanched vegetables and tofu under a warm peanut sauce blanket." },
+  { dish: "Sicilian caponata", yt: "https://www.youtube.com/watch?v=6MxrNcnq93M", from: "Sicily · Europe", region: "europe", diet: "vegan", emoji: "🍆", match: ["tangy", "home"], why: "Aubergine in sweet-sour tomato — Sicily's agrodolce on a plate." },
+  { dish: "Phở", yt: "https://www.youtube.com/watch?v=JPBwT90d8RA", from: "Vietnam · Southeast Asia", region: "eastasia", diet: "meat:beef", emoji: "🍜", match: ["soup", "fresh", "home"], why: "Star-anise beef broth, herbs and rice noodles — a hug with a squeeze of lime." },
+  { dish: "Tom yum", yt: "https://www.youtube.com/watch?v=Ml4d50BIYIo", from: "Thailand · Southeast Asia", region: "eastasia", diet: "meat:seafood", emoji: "🍤", match: ["soup", "tangy", "spice"], why: "Hot-and-sour prawn soup — lemongrass, galangal and a chilli kick." },
+  { dish: "Tom kha gai", yt: "https://www.youtube.com/watch?v=i1U5pmVzJqA", from: "Thailand · Southeast Asia", region: "eastasia", diet: "meat:chicken", emoji: "🥥", match: ["soup", "creamy", "tangy"], why: "Chicken in coconut-galangal broth — tom yum's gentler, creamier sibling." },
+  { dish: "French onion soup", yt: "https://www.youtube.com/watch?v=8CqWIntIDlQ", from: "France · Europe", region: "europe", diet: "veg", emoji: "🧅", match: ["soup", "creamy", "classic"], why: "Onions cooked to jam under a molten cheese crust — patience, rewarded." },
+  { dish: "Greek salad", yt: "https://www.youtube.com/watch?v=0OMOamBjd48", from: "Greece · Europe", region: "europe", diet: "veg", emoji: "🥗", match: ["fresh", "tangy"], why: "Tomato, cucumber, olives and a slab of feta — no lettuce, no apologies." },
+  { dish: "New England clam chowder", yt: "https://www.youtube.com/watch?v=UUlfKJ9M_pQ", from: "New England · United States", region: "unitedstates", diet: "meat:seafood", emoji: "🦪", match: ["soup", "creamy"], why: "Clams and potato in a creamy bowl built for cold harbours." },
+  { dish: "Pozole", yt: "https://www.youtube.com/watch?v=HhaxbsEL0RM", from: "Mexico · Latin America", region: "latinamerica", diet: "meat:chicken", emoji: "🍲", match: ["soup", "home", "spice"], why: "Hominy stew crowned at the table with radish, lime and crunch." },
+  { dish: "Feijoada", yt: "https://www.youtube.com/watch?v=eS5_wWS0IDc", from: "Brazil · Latin America", region: "latinamerica", diet: "meat:pork", emoji: "🫘", match: ["home", "meat"], why: "Black beans and pork, simmered for hours — Brazil's Saturday ritual." },
+  { dish: "Bunny chow", yt: "https://www.youtube.com/watch?v=bOhddTWSJPQ", from: "Durban · Africa", region: "africa", diet: "meat:chicken", emoji: "🍞", match: ["spice", "street"], why: "Curry served inside a hollowed loaf — Durban's edible bowl." },
+  { dish: "Doro wat", yt: "https://www.youtube.com/watch?v=6QjW6QWXxD4", from: "Ethiopia · Africa", region: "africa", diet: "meat:chicken", emoji: "🍗", match: ["spice", "home"], why: "Chicken braised in berbere and browned onion, eaten with injera." },
+  { dish: "Bánh mì", yt: "https://www.youtube.com/watch?v=7gL-vCsDtkE", from: "Vietnam · Southeast Asia", region: "eastasia", diet: "meat:pork", emoji: "🥖", match: ["fresh", "street"], why: "Crisp baguette, pâté, pickles and herbs — two food cultures in one bite." }
 ];
 function meterLabel(kind, pct) {
   if (kind === "spice") return pct >= 66 ? "Chilli chaser" : pct >= 33 ? "Warm & balanced" : "Gentle palate";
@@ -1075,7 +1133,7 @@ function computeResult(s) {
   const tagMeters = { smoky: 0, tangy: 0, creamy: 0, fresh: 0, classic: 0 };
   let tagDenom = 0;
   const detail = [];
-  let wSum = 0, wCount = 0;
+  let wSum = 0, wCount = 0, rawOk = false;
   s.order.forEach(qid => {
     const a = s.answers[qid]; if (!a) return;
     const q = QBANK_BY_ID[qid]; if (!q) return;
@@ -1085,7 +1143,8 @@ function computeResult(s) {
     picks.forEach((opt, pi) => {
       // Ranked picks: #1 counts fully, #2 counts half. Dislike picks count against.
       const mult = q.hate ? -1 : (a.r ? 1 / (pi + 1) : 1);
-      (opt.tags || []).forEach(t => { tagCount[t] = (tagCount[t] || 0) + w * mult; });
+      if ((opt.tags || []).includes("rawok")) rawOk = true; // user opened the raw league (sashimi, tartare, ceviche…)
+      (opt.tags || []).forEach(t => { if (t !== "rawok") tagCount[t] = (tagCount[t] || 0) + w * mult; });
       if (!q.hate) {
         [["spice", "spice"], ["sweet", "sweet"], ["adv", "adv"]].forEach(([f, k]) => {
           if (typeof opt[f] === "number") { meters[k][0] += opt[f] * w * Math.abs(mult); meters[k][1] += w * Math.abs(mult); }
@@ -1117,38 +1176,39 @@ function computeResult(s) {
   const meats = chosenMeats(s);
   const scored = RECS
     .filter(r => optVisible(r, s.builtFor.diet, meats))
+    .filter(r => !r.raw || rawOk) // raw dishes only for users who opened the raw league
     .filter(r => !aversions.some(av => av.length > 3 && r.dish.toLowerCase().includes(av.toLowerCase().split(" ")[0])))
     .map(r => ({
       r,
       score: r.match.filter(t => topTags.includes(t)).length * 2 + (r.region !== s.builtFor.roots ? 1 : 0)
     }))
     .sort((a, b) => b.score - a.score);
+  // Pure score order, no per-region quota: the best 15 matches win, wherever
+  // in the world they come from.
   const recs = [];
-  const regionCount = {};
   scored.forEach(({ r }) => {
-    if (recs.length >= 10 || recs.find(x => x.dish === r.dish)) return;
-    if ((regionCount[r.region] || 0) >= 2) return; // spread the ten discoveries across regions
-    recs.push(r); regionCount[r.region] = (regionCount[r.region] || 0) + 1;
+    if (recs.length >= 15 || recs.find(x => x.dish === r.dish)) return;
+    recs.push(r);
   });
   const more = [];
   scored.forEach(({ r }) => {
-    if (more.length >= 10 || recs.find(x => x.dish === r.dish) || more.find(x => x.dish === r.dish)) return;
+    if (more.length >= 15 || recs.find(x => x.dish === r.dish) || more.find(x => x.dish === r.dish)) return;
     more.push(r);
   });
-  altRecsCache = more.map(r => ({ dish: r.dish, from: r.from, why: r.why }));
+  altRecsCache = more.map(r => ({ dish: r.dish, from: r.from, why: r.why, yt: r.yt || "" }));
   return {
     email: sessionUser ? sessionUser.email : "",
     diet: s.builtFor.diet, roots: s.builtFor.roots, city: s.builtFor.city || "",
     topTags, affinities, aversions, meters: meterPct,
     avgConfidence: wCount ? +(wSum / wCount).toFixed(2) : 1,
-    detail, recs: recs.map(r => ({ dish: r.dish, from: r.from, why: r.why })),
+    detail, recs: recs.map(r => ({ dish: r.dish, from: r.from, why: r.why, yt: r.yt || "" })),
     completedAt: new Date().toISOString()
   };
 }
 function recCardsHtml(list, res) {
   return list.map(r =>
     `<div class="rec"><span class="r-emoji">${(RECS.find(x => x.dish === r.dish) || {}).emoji || "🍽️"}</span>
-     <div><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong><p>${r.why}</p>${res.city ? `<a class="r-find" target="_blank" rel="noopener" href="https://www.google.com/maps/search/${encodeURIComponent(r.dish + " near " + res.city)}">📍 Find it near you in ${res.city} →</a>` : ""}</div></div>`).join("");
+     <div><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong><p>${r.why}</p>${r.yt ? `<a class="r-find" target="_blank" rel="noopener" href="${r.yt}">▶ Watch it being made →</a> ` : ""}${res.city ? `<a class="r-find" target="_blank" rel="noopener" href="https://www.google.com/maps/search/${encodeURIComponent(r.dish + " near " + res.city)}">📍 Find it near you in ${res.city} →</a>` : ""}</div></div>`).join("");
 }
 let lastResult = null, recsAltShown = false;
 function renderResults() {
@@ -1171,7 +1231,7 @@ function renderResults() {
   requestAnimationFrame(() => requestAnimationFrame(() => {
     document.querySelectorAll("#profileMeters .fill").forEach(f => { f.style.width = f.dataset.w + "%"; });
   }));
-  $("profileNote").textContent = (res.partial ? `⚠️ You ended early after ${res.answered || res.detail.length} answers, so this profile is based on limited information — answer more questions for a sharper picture. ` : "") + `Weighted by your confidence slider — your average pick strength was ${res.avgConfidence} / 5. Strong opinions shaped this profile most.`;
+  $("profileNote").textContent = (res.partial ? `⚠️ This profile is based on ${res.answered || res.detail.length} answers${res.skipped ? `, with ${res.skipped} question${res.skipped > 1 ? "s" : ""} skipped` : " — you finished early"}, so treat it as a first sketch, not the full picture. ` : "") + `Weighted by your confidence slider — your average pick strength was ${res.avgConfidence} / 5. Strong opinions shaped this profile most.`;
   $("profileRecs").innerHTML = recCardsHtml(res.recs, res);
   const mrb = $("moreRecsBtn");
   if (mrb) {
@@ -1201,7 +1261,8 @@ function finish(early) {
   st.finished = true;
   st.result = computeResult(st);
   st.altRecs = altRecsCache;
-  if (early) { st.result.partial = true; st.result.answered = answeredCount(st); }
+  const skippedInRun = st.skipped ? Object.keys(st.skipped).filter(id => st.order.includes(id)).length : 0;
+  if (early || skippedInRun) { st.result.partial = true; st.result.answered = answeredCount(st); st.result.skipped = skippedInRun; st.result.early = !!early; }
   saveState();
   sendToSheets();
   renderResults();

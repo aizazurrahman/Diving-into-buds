@@ -265,6 +265,7 @@ async function upsertNow() {
   if (st.result) answersPayload.__result = st.result;
   if (st.skipped && Object.keys(st.skipped).length) answersPayload.__skipped = st.skipped;
   if (st.seen && st.seen.length) answersPayload.__nav = { seen: st.seen };
+  if (st.order && st.order.length) answersPayload.__order = { o: st.order, r: st.reserve || [] };
   const base = {
     user_id: sessionUser.id, answers: answersPayload,
     current_q: st.pos, finished: st.finished, updated_at: new Date().toISOString()
@@ -295,7 +296,15 @@ async function hydrate() {
     st.answers = Object.keys(cloudAnswers).length ? cloudAnswers : (local.builtFor && JSON.stringify(local.builtFor) === JSON.stringify(fund) ? local.answers : {});
     st.skipped = rawAnswers.__skipped || local.skipped || {};
     st.finished = !!row.finished; st.result = result; st.sheetSent = !!result;
-    buildOrder(st); fixOrder(st);
+    // Restore the run's actual order when one was saved (v19): rebuilding it
+    // from scratch dropped skip-replacements out of the order, punching
+    // holes in the navigation history that killed the Back button mid-walk.
+    const savedOrder = (rawAnswers.__order || {}).o, savedReserve = (rawAnswers.__order || {}).r;
+    const orderOk = Array.isArray(savedOrder) && savedOrder.length >= 40 &&
+      savedOrder.filter(id => QBANK_BY_ID[id]).length >= savedOrder.length * 0.95;
+    if (orderOk) { st.order = savedOrder.slice(); st.reserve = Array.isArray(savedReserve) ? savedReserve.filter(id => QBANK_BY_ID[id]) : []; }
+    else buildOrder(st);
+    fixOrder(st);
     st.seen = (((rawAnswers.__nav || {}).seen) || local.seen || []).filter(id => st.order.includes(id));
     st.navAt = -1;
     st.pos = Math.max(0, Math.min(row.current_q || 0, st.order.length - 1));
@@ -1148,12 +1157,17 @@ $("nextBtn").onclick = () => {
   const cur = currentQ();
   const ci = cur && st.seen ? st.seen.indexOf(cur.id) : -1;
   if (st.navAt >= 0 && ci >= 0 && ci < st.seen.length - 1) {
-    const ni = ci + 1;
-    st.navAt = ni >= st.seen.length - 1 ? -1 : ni;
-    st.pos = st.order.indexOf(st.seen[ni]);
-    saveState();
-    renderQuestion();
-    return;
+    // Walk forward through the displayed sequence, skipping any entry
+    // that can't resolve in the current order.
+    for (let ni = ci + 1; ni < st.seen.length; ni++) {
+      const ti = st.order.indexOf(st.seen[ni]);
+      if (ti < 0) continue;
+      st.navAt = ni >= st.seen.length - 1 ? -1 : ni;
+      st.pos = ti;
+      saveState();
+      renderQuestion();
+      return;
+    }
   }
   st.navAt = -1;
   fixOrder(st); // shape the tail with the just-committed answer before advancing
@@ -1206,10 +1220,13 @@ $("backBtn").onclick = () => {
   let ci = cur ? st.seen.indexOf(cur.id) : -1;
   if (ci === -1) ci = st.seen.length; // restored session: step back from the end of the known sequence
   if (ci <= 0) return;
-  st.navAt = ci - 1;
-  const ti = st.order.indexOf(st.seen[st.navAt]);
-  if (ti < 0) return;
-  st.pos = ti;
+  // Scan past any history entry that can't resolve in the current order
+  // (stale ids from older builds) instead of dead-ending on it forever.
+  let step = ci - 1;
+  while (step >= 0 && st.order.indexOf(st.seen[step]) < 0) step--;
+  if (step < 0) return;
+  st.navAt = step;
+  st.pos = st.order.indexOf(st.seen[step]);
   saveState();
   renderQuestion();
 };
@@ -1327,6 +1344,71 @@ function meterLabel(kind, pct) {
   return pct >= 66 ? "Fearless taster" : pct >= 33 ? "Curious explorer" : "Creature of habit";
 }
 let altRecsCache = [];
+
+/* ——— Flavour axes (v19, Aizaz's twelve distinctions) ———
+   Twelve bipolar flavour axes. Every option in the bank is assigned axis
+   signals from its existing tags, its text (keyword scan, negation-aware),
+   and a boost when its question is literally about that axis. Every dish
+   gets the same treatment (match tags + name/story keywords + cuisine
+   priors), so user and dish live in ONE shared vector space — the match
+   is then analytical: how strongly does this dish express the poles this
+   user actually leans toward? */
+const AXES = [
+  { id: "salt", emoji: "🧂", name: "Salt & Umami", hi: "Savoury seeker", lo: "Sodium minimalist" },
+  { id: "aromatics", emoji: "🧅", name: "Aromatics & Garlic", hi: "Garlic lover", lo: "Mild & subtle" },
+  { id: "herbs", emoji: "🌿", name: "Herbs & Botanicals", hi: "Herbivore kick", lo: "Simple seasoning" },
+  { id: "earthy", emoji: "🌾", name: "Earthiness", hi: "Deep & earthy", lo: "Clean & crisp" },
+  { id: "warmspice", emoji: "🫚", name: "Warm spices", hi: "Spice route enthusiast", lo: "Subtle warmth" },
+  { id: "crunch", emoji: "🥨", name: "Crunch & Crisp", hi: "Texture hunter", lo: "Soft & smooth" },
+  { id: "oil", emoji: "🫒", name: "Oil & Richness", hi: "Decadent & silky", lo: "Clean & dry" },
+  { id: "funk", emoji: "🧀", name: "Fermentation & Funk", hi: "Flavor adventurer", lo: "Fresh & direct" },
+  { id: "vegprotein", emoji: "🥦", name: "Veg-forward vs Protein", hi: "Plant-centric", lo: "Meat & hearty" },
+  { id: "soup", emoji: "🍲", name: "Soup & Broth", hi: "Sip & savour", lo: "Dry & crisp" },
+  { id: "pairing", emoji: "🍷", name: "Pairing & Alcohol", hi: "Wine & dine", lo: "Mocktail mindset" },
+  { id: "portion", emoji: "🍽️", name: "Portion & Style", hi: "Feast & share", lo: "Light bites" }
+];
+const TAG_AXIS = { spice: { warmspice: .7, salt: .15 }, mild: { warmspice: -.7, aromatics: -.4 }, tangy: { funk: .3 }, creamy: { oil: .9 }, smoky: { earthy: .6, warmspice: .15 }, fresh: { earthy: -.5, funk: -.5, herbs: .3 }, crisp: { crunch: 1 }, soup: { soup: 1 }, meat: { vegprotein: -.9, salt: .2 }, veg: { vegprotein: .8 }, healthy: { vegprotein: .3, oil: -.4, portion: -.2 }, street: { portion: .3 }, coffee: { earthy: .3, aromatics: .2 }, chai: { warmspice: .5 }, adventure: { funk: .2 }, home: { portion: .2, soup: .15 }, classic: { portion: .15 } };
+const AXIS_KEYWORDS = [
+  ["garlic", "aromatics", 1], ["onion", "aromatics", .5], ["ginger", "aromatics", .4],
+  ["coriander|cilantro|mint|basil|dill|parsley|fenugreek|methi|curry leaves|herbs", "herbs", .9],
+  ["mushroom|truffle|beet|whole spices", "earthy", .7],
+  ["garam masala|masala|cinnamon|cardamom|clove|cumin|nutmeg|star anise", "warmspice", .8],
+  ["kimchi|pickl|ferment|aged|miso|soy sauce|fish sauce|blue cheese|parmesan", "funk", .8],
+  ["yogurt|curd|raita", "funk", .4],
+  ["crispy|crisp|crunch|crackling", "crunch", .8], ["fried", "crunch", .5], ["fried", "oil", .3],
+  ["ghee|buttery|butter|cream|fatty|tallow|schmaltz|dripping", "oil", .7],
+  ["soup|broth|shorba", "soup", .7], ["stew", "soup", .4],
+  ["wine|beer|rum|bourbon", "pairing", 1],
+  ["salad", "earthy", -.3], ["salad", "vegprotein", .3],
+  ["smoked|charred|tandoor|grilled", "earthy", .3],
+  ["umami|savoury|savory", "salt", .6]
+];
+const AXIS_Q_BOOST = { "pal-01": { soup: 2.5 }, "pal-08": { herbs: 2.5 }, "pal-15": { funk: 2.5 }, "bri-10": { funk: 2.5 }, "pal-17": { oil: 2.5 }, "glo-21": { oil: 2.5 }, "pal-02": { oil: 2 }, "pal-07": { salt: 2.5 }, "glo-11": { salt: 2.5 }, "pal-05": { crunch: 2 }, "op-texture": { crunch: 2 }, "glo-04": { crunch: 1.5 }, "pal-19": { warmspice: 2 }, "op-spice": { warmspice: 1.5 }, "glo-meatrole": { vegprotein: 2.5 }, "glo-alc": { pairing: 3 }, "pal-03": { funk: 1.5 }, "pal-09": { earthy: 1.5 }, "pal-13": { funk: 1.5 }, "glo-24": { portion: 1.5 }, "op-format": { portion: 2 }, "hyd-08": { soup: 2 }, "afr-peppersoup": { soup: 2 }, "pal-16": { vegprotein: 1.5 }, "hyd-aroma": { aromatics: 2 }, "sou-aroma": { aromatics: 2 }, "asi-aroma": { aromatics: 2 }, "mid-aroma": { aromatics: 2 }, "eur-aroma": { aromatics: 2 }, "afr-aroma": { aromatics: 2 }, "lat-aroma": { aromatics: 2 }, "ame-aroma": { aromatics: 2 } };
+const AXIS_NEG = /^(no|none|never|not|keep|skip|without)\b|off my plate|not for me|not my thing|ruins|deal-breaker|away from/i;
+function axisSignalsFor(q, o) {
+  const sig = {};
+  const add = (a, v) => { if (v) sig[a] = (sig[a] || 0) + v; };
+  (o.tags || []).forEach(t => { const m = TAG_AXIS[t]; if (m) Object.entries(m).forEach(([a, v]) => add(a, v)); });
+  const text = (o.t || "").toLowerCase();
+  const neg = AXIS_NEG.test(text);
+  AXIS_KEYWORDS.forEach(([src, a, v]) => { if (new RegExp(src).test(text)) add(a, neg ? -v : v); });
+  const boost = AXIS_Q_BOOST[q.id];
+  if (boost) Object.keys(sig).forEach(a => { if (boost[a]) sig[a] *= boost[a]; });
+  return sig;
+}
+const REGION_AXIS = { eastasia: { salt: .5, herbs: .3, soup: .4, funk: .3 }, southasia: { warmspice: .6, aromatics: .5, oil: .3 }, hyderabad: { warmspice: .6, aromatics: .5, oil: .3 }, middleeast: { herbs: .4, aromatics: .3, earthy: .2 }, europe: { oil: .3, funk: .3 }, unitedstates: { oil: .3, crunch: .3, portion: .4 }, africa: { earthy: .4, warmspice: .4, soup: .2 }, latinamerica: { herbs: .3, crunch: .2, aromatics: .3 } };
+function dishAxesFor(r) {
+  const sig = {};
+  const add = (a, v) => { if (v) sig[a] = (sig[a] || 0) + v; };
+  (r.match || []).forEach(t => { const m = TAG_AXIS[t]; if (m) Object.entries(m).forEach(([a, v]) => add(a, v)); });
+  const text = (r.dish + " " + (r.why || "")).toLowerCase();
+  AXIS_KEYWORDS.forEach(([src, a, v]) => { if (new RegExp(src).test(text)) add(a, v * 0.8); });
+  const rp = REGION_AXIS[r.region]; if (rp) Object.entries(rp).forEach(([a, v]) => add(a, v));
+  const out = {};
+  AXES.forEach(ax => { out[ax.id] = Math.max(0, Math.min(1, (sig[ax.id] || 0) / 2)); });
+  return out;
+}
+
 function computeResult(s) {
   const tagCount = {};
   const meters = { spice: [0, 0], sweet: [0, 0], adv: [0, 0] };
@@ -1334,6 +1416,7 @@ function computeResult(s) {
   let tagDenom = 0;
   const detail = [];
   let wSum = 0, wCount = 0, rawOk = false, alcOk = false, eggOk = false;
+  const axisPos = {}, axisNeg = {}; // per-axis evidence toward the hi / lo poles
   s.order.forEach(qid => {
     const a = s.answers[qid]; if (!a) return;
     const q = QBANK_BY_ID[qid]; if (!q) return;
@@ -1347,6 +1430,10 @@ function computeResult(s) {
       if ((opt.tags || []).includes("alcok")) alcOk = true; // user is fine with alcohol-cooked dishes
       if ((opt.tags || []).includes("eggok")) eggOk = true; // vegetarian who eats eggs
       (opt.tags || []).forEach(t => { if (t !== "rawok" && t !== "alcok" && t !== "eggok") tagCount[t] = (tagCount[t] || 0) + w * mult; });
+      Object.entries(axisSignalsFor(q, opt)).forEach(([a, v]) => {
+        const c = v * w * mult;
+        if (c > 0) axisPos[a] = (axisPos[a] || 0) + c; else axisNeg[a] = (axisNeg[a] || 0) - c;
+      });
       if (!q.hate) {
         [["spice", "spice"], ["sweet", "sweet"], ["adv", "adv"]].forEach(([f, k]) => {
           if (typeof opt[f] === "number") { meters[k][0] += opt[f] * w * Math.abs(mult); meters[k][1] += w * Math.abs(mult); }
@@ -1371,6 +1458,26 @@ function computeResult(s) {
     tags.forEach(t => { skipTags[t] = Math.min(SKIP_CAP, (skipTags[t] || 0) + SKIP_W); });
   });
   Object.entries(skipTags).forEach(([t, v]) => { tagCount[t] = (tagCount[t] || 0) - v; });
+  // Skips shade the axes the same gentle way: the strongest signal each
+  // skipped question would have explored counts a little against that pole.
+  const skipAxis = {};
+  Object.keys(s.skipped || {}).forEach(qid => {
+    const q = QBANK_BY_ID[qid]; if (!q) return;
+    const best = {};
+    q.options.forEach(o => Object.entries(axisSignalsFor(q, o)).forEach(([a, v]) => { if (v > 0) best[a] = Math.max(best[a] || 0, v); }));
+    Object.entries(best).forEach(([a, v]) => { skipAxis[a] = Math.min(SKIP_CAP, (skipAxis[a] || 0) + SKIP_W * v); });
+  });
+  Object.entries(skipAxis).forEach(([a, v]) => { axisNeg[a] = (axisNeg[a] || 0) + v; });
+  // The user's flavour-axis profile: position between the poles (pct toward
+  // the hi pole) + how much evidence backs it (strength). Top 10 by
+  // strength is what the results page shows.
+  const axes = AXES.map(ax => {
+    const p = axisPos[ax.id] || 0, n = axisNeg[ax.id] || 0, tot = p + n;
+    const share = tot ? p / tot : 0.5;
+    return { id: ax.id, emoji: ax.emoji, name: ax.name, hi: ax.hi, lo: ax.lo, pct: Math.round(100 * share), strength: Math.round(tot * 10) / 10, lean: tot < 0.5 ? "balanced" : (share >= 0.58 ? "hi" : (share <= 0.42 ? "lo" : "balanced")) };
+  }).sort((a, b) => b.strength - a.strength);
+  const leanOf = {};
+  axes.forEach(a => { leanOf[a.id] = a.strength >= 1 ? (a.pct - 50) / 50 : 0; });
   const posTags = Object.entries(tagCount).filter(([, c]) => c > 0).sort((a, b) => b[1] - a[1]);
   const topTags = posTags.slice(0, 5).map(([t]) => t);
   const affinities = {};
@@ -1408,13 +1515,38 @@ function computeResult(s) {
   const rarity = (t) => Math.log2(1 + TAG_TOTAL / (TAG_FREQ[t] || TAG_TOTAL));
   const maxPos = Math.max(1, ...Object.values(tagCount));
   const dishScore = (r) => r.match.reduce((acc, t) => acc + ((tagCount[t] || 0) / maxPos) * rarity(t), 0) / Math.sqrt(r.match.length) + (ownRoots.includes(r.region) ? 0 : 0.35);
+  // — Scoring v2 (v19): the tag score above is blended with AXIS ALIGNMENT
+  // in the shared flavour space: a dish earns more when it strongly
+  // expresses the poles this user leans toward (and loses when it expresses
+  // the opposite poles). A small exploration bonus rewards out-of-roots
+  // dishes that are strong on axes the user is still neutral about — the
+  // doorway to flavours they haven't met yet.
+  const dishAxesCache = {};
+  RECS.forEach(r => { dishAxesCache[r.dish] = dishAxesFor(r); });
+  const axisAlign = (r) => { const da = dishAxesCache[r.dish]; let s2 = 0; AXES.forEach(ax => { s2 += (leanOf[ax.id] || 0) * (da[ax.id] || 0); }); return s2; };
+  const exploreBonus = (r) => {
+    if (ownRoots.includes(r.region)) return 0;
+    const da = dishAxesCache[r.dish]; let b = 0;
+    AXES.forEach(ax => { if (Math.abs(leanOf[ax.id] || 0) < 0.25 && (da[ax.id] || 0) > 0.6) b += 0.06; });
+    return Math.min(0.25, b);
+  };
+  const axisMatchLabels = (r) => {
+    const da = dishAxesCache[r.dish];
+    return AXES.map(ax => {
+      const lean = leanOf[ax.id] || 0, dv = da[ax.id] || 0;
+      if (lean > 0.2 && dv > 0.45) return { label: ax.hi, wgt: lean * dv };
+      if (lean < -0.2 && dv < 0.25) return { label: ax.lo, wgt: -lean * (1 - dv) };
+      return null;
+    }).filter(Boolean).sort((a, b) => b.wgt - a.wgt).slice(0, 2).map(x => x.label);
+  };
+  const dishScoreV2 = (r) => dishScore(r) + 0.55 * axisAlign(r) + exploreBonus(r);
   const scored = RECS
     .filter(r => optVisible(r, s.builtFor.diet, meats))
     .filter(r => !r.raw || rawOk) // raw dishes only for users who opened the raw league
     .filter(r => !r.alc || alcOk) // alcohol-cooked dishes only for users who opened that door
     .filter(r => !r.egg || s.builtFor.diet !== "vegetarian" || eggOk) // egg dishes: only no-egg vegetarians are filtered
     .filter(r => !aversions.some(av => av.length > 3 && r.dish.toLowerCase().includes(av.toLowerCase().split(" ")[0])))
-    .map(r => ({ r, score: dishScore(r), matched: r.match.filter(t => (tagCount[t] || 0) > 0).length }))
+    .map(r => ({ r, score: dishScoreV2(r), matched: r.match.filter(t => (tagCount[t] || 0) > 0).length }))
     .sort((a, b) => b.score - a.score || b.matched - a.matched);
   // Pure score order, no per-region quota: the best 15 matches win, wherever
   // in the world they come from.
@@ -1428,20 +1560,20 @@ function computeResult(s) {
     if (more.length >= 15 || recs.find(x => x.dish === r.dish) || more.find(x => x.dish === r.dish)) return;
     more.push(r);
   });
-  altRecsCache = more.map(r => ({ dish: r.dish, from: r.from, why: r.why, yt: r.yt || "" }));
+  altRecsCache = more.map(r => ({ dish: r.dish, from: r.from, why: r.why, yt: r.yt || "", axes: axisMatchLabels(r) }));
   return {
     email: sessionUser ? sessionUser.email : "",
     diet: s.builtFor.diet, roots: s.builtFor.roots, roots2: s.builtFor.roots2 || null, city: s.builtFor.city || "",
-    topTags, affinities, aversions, meters: meterPct,
+    topTags, affinities, aversions, meters: meterPct, axes: axes.slice(0, 10),
     avgConfidence: wCount ? +(wSum / wCount).toFixed(2) : 1,
-    detail, recs: recs.map(r => ({ dish: r.dish, from: r.from, why: r.why, yt: r.yt || "" })),
+    detail, recs: recs.map(r => ({ dish: r.dish, from: r.from, why: r.why, yt: r.yt || "", axes: axisMatchLabels(r) })),
     completedAt: new Date().toISOString()
   };
 }
 function recCardsHtml(list, res) {
   return list.map(r =>
     `<div class="rec"><span class="r-emoji">${(RECS.find(x => x.dish === r.dish) || {}).emoji || "🍽️"}</span>
-     <div><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong><p>${r.why}</p>${r.yt ? `<a class="r-find" target="_blank" rel="noopener" href="${r.yt}"><svg class="yt-logo" viewBox="0 0 28 20" aria-hidden="true"><path fill="#FF0000" d="M27.4 3.1c-.3-1.2-1.3-2.2-2.5-2.5C22.7 0 14 0 14 0S5.3 0 3.1.6C1.9.9.9 1.9.6 3.1.1 5.2 0 8.9 0 10s0 4.8.6 6.9c.3 1.2 1.3 2.2 2.5 2.5C5.3 20 14 20 14 20s8.7 0 10.9-.6c1.2-.3 2.2-1.3 2.5-2.5.5-2.1.6-6.9.6-6.9s0-4.8-.6-6.9z"/><path fill="#fff" d="M11.2 14.3V5.7l7.4 4.3z"/></svg>Watch it being made →</a> ` : ""}${res.city ? `<a class="r-find" target="_blank" rel="noopener" href="https://www.google.com/maps/search/${encodeURIComponent(r.dish + " near " + res.city)}">📍 Find it near you in ${res.city} →</a>` : ""}</div></div>`).join("");
+     <div><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong><p>${r.why}</p>${r.axes && r.axes.length ? `<p class="r-axes">Matches your: ${r.axes.join(" · ")}</p>` : ""}${r.yt ? `<a class="r-find" target="_blank" rel="noopener" href="${r.yt}"><svg class="yt-logo" viewBox="0 0 28 20" aria-hidden="true"><path fill="#FF0000" d="M27.4 3.1c-.3-1.2-1.3-2.2-2.5-2.5C22.7 0 14 0 14 0S5.3 0 3.1.6C1.9.9.9 1.9.6 3.1.1 5.2 0 8.9 0 10s0 4.8.6 6.9c.3 1.2 1.3 2.2 2.5 2.5C5.3 20 14 20 14 20s8.7 0 10.9-.6c1.2-.3 2.2-1.3 2.5-2.5.5-2.1.6-6.9.6-6.9s0-4.8-.6-6.9z"/><path fill="#fff" d="M11.2 14.3V5.7l7.4 4.3z"/></svg>Watch it being made →</a> ` : ""}${res.city ? `<a class="r-find" target="_blank" rel="noopener" href="https://www.google.com/maps/search/${encodeURIComponent(r.dish + " near " + res.city)}">📍 Find it near you in ${res.city} →</a>` : ""}</div></div>`).join("");
 }
 let lastResult = null, recsAltShown = false;
 function renderResults() {
@@ -1452,7 +1584,6 @@ function renderResults() {
   $("profileSummary").textContent = labels.length >= 2
     ? `In one line: ${strip(labels[0])} meets ${strip(labels[1]).toLowerCase()}. Here's the full picture:`
     : "Here's what your answers say about your palate:";
-  $("profileTraits").innerHTML = labels.map(l => `<span class="trait">${l}</span>`).join("");
   lastResult = res; recsAltShown = false;
   const affLabels = Object.keys(res.affinities || {}).map(t => TAG_LABELS[t]).filter(Boolean).slice(0, 8);
   $("profileAffinities").innerHTML = affLabels.length ? `<h3 class="rec-title2">✨ Flavours you're drawn to</h3><div class="traits">${affLabels.map(l => `<span class="trait">${l}</span>`).join("")}</div>` : "";
@@ -1464,6 +1595,10 @@ function renderResults() {
   requestAnimationFrame(() => requestAnimationFrame(() => {
     document.querySelectorAll("#profileMeters .fill").forEach(f => { f.style.width = f.dataset.w + "%"; });
   }));
+  const axEl = $("profileAxes");
+  if (axEl) axEl.innerHTML = (res.axes && res.axes.length) ? `<h3 class="rec-title2">🧭 Your flavour axes — your top ${res.axes.length}</h3>` + res.axes.map(a =>
+    `<div class="axis"><div class="a-head"><span>${a.emoji} ${a.name}</span><span class="a-lean">${a.lean === "hi" ? a.hi : a.lean === "lo" ? a.lo : "Balanced"}</span></div>` +
+    `<div class="a-track"><span class="a-pole">${a.lo}</span><div class="a-bar"><div class="a-marker" style="left:${a.pct}%"></div></div><span class="a-pole">${a.hi}</span></div></div>`).join("") : "";
   $("profileNote").textContent = (res.partial ? `⚠️ This profile is based on ${res.answered || res.detail.length} answers${res.skipped ? `, with ${res.skipped} question${res.skipped > 1 ? "s" : ""} skipped` : " — you finished early"}, so treat it as a first sketch, not the full picture. ` : "") + `Weighted by your confidence slider — your average pick strength was ${res.avgConfidence} / 5. Strong opinions shaped this profile most.`;
   $("profileRecs").innerHTML = recCardsHtml(res.recs, res);
   const mrb = $("moreRecsBtn");
@@ -1516,6 +1651,7 @@ $("csvBtn").onclick = () => {
     ["City", res.city || ""], ["Questions answered", res.detail.length], ["Ended early", res.partial ? "Yes" : "No"],
     ["Completed", res.completedAt], ["Top traits", res.topTags.join(", ")],
     ["Affinities", Object.entries(res.affinities || {}).map(([k, v]) => `${k}:${v}`).join(", ")],
+    ...(res.axes || []).map(a => [`Axis — ${a.name}`, `${a.lean === "hi" ? a.hi : a.lean === "lo" ? a.lo : "Balanced"} (${a.pct}% toward ${a.hi}, strength ${a.strength})`]),
     ["Hard no's", (res.aversions || []).join(", ")],
     ["Heat %", res.meters.spice], ["Sweet %", res.meters.sweet], ["Adventure %", res.meters.adv],
     ["Smoke %", res.meters.smoky], ["Tang %", res.meters.tangy], ["Creamy %", res.meters.creamy], ["Fresh %", res.meters.fresh], ["Classic %", res.meters.classic],

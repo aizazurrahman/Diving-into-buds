@@ -142,14 +142,9 @@ function buildOrder(s) {
     if (order.length >= DEFAULT_TOTAL) break;
     if (!seen.has(q.id)) { order.push(q); seen.add(q.id); }
   }
-  // Gate-children of composed GLOBAL parents (the fish/beef gateway chains)
-  // travel with their parents: insert them directly behind them, inside the
-  // global segment's 8-question budget (the slice drops rotated tail
-  // questions, never the fixed slots at its head). Regional chain extras are
-  // NOT inserted here: in dual-root runs there are two chains' worth, and
-  // inserting them at build time ballooned the regional block and sliced the
-  // entire global segment away (v12 live-QA catch). They sit at the head of
-  // the reserve instead and swap in when their branch opens.
+// Gate-children of composed GLOBAL parents travel with their parents,
+// inserted directly behind them inside the world segment's budget.
+// Regional chain extras stay in the reserve (v12 segment-budget rule).
   const gStart = regional.length;
   const withKids = [...order.slice(0, gStart)];
   const inOrder = new Set(order.map(q => q.id));
@@ -199,11 +194,8 @@ function fixOrder(s) {
   const used = new Set();
   for (let i = s.pos + 1; i < s.order.length; i++) {
     const q = QBANK_BY_ID[s.order[i]];
-    // A skipped question is never swapped out: the skip was the user's own
-    // choice, the question stays in the order as reachable history (Back
-    // renders it; findNext never serves it because playable() rejects it).
-    // Swapping it out on restore — where this loop scans the whole order —
-    // silently reshuffled the run and orphaned the navigation history.
+    // A skipped question is never swapped out (v19.1): it stays in the
+    // order as reachable history; swapping it on restore reshuffled runs.
     if (!q || s.answers[q.id] || (s.skipped && s.skipped[q.id]) || playable(q, s)) continue;
     let rep = null;
     // Prefer a replacement from the same deck, so swaps keep the run's mix.
@@ -331,7 +323,7 @@ async function hydrate() {
 
 /* ————— Views ————— */
 function show(view) {
-  ["view-auth", "view-fund", "view-home", "view-loves", "view-quiz", "view-results"].forEach(v => { $(v).hidden = v !== view; });
+  ["view-auth", "view-fund", "view-home", "view-loves", "view-quiz", "view-compiling", "view-results"].forEach(v => { $(v).hidden = v !== view; });
   const u = currentUser();
   $("userbox").hidden = !u;
   $("userEmail").textContent = u || "";
@@ -1067,8 +1059,7 @@ function removeLove(id) {
 }
 function renderLoves() {
   if (!Array.isArray(st.loves)) st.loves = [];
-  // v23 (Aizaz): like the city picker, the dish list stays hidden until the
-  // user starts typing — no wall of dishes under the question.
+  // v23 (Aizaz): no dish list until the user starts typing.
   $("lovesInput").value = "";
   paintLoveResults([]);
   paintLoves();
@@ -1701,17 +1692,8 @@ function computeResult(s) {
   // Recommendations: diet-safe, tag-matched, other regions first.
   const meats = chosenMeats(s);
   const ownRoots = [s.builtFor.roots, s.builtFor.roots2].filter(Boolean);
-  // — Recommendation scoring (v13): strength × rarity, not top-5 membership.
-  // Each of a dish's match tags contributes the user's actual accumulated
-  // weight for that tag (signed — flavours the user pushed against drag a
-  // dish down), scaled by how RARE the tag is across the question bank. A
-  // match on a distinctive tag (biryani, fermented) says far more about a
-  // palate than one on a ubiquitous tag (classic) — the old binary model
-  // priced them identically, let broad-tagged dishes (Tahdig: rice + biryani
-  // + classic) hit the ceiling for almost any profile, and let defining but
-  // rarely-fed tags like biryani never crack the top 5 at all. Breadth is
-  // normalised by sqrt(tag count), so a 3-tag dish no longer beats a precise
-  // 2-tag match by default. The out-of-roots bonus stays as a small nudge.
+// — Recommendation scoring (v13 + v19 blend): strength × rarity tag score,
+// blended with axis alignment plus an exploration bonus for out-of-roots dishes.
   const TAG_FREQ = {};
   QBANK.forEach(q => q.options.forEach(o => (o.tags || []).forEach(t => { TAG_FREQ[t] = (TAG_FREQ[t] || 0) + 1; })));
   const TAG_TOTAL = Object.values(TAG_FREQ).reduce((a, b) => a + b, 0) || 1;
@@ -1927,8 +1909,28 @@ function finish(early) {
   if (early || answeredCount(st) < runTotal(st)) { st.result.partial = true; st.result.answered = answeredCount(st); st.result.skipped = skippedInRun; st.result.early = !!early; }
   saveState();
   sendToSheets();
-  renderResults();
-  show("view-results");
+  revealResults();
+}
+// v23.2 (Aizaz): 5-second "compiling" interlude before the reveal — the
+// result is already computed and saved; only the display waits.
+let compileTimer = null, compilePhraseTimer = null;
+function revealResults() {
+  const reduced = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+  show("view-compiling");
+  window.scrollTo({ top: 0 });
+  const phrases = ["Reading your palate…", "Weighing your flavour axes…", "Scanning kitchens around the world…", "Matching dishes to your taste…", "Handpicking your recommendations…"];
+  let pi = 0;
+  const el = $("compilePhrase");
+  if (el) el.textContent = phrases[0];
+  clearInterval(compilePhraseTimer);
+  if (!reduced) compilePhraseTimer = setInterval(() => { pi = (pi + 1) % phrases.length; if (el) el.textContent = phrases[pi]; }, 1100);
+  clearTimeout(compileTimer);
+  compileTimer = setTimeout(() => {
+    clearInterval(compilePhraseTimer);
+    renderResults();
+    show("view-results");
+    window.scrollTo({ top: 0 });
+  }, reduced ? 700 : 5000);
 }
 $("endBtn").onclick = () => { if (st && !st.finished && answeredCount(st) >= 10) finish(true); };
 $("endInfoBtn").onclick = () => {

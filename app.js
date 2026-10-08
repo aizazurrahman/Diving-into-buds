@@ -1650,7 +1650,7 @@ function computeResult(s) {
     if (!chosen.length) return "It lines up with the flavours you kept picking.";
     const clause = (c, i) => {
       const t = c.ref.text;
-      if (t.length <= 36 && !t.includes(" — ")) return c.short + ", like the " + t + " " + (c.ref.rank1 ? "you ranked #1" : ((r.dish.length + i) % 2 ? "you picked" : "you chose"));
+      if (t.length <= 36 && !t.includes(" — ")) { const art = /^(The|A|An)\s/.test(t) ? "" : "the "; return c.short + ", like " + art + t + " " + (c.ref.rank1 ? "you ranked #1" : ((r.dish.length + i) % 2 ? "you picked" : "you chose")); }
       const tt = t.length > 80 ? t.slice(0, 77) + "…" : t;
       return c.short + " — just like your pick: '" + tt + "'";
     };

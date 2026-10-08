@@ -1909,8 +1909,8 @@ function finish(early) {
   sendToSheets();
   revealResults();
 }
-// v23.2 (Aizaz): 5-second "compiling" interlude before the reveal — the
-// result is already computed and saved; only the display waits.
+// v23.2 (Aizaz): "compiling" interlude before the reveal — the result
+// is already computed and saved; only the display waits.
 let compileTimer = null, compilePhraseTimer = null;
 function revealResults() {
   const reduced = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -1919,10 +1919,10 @@ function revealResults() {
   if (dots && !reduced) {
     const maxR = Math.round(Math.max(160, Math.min(window.innerWidth, window.innerHeight) * 0.46));
     let html = "";
-    for (let i = 0; i < 42; i++) {
+    for (let i = 0; i < 150; i++) {
       const a = Math.round(Math.random() * 360);
       const r = Math.round(95 + Math.random() * (maxR - 95));
-      const d = (Math.random() * 3.2).toFixed(2);
+      const d = (Math.random() * 1.7).toFixed(2);
       const g = 110 + Math.round(Math.random() * 120);
       html += `<span style="--a:${a}deg;--r:${r}px;--d:${d}s;background:rgb(${g},${g},${g})"></span>`;
     }
@@ -1942,7 +1942,7 @@ function revealResults() {
     renderResults();
     show("view-results");
     window.scrollTo({ top: 0 });
-  }, reduced ? 700 : 5000);
+  }, reduced ? 700 : 7500); // v23.4 (Aizaz): 7.5 seconds (was 5)
 }
 $("endBtn").onclick = () => { if (st && !st.finished && answeredCount(st) >= 5) finish(true); };
 $("endInfoBtn").onclick = () => {

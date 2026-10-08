@@ -1117,10 +1117,8 @@ function renderQuestion() {
     if (t >= 0) { st.pos = t; q = currentQ(); }
   }
   st.seen = st.seen || [];
-  // Sessions restored from before the seen-history existed (or synced from
-  // another device) arrive with an empty or partial history, which left Back
-  // with nothing to step to. Rebuild the missing head from the run order —
-  // everything at or behind the current position was displayed to get here.
+  // Restored sessions may arrive with empty/partial seen-history: rebuild
+  // the missing head from the run order so Back always has somewhere to go.
   if (st.order.length) {
     if (!st.seen.length) st.seen = st.order.slice(0, st.pos + 1);
     else { const head = st.order.indexOf(st.seen[0]); if (head > 0) st.seen = [...st.order.slice(0, head), ...st.seen]; }
@@ -1209,7 +1207,7 @@ function renderQuestion() {
 }
 function updateSliderLabel() { $("sliderVal").textContent = `${pendingW} · ${WEIGHT_WORDS[pendingW]}`; }
 function paintEndBtn() {
-  const showEnd = !!st && !st.finished && answeredCount(st) >= 10;
+  const showEnd = !!st && !st.finished && answeredCount(st) >= 5; // v23.3 (Aizaz): End here from 5 answers (was 10)
   $("endBtn").hidden = !showEnd;
   $("endInfoBtn").hidden = !showEnd;
   if (!showEnd) $("endInfoPanel").hidden = true;
@@ -1916,6 +1914,20 @@ function finish(early) {
 let compileTimer = null, compilePhraseTimer = null;
 function revealResults() {
   const reduced = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+  // v23.3: grey dots generated per reveal (random angle/radius/grey).
+  const dots = $("holeDots");
+  if (dots && !reduced) {
+    const maxR = Math.round(Math.max(160, Math.min(window.innerWidth, window.innerHeight) * 0.46));
+    let html = "";
+    for (let i = 0; i < 42; i++) {
+      const a = Math.round(Math.random() * 360);
+      const r = Math.round(95 + Math.random() * (maxR - 95));
+      const d = (Math.random() * 3.2).toFixed(2);
+      const g = 110 + Math.round(Math.random() * 120);
+      html += `<span style="--a:${a}deg;--r:${r}px;--d:${d}s;background:rgb(${g},${g},${g})"></span>`;
+    }
+    dots.innerHTML = html;
+  }
   show("view-compiling");
   window.scrollTo({ top: 0 });
   const phrases = ["Reading your palate…", "Weighing your flavour axes…", "Scanning kitchens around the world…", "Matching dishes to your taste…", "Handpicking your recommendations…"];
@@ -1932,7 +1944,7 @@ function revealResults() {
     window.scrollTo({ top: 0 });
   }, reduced ? 700 : 5000);
 }
-$("endBtn").onclick = () => { if (st && !st.finished && answeredCount(st) >= 10) finish(true); };
+$("endBtn").onclick = () => { if (st && !st.finished && answeredCount(st) >= 5) finish(true); };
 $("endInfoBtn").onclick = () => {
   const p = $("endInfoPanel");
   p.hidden = !p.hidden;

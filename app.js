@@ -207,7 +207,12 @@ function fixOrder(s) {
   const used = new Set();
   for (let i = s.pos + 1; i < s.order.length; i++) {
     const q = QBANK_BY_ID[s.order[i]];
-    if (!q || s.answers[q.id] || playable(q, s)) continue;
+    // A skipped question is never swapped out: the skip was the user's own
+    // choice, the question stays in the order as reachable history (Back
+    // renders it; findNext never serves it because playable() rejects it).
+    // Swapping it out on restore — where this loop scans the whole order —
+    // silently reshuffled the run and orphaned the navigation history.
+    if (!q || s.answers[q.id] || (s.skipped && s.skipped[q.id]) || playable(q, s)) continue;
     let rep = null;
     // Prefer a replacement from the same deck, so swaps keep the run's mix.
     for (const pass of [q.deck, null]) {
@@ -1187,6 +1192,12 @@ $("skipBtn").onclick = () => {
   st.skipped = st.skipped || {};
   st.skipped[q.id] = true;
   afterAnswer(q, prev); // clears stale gate-children answers if this was a parent
+  // Settle the order BEFORE choosing and splicing the replacement:
+  // fixOrder's gate promotion seats unpromoted follow-ups at pos + 1, so
+  // running it after the splice wedges them in ahead of the replacement —
+  // pushing the replacement down the numbering and stranding the follow-ups
+  // behind the new position, where forward navigation never reaches them.
+  fixOrder(st);
   // Skip swaps the question out IN PLACE (Aizaz, 2026-10-07): the
   // replacement (same deck / same fundamentals family first) takes the slot
   // right after the skipped question and is shown immediately as the new
@@ -1197,13 +1208,11 @@ $("skipBtn").onclick = () => {
   if (repId) {
     st.order.splice(st.pos + 1, 0, repId);
     st.reserve = st.reserve.filter(id => id !== repId);
-    fixOrder(st);
     st.pos = st.order.indexOf(repId);
     saveState();
     renderQuestion();
     return;
   }
-  fixOrder(st);
   let t = findNext(st.pos);
   if (t === -1) t = findNext(0);
   if (t === -1) return finish();

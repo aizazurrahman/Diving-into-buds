@@ -401,3 +401,11 @@ footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 18
 .a-bar { position: relative; flex: 1; height: 8px; border-radius: 99px; background: linear-gradient(90deg, #DDD6FE, #7C3AED); }
 .a-marker { position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 3px solid #4C1D95; transform: translate(-50%, -50%); }
 .r-axes { font-size: .82rem; color: #7C3AED; margin-top: 2px; }
+
+/* ——— Loved dishes (v22) ——— */
+.dish-sub { display: block; font-size: .8em; font-weight: 400; opacity: .62; margin-top: 2px; }
+.love-x { float: right; opacity: .7; font-weight: 400; }
+.loves-search { margin: 14px 0 12px; }
+.loves-picked-title { margin: 20px 0 8px; font-size: 1rem; }
+.loves-picked-title span { opacity: .62; font-weight: 400; font-size: .85em; margin-left: .35em; }
+.loves-line { margin: 2px 0 10px; font-size: .95rem; opacity: .85; }

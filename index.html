@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=17">
+<link rel="stylesheet" href="styles.css?v=18">
 </head>
 <body>
 
@@ -138,6 +138,25 @@
   </section>
 
   <!-- ——— QUIZ ——— -->
+  <!-- ——— LOVED DISHES (v22) ——— -->
+  <section id="view-loves" class="view" hidden>
+    <div class="card qcard">
+      <div class="qmeta"><span class="chip">First question</span></div>
+      <h2 class="qtext">Tell us what you love! Pick up to 15 of your favorite foods or drinks—whether they're starters, main courses, desserts, regional foods, or global dishes. We've done our best to feature as many of your favorites as we can.</h2>
+      <div class="loves-search">
+        <input type="text" id="lovesInput" class="city-input" placeholder="Start typing a dish or drink you love…" autocomplete="off" maxlength="60" aria-label="Search dishes and drinks you love">
+      </div>
+      <div class="options" id="lovesResults" role="group" aria-label="Dish matches"></div>
+      <h3 class="loves-picked-title">Your loves <span id="lovesCount">0/15 picked</span></h3>
+      <div class="options" id="lovesPicked" role="group" aria-label="Your picked dishes"></div>
+      <p class="fund-hint" id="lovesHint">Pick at least 5 to continue.</p>
+      <div class="quiz-foot">
+        <span class="saved-note"></span>
+        <button class="btn primary small" id="lovesNext" type="button" disabled>Continue →</button>
+      </div>
+    </div>
+  </section>
+
   <section id="view-quiz" class="view" hidden>
     <div class="quiz-sticky">
       <div class="quiz-head">
@@ -191,6 +210,7 @@
       <div class="big-emoji">🎉</div>
       <h2>Meet your taste profile</h2>
       <p class="lede" id="profileSummary"></p>
+      <p class="loves-line" id="lovesLine" hidden></p>
       <div class="traits" id="profileTraits"></div>
       <div class="meters" id="profileMeters"></div>
       <p class="fineprint" id="profileNote"></p>
@@ -216,6 +236,6 @@
 <script src="questions.js?v=18"></script>
 <script src="questions2.js?v=10"></script>
 <script src="questions3.js?v=7"></script>
-<script src="app.js?v=35"></script>
+<script src="app.js?v=36"></script>
 </body>
 </html>

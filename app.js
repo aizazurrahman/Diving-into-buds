@@ -37,7 +37,7 @@ const currentUser = () => (sessionUser ? sessionUser.email : null);
 const stateKey = (email) => "dib_v4_" + email;
 
 function blankState() {
-  return { fundamentals: null, builtFor: null, order: [], reserve: [], answers: {}, skipped: {}, pos: 0, seen: [], navAt: -1, finished: false, result: null, sheetSent: false };
+  return { fundamentals: null, builtFor: null, order: [], reserve: [], answers: {}, skipped: {}, pos: 0, seen: [], navAt: -1, finished: false, result: null, sheetSent: false, loves: null, lovesData: {} };
 }
 function answeredCount(s) { return Object.keys(s.answers).filter(k => QBANK_BY_ID[k]).length; }
 
@@ -279,6 +279,7 @@ async function upsertNow() {
   if (st.skipped && Object.keys(st.skipped).length) answersPayload.__skipped = st.skipped;
   if (st.seen && st.seen.length) answersPayload.__nav = { seen: st.seen };
   if (st.order && st.order.length) answersPayload.__order = { o: st.order, r: st.reserve || [] };
+  if (Array.isArray(st.loves) && st.loves.length) { answersPayload.__loves = st.loves; answersPayload.__lovesData = st.lovesData || {}; }
   const base = {
     user_id: sessionUser.id, answers: answersPayload,
     current_q: st.pos, finished: st.finished, updated_at: new Date().toISOString()
@@ -308,6 +309,8 @@ async function hydrate() {
     st.fundamentals = fund; st.builtFor = fund;
     st.answers = Object.keys(cloudAnswers).length ? cloudAnswers : (local.builtFor && JSON.stringify(local.builtFor) === JSON.stringify(fund) ? local.answers : {});
     st.skipped = rawAnswers.__skipped || local.skipped || {};
+    st.loves = Array.isArray(rawAnswers.__loves) ? rawAnswers.__loves : (local.loves !== undefined ? local.loves : []);
+    st.lovesData = rawAnswers.__lovesData || local.lovesData || {};
     st.finished = !!row.finished; st.result = result; st.sheetSent = !!result;
     // Restore the run's actual order when one was saved (v19): rebuilding it
     // from scratch dropped skip-replacements out of the order, punching
@@ -330,11 +333,13 @@ async function hydrate() {
   if (st.builtFor) st.builtFor.roots = normRootsValue(st.builtFor.roots);
   if (st.result) st.result.roots = normRootsValue(st.result.roots);
   if (!st.skipped) st.skipped = {};
+  if (st.loves === undefined) st.loves = []; // pre-v22 states: the loves step already passed — never gate a run mid-flight
+  if (!st.lovesData) st.lovesData = {};
 }
 
 /* ————— Views ————— */
 function show(view) {
-  ["view-auth", "view-fund", "view-home", "view-quiz", "view-results"].forEach(v => { $(v).hidden = v !== view; });
+  ["view-auth", "view-fund", "view-home", "view-loves", "view-quiz", "view-results"].forEach(v => { $(v).hidden = v !== view; });
   const u = currentUser();
   $("userbox").hidden = !u;
   $("userEmail").textContent = u || "";
@@ -861,7 +866,7 @@ $("buildBtn").onclick = () => {
     st.fundamentals = F; st.builtFor = F;
     if (st.result) st.result = computeResult(st);
     saveState();
-    if (!st.finished && answeredCount(st) === 0) { st.pos = 0; renderQuestion(); show("view-quiz"); }
+    if (!st.finished && answeredCount(st) === 0) { st.pos = 0; enterQuiz(); }
     else { renderHome(); show("view-home"); }
     return;
   }
@@ -877,11 +882,11 @@ $("buildBtn").onclick = () => {
   fundArmAt = 0;
   st.fundamentals = F; st.builtFor = F;
   st.answers = {}; st.skipped = {}; st.finished = false; st.result = null; st.sheetSent = false;
+  st.loves = null; st.lovesData = {};
   buildOrder(st);
   saveState();
   st.pos = 0;
-  renderQuestion();
-  show("view-quiz");
+  enterQuiz();
 };
 $("fundExitBtn").onclick = () => {
   if (st && st.builtFor) { renderHome(); show("view-home"); }
@@ -924,8 +929,7 @@ $("primaryAction").onclick = () => {
   const t = findNext(0);
   st.pos = t >= 0 ? t : 0;
   saveState();
-  renderQuestion();
-  show("view-quiz");
+  enterQuiz();
 };
 $("changeFundBtn").onclick = () => { initFundPicks(); show("view-fund"); };
 // Start over: a COMPLETE run reset — answers, skips, navigation history and
@@ -950,6 +954,7 @@ function doRestart(e) {
   restartArmAt = 0;
   st.answers = {}; st.skipped = {}; st.seen = []; st.navAt = -1; st.pos = 0;
   st.finished = false; st.result = null; st.sheetSent = false; st.altRecs = null;
+  st.loves = null; st.lovesData = {};
   buildOrder(st);
   saveState();
   renderHome();
@@ -957,6 +962,153 @@ function doRestart(e) {
 }
 $("restartBtn").onclick = doRestart;
 $("quizRestartBtn").onclick = doRestart;
+
+/* ————— Loved dishes (v22) —————
+   Every run opens with "Tell us what you love!" — a type-ahead over a
+   40,000-dish catalog. dishes-meta.js + dishes-idx-N.js carry the packed
+   name index (popularity-ordered); full tags for the 3,000 most-picked
+   dishes live in dishes-tags-N.js (fixed 500-id blocks) and load per pick.
+   Picks persist as st.loves (catalog ids) + st.lovesData (id -> {n,i,f})
+   so computeResult never needs the shards. Deeper picks still count via
+   the name/ingredient keyword machinery. */
+const LOVES_MIN = 5, LOVES_MAX = 15;
+let dishIndexPromise = null, dishMetaPromise = null, lovesWired = false, lovesLoadFailed = false, lovesLastQuery = null;
+const dishShardPromises = {};
+let DISH_LIST = null; // [{name, origin, course, id, nn, no}]
+const dishById = new Map();
+function loadScriptOnce(src) {
+  return new Promise((resolve, reject) => {
+    const el = document.createElement("script");
+    el.src = src; el.onload = () => resolve(); el.onerror = () => reject(new Error("load " + src));
+    document.head.appendChild(el);
+  });
+}
+function ensureDishMeta() {
+  if (window.DISH_META) return Promise.resolve();
+  if (!dishMetaPromise) dishMetaPromise = loadScriptOnce("dishes-meta.js?v=1");
+  return dishMetaPromise;
+}
+const normDishText = (s) => (s || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+function ensureDishIndex() {
+  if (DISH_LIST) return Promise.resolve();
+  if (!dishIndexPromise) {
+    dishIndexPromise = ensureDishMeta()
+      .then(() => Promise.all(Array.from({ length: window.DISH_META.idxShards }, (_, n) => loadScriptOnce(`dishes-idx-${n}.js?v=1`))))
+      .then(() => {
+        DISH_LIST = [];
+        let id = 0;
+        for (let n = 0; n < window.DISH_META.idxShards; n++) {
+          for (const line of (window["DISH_IDX_" + n] || "").split("\n")) {
+            if (!line) continue;
+            const [name, oc, cc] = line.split("\t");
+            const e = { name, origin: window.DISH_META.origins[+oc] || "", course: window.DISH_META.courses[+cc] || "", id: id++, nn: normDishText(name), no: "" };
+            e.no = normDishText(e.origin);
+            DISH_LIST.push(e); dishById.set(e.id, e);
+          }
+        }
+      });
+  }
+  return dishIndexPromise;
+}
+function ensureDishData(id) {
+  const M = window.DISH_META;
+  if (!M || id >= M.tagHead) return Promise.resolve(null);
+  const n = Math.floor(id / M.tagBlock), key = "DISH_TAGS_" + n;
+  if (window[key]) return Promise.resolve(window[key][id] || null);
+  if (!dishShardPromises[n]) dishShardPromises[n] = loadScriptOnce(`dishes-tags-${n}.js?v=1`);
+  return dishShardPromises[n].then(() => (window[key] || {})[id] || null).catch(() => null);
+}
+function searchDishes(query) {
+  const q = normDishText(query);
+  if (!q || !DISH_LIST) return [];
+  const toks = q.split(" ");
+  const hits = [];
+  for (const e of DISH_LIST) {
+    if (!toks.every(t => e.nn.includes(t) || e.no.includes(t))) continue;
+    let rank = 2;
+    if (e.nn === q) rank = -1;
+    else if (e.nn.startsWith(q)) rank = 0;
+    else if (e.nn.split(" ").some(w => w.startsWith(toks[0]))) rank = 1;
+    hits.push({ rank, e });
+    if (hits.length > 600 && rank > 0) break; // list is popularity-ordered — enough candidates
+  }
+  hits.sort((a, b) => a.rank - b.rank);
+  return hits.slice(0, 24).map(h => h.e);
+}
+function paintLoveResults(list) {
+  lovesLastQuery = list;
+  $("lovesResults").innerHTML = list.map(e => {
+    const picked = (st.loves || []).includes(e.id);
+    return `<button type="button" class="opt${picked ? " sel" : ""}" data-pick="${e.id}">${e.name}<span class="dish-sub">${[e.origin, e.course].filter(Boolean).join(" · ")}</span></button>`;
+  }).join("");
+}
+function paintLoveStarters() { if (DISH_LIST) paintLoveResults(DISH_LIST.slice(0, 18)); }
+function paintLoves() {
+  const loves = st.loves || [];
+  $("lovesCount").textContent = `${loves.length}/${LOVES_MAX} picked`;
+  $("lovesNext").disabled = !(loves.length >= LOVES_MIN || (lovesLoadFailed && loves.length === 0));
+  $("lovesHint").textContent = lovesLoadFailed
+    ? "The dish list couldn't load — tap Continue to go straight to the questions."
+    : loves.length >= LOVES_MAX ? "That's your 15 — tap a picked dish to swap it out."
+    : loves.length >= LOVES_MIN ? "Lovely list. Add more, or continue when you're ready."
+    : `Pick at least ${LOVES_MIN} to continue — ${LOVES_MIN - loves.length} to go.`;
+  $("lovesPicked").innerHTML = loves.map(id => {
+    const d = (st.lovesData || {})[id];
+    const name = d ? d.n : ((dishById.get(id) || {}).name || "Dish");
+    return `<button type="button" class="opt sel" data-love="${id}">${name}<span class="love-x" aria-hidden="true">✕</span></button>`;
+  }).join("");
+}
+async function addLove(id) {
+  st.loves = st.loves || [];
+  if (st.loves.includes(id) || st.loves.length >= LOVES_MAX) { paintLoves(); return; }
+  st.loves.push(id);
+  const entry = dishById.get(id);
+  st.lovesData = st.lovesData || {};
+  st.lovesData[id] = { n: entry ? entry.name : "Dish", i: [], f: [] };
+  saveState(); paintLoves(); if (lovesLastQuery) paintLoveResults(lovesLastQuery);
+  const d = await ensureDishData(id);
+  if (d) { st.lovesData[id] = { n: entry ? entry.name : "Dish", i: d.i || [], f: d.f || [] }; saveState(); }
+}
+function removeLove(id) {
+  st.loves = (st.loves || []).filter(x => x !== id);
+  if (st.lovesData) delete st.lovesData[id];
+  saveState(); paintLoves(); if (lovesLastQuery) paintLoveResults(lovesLastQuery);
+}
+function renderLoves() {
+  if (!Array.isArray(st.loves)) st.loves = [];
+  paintLoves();
+  ensureDishMeta().then(() => ensureDishIndex())
+    .then(() => { paintLoveStarters(); paintLoves(); })
+    .catch(() => { lovesLoadFailed = true; paintLoves(); });
+  if (lovesWired) return;
+  lovesWired = true;
+  $("lovesInput").addEventListener("input", (e) => {
+    const q = e.target.value.trim();
+    if (!DISH_LIST) return;
+    if (!q) { paintLoveStarters(); return; }
+    paintLoveResults(searchDishes(q));
+  });
+  $("lovesResults").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-pick]"); if (!b) return;
+    const id = +b.dataset.pick;
+    if ((st.loves || []).includes(id)) removeLove(id); else addLove(id);
+  });
+  $("lovesPicked").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-love]"); if (!b) return;
+    removeLove(+b.dataset.love);
+  });
+  $("lovesNext").onclick = () => {
+    if (lovesLoadFailed && (!st.loves || st.loves.length === 0)) st.loves = [];
+    if (!Array.isArray(st.loves) || (st.loves.length < LOVES_MIN && !lovesLoadFailed)) return;
+    saveState();
+    const t = findNext(0); st.pos = t >= 0 ? t : 0;
+    renderQuestion(); show("view-quiz");
+  };
+}
+function enterQuiz() {
+  if (st.loves === null) { renderLoves(); show("view-loves"); return; }
+  renderQuestion(); show("view-quiz");
+}
 
 /* ————— Quiz ————— */
 let pendingW = 1;
@@ -1503,6 +1655,23 @@ function computeResult(s) {
     Object.entries(best).forEach(([a, v]) => { skipAxis[a] = Math.min(SKIP_CAP, (skipAxis[a] || 0) + SKIP_W * v); });
   });
   Object.entries(skipAxis).forEach(([a, v]) => { axisNeg[a] = (axisNeg[a] || 0) + v; });
+  // Loved dishes (v22): the user's own favourites are revealed-preference
+  // evidence. Each contributes its flavour tags (+1), its axis signals
+  // (from tags + an ingredient keyword scan, weight 1.5), and a reference
+  // entry so recommendation reasons can cite the dish by name.
+  const lovedNamesNorm = [];
+  (Array.isArray(s.loves) ? s.loves : []).forEach(id => {
+    const d = (s.lovesData || {})[id];
+    if (!d || !d.n) return;
+    lovedNamesNorm.push(d.n.toLowerCase().replace(/[^a-z0-9]/g, ""));
+    (d.f || []).forEach(t => { tagCount[t] = (tagCount[t] || 0) + 1; });
+    const sig = axisSignalsFor({ id: "loves" }, { t: (d.i || []).join(" "), tags: d.f || [] });
+    Object.entries(sig).forEach(([a, v]) => {
+      const c = v * 1.5;
+      if (c > 0) axisPos[a] = (axisPos[a] || 0) + c; else axisNeg[a] = (axisNeg[a] || 0) - c;
+    });
+    pickRefs.push({ text: d.n, qid: "loves", w: 3, mult: 1, rank1: false, love: true, axes: sig, tags: (d.f || []).slice() });
+  });
   // The user's flavour-axis profile: position between the poles (pct toward
   // the hi pole) + how much evidence backs it (strength). Top 10 by
   // strength is what the results page shows.
@@ -1650,9 +1819,9 @@ function computeResult(s) {
     if (!chosen.length) return "It lines up with the flavours you kept picking.";
     const clause = (c, i) => {
       const t = c.ref.text;
-      if (t.length <= 36 && !t.includes(" — ")) { const art = /^(The|A|An)\s/.test(t) ? "" : "the "; return c.short + ", like " + art + t + " " + (c.ref.rank1 ? "you ranked #1" : ((r.dish.length + i) % 2 ? "you picked" : "you chose")); }
+      if (t.length <= 36 && !t.includes(" — ")) { const art = /^(The|A|An)\s/.test(t) ? "" : "the "; return c.short + ", like " + art + t + " " + (c.ref.rank1 ? "you ranked #1" : c.ref.love ? "you love" : ((r.dish.length + i) % 2 ? "you picked" : "you chose")); }
       const tt = t.length > 80 ? t.slice(0, 77) + "…" : t;
-      return c.short + " — just like your pick: '" + tt + "'";
+      return c.short + (c.ref.love ? " — one of your favourites: '" : " — just like your pick: '") + tt + "'";
     };
     const parts = chosen.map(clause);
     const lc = (s) => s.charAt(0).toLowerCase() + s.slice(1);
@@ -1664,13 +1833,21 @@ function computeResult(s) {
   // Pure score order, no per-region quota: the best 12 matches win, wherever
   // in the world they come from. (15 read as a lot on the results page —
   // Aizaz, 2026-10-07.)
+  // Never recommend back a dish the user already told us they love — they
+  // know it; the list exists to widen their world, not echo it.
+  const isLovedEcho = (dish) => {
+    const dn = dish.toLowerCase().replace(/[^a-z0-9]/g, "");
+    return lovedNamesNorm.some(ln => ln && (dn === ln || (ln.length >= 5 && dn.includes(ln)) || (dn.length >= 5 && ln.includes(dn))));
+  };
+  const freshPool = scored.filter(e => !isLovedEcho(e.r.dish));
+  const pool = freshPool.length >= 12 ? freshPool : scored;
   const recs = [];
-  scored.forEach(({ r }) => {
+  pool.forEach(({ r }) => {
     if (recs.length >= 12 || recs.find(x => x.dish === r.dish)) return;
     recs.push(r);
   });
   const more = [];
-  scored.forEach(({ r }) => {
+  pool.forEach(({ r }) => {
     if (more.length >= 12 || recs.find(x => x.dish === r.dish) || more.find(x => x.dish === r.dish)) return;
     more.push(r);
   });
@@ -1699,6 +1876,9 @@ function renderResults() {
   $("profileSummary").textContent = labels.length >= 2
     ? `In one line: ${strip(labels[0])} meets ${strip(labels[1]).toLowerCase()}. Here's the full picture:`
     : "Here's what your answers say about your palate:";
+  const loveNames = (Array.isArray(st.loves) ? st.loves : []).map(id => (st.lovesData || {})[id]).filter(d => d && d.n).map(d => d.n);
+  const ll = $("lovesLine");
+  if (ll) { ll.hidden = !loveNames.length; ll.textContent = loveNames.length ? `❤️ Shaped by the dishes you love: ${loveNames.slice(0, 6).join(" · ")}${loveNames.length > 6 ? ` · +${loveNames.length - 6} more` : ""}` : ""; }
   lastResult = res; recsAltShown = false;
   const affLabels = Object.keys(res.affinities || {}).map(t => TAG_LABELS[t]).filter(Boolean).slice(0, 8);
   $("profileAffinities").innerHTML = affLabels.length ? `<h3 class="rec-title2">✨ Flavours you're drawn to</h3><div class="traits">${affLabels.map(l => `<span class="trait">${l}</span>`).join("")}</div>` : "";

@@ -1,11 +1,4 @@
-// Diving into Buds — app logic (v4)
-// Global redesign: after login, users pick two Fundamentals — Diet and Roots —
-// and their 50 questions are built from a 176-question bank around those picks.
-// Diet rules filter every option (a Vegetarian in Hyderabad never sees meat);
-// Everything/Halal users first pick the meats they eat, and later questions
-// respect that too. Accounts + progress live in Supabase; on completion a
-// result summary is also POSTed to a Google Sheets endpoint (Apps Script)
-// when one is configured.
+// Diving into Buds — app logic. See repo history for the design notes.
 
 const SUPABASE_URL = "https://lhygxgwyprkhhkuaozuk.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeWd4Z3d5cHJraGhrdWFvenVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExNjU3MjcsImV4cCI6MjEwNjc0MTcyN30.upttjjbTEyv4JZTR8NpM94TAsgtV7PznYEeR_ZeRvn8";
@@ -20,7 +13,7 @@ const store = {
   set(k, v) { localStorage.setItem(k, JSON.stringify(v)); },
   del(k) { localStorage.removeItem(k); }
 };
-const DEFAULT_TOTAL = 50;
+const DEFAULT_TOTAL = 20; // v23 (Aizaz): 50 -> 20 — the loves step now carries the profile's base load
 const runTotal = () => DEFAULT_TOTAL;
 const WEIGHT_WORDS = { 1: "Almost a tie", 2: "Leaning this way", 3: "Pretty sure", 4: "Strong pick", 5: "No contest" };
 const DIET_LABELS = { everything: "Everything", vegetarian: "Vegetarian", vegan: "Vegan", halal: "Everything Halal" };
@@ -102,10 +95,9 @@ function buildOrder(s) {
   const chainDeckOf = (r) => ({ hyderabad: "hydro", eastasia: "asiachain", unitedstates: "usachain", europe: "eurchain", southasia: "souchain", middleeast: "midchain", africa: "africhain", latinamerica: "latchain" }[r] || "hydro");
   const chainDeck = chainDeckOf(F.roots);
   const rootsList = [F.roots, F.roots2].filter(Boolean);
-  // — Regional 20 (Aizaz's v10 structure): the diet warm-up, the roots' own
-  // dislike list, spice + dessert warm-ups, the eating-style chain, then the
-  // roots deck. Closed chain branches swap out for roots-deck questions from
-  // the reserve, so the served 20 stays regional.
+  // — Regional 12 (of the v23 run of 20): diet warm-up, the roots' own
+  // dislike list, spice + dessert warm-ups, the eating-style chain, then
+  // the roots deck. Closed branches swap out from the reserve.
   const dietOpener = byDeck("opener").filter(q => q.id.startsWith("op-meats") || q.id.startsWith("op-protein")).slice(0, 1);
   const heatSweet = ["op-spice", "op-temp", "op-sweet"].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
   const eggQ = diet === "vegetarian" ? ["op-eggs"].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q)) : [];
@@ -120,30 +112,30 @@ function buildOrder(s) {
     const zip = (a, b) => { const out = []; for (let i = 0; i < Math.max(a.length, b.length); i++) { if (a[i]) out.push(a[i]); if (b[i]) out.push(b[i]); } return out; };
     const blend = zip(core(rootsList[0]), core(rootsList[1]));
     const restZip = zip(byDeck(rootsList[0]).filter(q => !q.hate), byDeck(rootsList[1]).filter(q => !q.hate));
-    regional = [...dietOpener, ...nogos, ...heatSweet, ...eggQ, ...blend, ...restZip].slice(0, 20);
+    regional = [...dietOpener, ...nogos, ...heatSweet, ...eggQ, ...blend, ...restZip].slice(0, 12);
   } else {
     const rootsDeckAll = byDeck(F.roots);
     const rootsNogo = rootsDeckAll.filter(q => q.hate).slice(0, 1);
     const rootsRest = rootsDeckAll.filter(q => !q.hate);
     const chains = byDeck(chainDeck);
-    regional = [...dietOpener, ...rootsNogo, ...heatSweet, ...eggQ, ...chains, ...rootsRest].slice(0, 20);
+    regional = [...dietOpener, ...rootsNogo, ...heatSweet, ...eggQ, ...chains, ...rootsRest].slice(0, 12);
   }
-  // — Global 30: palate + bridge + global decks, rotated per roots so each
-  // group meets a different slice of the world.
+  // — World 8 (v23): fixed slots first (salad pair, the fish gateway
+  // FAMILY composed with both branch follow-ups, the alcohol question),
+  // then a per-roots zipped rotation of the palate/bridge/global decks.
   const rot = Object.keys(ROOT_LABELS).indexOf(F.roots);
   const rotate = (arr, n) => arr.length ? [...arr.slice(n % arr.length), ...arr.slice(0, n % arr.length)] : arr;
   const salad = ["pal-25", "pal-26"].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
-  const palateRest = rotate(byDeck("palate").filter(q => !salad.includes(q)), rot * 3);
-  const palatePick = [...salad, ...palateRest].slice(0, 10);
-  const bridgePick = rotate(byDeck("bridge"), rot * 2).slice(0, 8);
-  // Fixed global slots (like the salad pair): the fish gateway parent and, for
-  // Everything users, the alcohol question — signal questions whose answers
-  // unlock whole dish leagues must reach every user they apply to, not just
-  // the roots whose rotation happens to pass them.
-  const fishQ = ["glo-fish"].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
+  const fishFam = ["glo-fish", ...QBANK.filter(c => c.gate && c.gate.q === "glo-fish").map(c => c.id)].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
   const alcQ = diet === "everything" ? ["glo-alc"].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q)) : [];
-  const globalPick = [...fishQ, ...alcQ, ...rotate(byDeck("global").filter(q => !fishQ.includes(q) && !alcQ.includes(q)), rot * 5)].slice(0, 12);
-  const composed = [...regional, ...palatePick, ...bridgePick, ...globalPick];
+  const zip3 = (a, b, c) => { const out = []; for (let i = 0; i < Math.max(a.length, b.length, c.length); i++) { if (a[i]) out.push(a[i]); if (b[i]) out.push(b[i]); if (c[i]) out.push(c[i]); } return out; };
+  const worldFill = zip3(
+    rotate(byDeck("palate").filter(q => !salad.includes(q)), rot * 3),
+    rotate(byDeck("bridge"), rot * 2),
+    rotate(byDeck("global").filter(q => !fishFam.includes(q) && !alcQ.includes(q)), rot * 5)
+  );
+  const worldPick = [...salad, ...fishFam, ...alcQ, ...worldFill].slice(0, 8);
+  const composed = [...regional, ...worldPick];
   const seen = new Set();
   const order = composed.filter(q => !seen.has(q.id) && seen.add(q.id));
   for (const q of valid) {
@@ -152,7 +144,7 @@ function buildOrder(s) {
   }
   // Gate-children of composed GLOBAL parents (the fish/beef gateway chains)
   // travel with their parents: insert them directly behind them, inside the
-  // global segment's 30-question budget (the slice drops rotated tail
+  // global segment's 8-question budget (the slice drops rotated tail
   // questions, never the fixed slots at its head). Regional chain extras are
   // NOT inserted here: in dual-root runs there are two chains' worth, and
   // inserting them at build time ballooned the regional block and sliced the
@@ -965,7 +957,7 @@ $("quizRestartBtn").onclick = doRestart;
 
 /* ————— Loved dishes (v22) —————
    Every run opens with "Tell us what you love!" — a type-ahead over a
-   40,000-dish catalog. dishes-meta.js + dishes-idx-N.js carry the packed
+   44,494-dish catalog (v23). dishes-meta.js + dishes-idx-N.js carry the packed
    name index (popularity-ordered); full tags for the 3,000 most-picked
    dishes live in dishes-tags-N.js (fixed 500-id blocks) and load per pick.
    Picks persist as st.loves (catalog ids) + st.lovesData (id -> {n,i,f})
@@ -985,7 +977,7 @@ function loadScriptOnce(src) {
 }
 function ensureDishMeta() {
   if (window.DISH_META) return Promise.resolve();
-  if (!dishMetaPromise) dishMetaPromise = loadScriptOnce("dishes-meta.js?v=1");
+  if (!dishMetaPromise) dishMetaPromise = loadScriptOnce("dishes-meta.js?v=2");
   return dishMetaPromise;
 }
 const normDishText = (s) => (s || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
@@ -993,7 +985,7 @@ function ensureDishIndex() {
   if (DISH_LIST) return Promise.resolve();
   if (!dishIndexPromise) {
     dishIndexPromise = ensureDishMeta()
-      .then(() => Promise.all(Array.from({ length: window.DISH_META.idxShards }, (_, n) => loadScriptOnce(`dishes-idx-${n}.js?v=1`))))
+      .then(() => Promise.all(Array.from({ length: window.DISH_META.idxShards }, (_, n) => loadScriptOnce(`dishes-idx-${n}.js?v=2`))))
       .then(() => {
         DISH_LIST = [];
         let id = 0;
@@ -1015,7 +1007,7 @@ function ensureDishData(id) {
   if (!M || id >= M.tagHead) return Promise.resolve(null);
   const n = Math.floor(id / M.tagBlock), key = "DISH_TAGS_" + n;
   if (window[key]) return Promise.resolve(window[key][id] || null);
-  if (!dishShardPromises[n]) dishShardPromises[n] = loadScriptOnce(`dishes-tags-${n}.js?v=1`);
+  if (!dishShardPromises[n]) dishShardPromises[n] = loadScriptOnce(`dishes-tags-${n}.js?v=2`);
   return dishShardPromises[n].then(() => (window[key] || {})[id] || null).catch(() => null);
 }
 function searchDishes(query) {
@@ -1042,7 +1034,6 @@ function paintLoveResults(list) {
     return `<button type="button" class="opt${picked ? " sel" : ""}" data-pick="${e.id}">${e.name}<span class="dish-sub">${[e.origin, e.course].filter(Boolean).join(" · ")}</span></button>`;
   }).join("");
 }
-function paintLoveStarters() { if (DISH_LIST) paintLoveResults(DISH_LIST.slice(0, 18)); }
 function paintLoves() {
   const loves = st.loves || [];
   $("lovesCount").textContent = `${loves.length}/${LOVES_MAX} picked`;
@@ -1076,16 +1067,20 @@ function removeLove(id) {
 }
 function renderLoves() {
   if (!Array.isArray(st.loves)) st.loves = [];
+  // v23 (Aizaz): like the city picker, the dish list stays hidden until the
+  // user starts typing — no wall of dishes under the question.
+  $("lovesInput").value = "";
+  paintLoveResults([]);
   paintLoves();
   ensureDishMeta().then(() => ensureDishIndex())
-    .then(() => { paintLoveStarters(); paintLoves(); })
+    .then(() => { paintLoves(); })
     .catch(() => { lovesLoadFailed = true; paintLoves(); });
   if (lovesWired) return;
   lovesWired = true;
   $("lovesInput").addEventListener("input", (e) => {
     const q = e.target.value.trim();
     if (!DISH_LIST) return;
-    if (!q) { paintLoveStarters(); return; }
+    if (!q) { paintLoveResults([]); return; }
     paintLoveResults(searchDishes(q));
   });
   $("lovesResults").addEventListener("click", (e) => {
@@ -1665,7 +1660,11 @@ function computeResult(s) {
     if (!d || !d.n) return;
     lovedNamesNorm.push(d.n.toLowerCase().replace(/[^a-z0-9]/g, ""));
     (d.f || []).forEach(t => { tagCount[t] = (tagCount[t] || 0) + 1; });
-    const sig = axisSignalsFor({ id: "loves" }, { t: (d.i || []).join(" "), tags: d.f || [] });
+    // v23: picks beyond the shipped tag head carry no ingredient record —
+    // scan the dish NAME for flavour keywords instead ('Garlic Butter
+    // Shrimp' still testifies to garlic + richness) so no pick is inert.
+    const sigText = (d.i && d.i.length) ? d.i.join(" ") : (d.n || "");
+    const sig = axisSignalsFor({ id: "loves" }, { t: sigText, tags: d.f || [] });
     Object.entries(sig).forEach(([a, v]) => {
       const c = v * 1.5;
       if (c > 0) axisPos[a] = (axisPos[a] || 0) + c; else axisNeg[a] = (axisNeg[a] || 0) - c;

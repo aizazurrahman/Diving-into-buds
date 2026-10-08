@@ -1361,6 +1361,7 @@ function meterLabel(kind, pct) {
   return pct >= 66 ? "Fearless taster" : pct >= 33 ? "Curious explorer" : "Creature of habit";
 }
 let altRecsCache = [];
+let whyDebugCache = {}; // per-dish reason audit trail (sim/QA verification)
 
 /* ——— Flavour axes (v19, Aizaz's twelve distinctions) ———
    Twelve bipolar flavour axes. Every option in the bank is assigned axis
@@ -1434,6 +1435,8 @@ function computeResult(s) {
   const detail = [];
   let wSum = 0, wCount = 0, rawOk = false, alcOk = false, eggOk = false;
   const axisPos = {}, axisNeg = {}; // per-axis evidence toward the hi / lo poles
+  const pickRefs = []; // every positive pick with its signals — the raw material for justified recommendation reasons
+  const whyRefUse = {}; // how often each pick has already anchored a reason on this results list (soft cap: rotate references)
   s.order.forEach(qid => {
     const a = s.answers[qid]; if (!a) return;
     const q = QBANK_BY_ID[qid]; if (!q) return;
@@ -1443,6 +1446,21 @@ function computeResult(s) {
     picks.forEach((opt, pi) => {
       // Ranked picks: #1 counts fully, #2 counts half. Dislike picks count against.
       const mult = q.hate ? -1 : (a.r ? 1 / (pi + 1) : 1);
+      // Reference pool for recommendation reasons: real, committal picks
+      // only. Temperature and the meats/protein openers are dials, not
+      // flavours (the temp pick carries 'classic'/'home' tags and poisoned
+      // every classic reference); non-committal options ("it depends…")
+      // justify nothing. The spice/sweet dials may anchor ONLY their own
+      // dimension — the heat level is a legitimate reference, a flavour
+      // free-for-all is not.
+      if (!q.hate && mult > 0 && !/^Nothing|^None of these/i.test(opt.t || "")
+          && !["op-temp", "op-meats", "op-meats-halal", "op-protein-veg", "op-protein-vegan"].includes(qid)
+          && !/it (truly )?depends|no preference|not (sure|picky)|don'?t mind|anything (goes|works)/i.test(opt.t || "")) {
+        let pAxes = axisSignalsFor(q, opt), pTags = (opt.tags || []).filter(t => t !== "rawok" && t !== "alcok" && t !== "eggok");
+        if (qid === "op-spice") { pAxes = { warmspice: pAxes.warmspice || 0 }; pTags = pTags.filter(t => t === "spice"); }
+        if (qid === "op-sweet") { pAxes = {}; pTags = pTags.filter(t => t === "sweet"); }
+        pickRefs.push({ text: opt.t, qid, w, mult, rank1: !!a.r && pi === 0, axes: pAxes, tags: pTags });
+      }
       if ((opt.tags || []).includes("rawok")) rawOk = true; // user opened the raw league (sashimi, tartare, ceviche…)
       if ((opt.tags || []).includes("alcok")) alcOk = true; // user is fine with alcohol-cooked dishes
       if ((opt.tags || []).includes("eggok")) eggOk = true; // vegetarian who eats eggs
@@ -1567,34 +1585,81 @@ function computeResult(s) {
     .sort((a, b) => b.score - a.score || b.matched - a.matched);
   const entryByDish = {};
   scored.forEach(e => { entryByDish[e.r.dish] = e; });
-  // — The personal "why this dish, for you" line (Aizaz, 2026-10-07): one
-  // natural sentence naming the strongest ways the dish fits THIS user's
-  // palate — their axis leans first, then their strongest matched flavour
-  // signals — instead of a bare label list.
-  const AXIS_PHRASE_HI = { salt: "savoury depth is your thing", aromatics: "garlic and aromatics are your love language", herbs: "fresh herbs make your plate", earthy: "you go for deep, earthy flavours", warmspice: "warm spice is your home turf", crunch: "you hunt crunch in every bite", oil: "you like it rich and silky", funk: "a little funk excites you", vegprotein: "plants carry your plate", soup: "you're a sip-and-savour soup person", pairing: "you enjoy a proper drink alongside", portion: "you eat feast-style, and proud of it" };
-  const AXIS_PHRASE_LO = { salt: "you like flavours clean, never salty-heavy", aromatics: "you like aromatics gentle, not loud", herbs: "you keep seasoning simple and honest", earthy: "you like it clean and crisp, not deep and heavy", warmspice: "you take your warmth subtle", crunch: "soft and smooth beats crunch for you", oil: "you like it clean, never greasy-heavy", funk: "fresh and direct is your style — no funk", vegprotein: "meat plays the lead on your plate", soup: "dry and crisp beats brothy for you", pairing: "you're mocktail-minded, and it shows", portion: "light bites are your rhythm" };
-  const TAG_PHRASE = { spice: "proper heat is non-negotiable for you", smoky: "you love smoke and char", creamy: "rich and creamy is your comfort zone", tangy: "you chase a bright tang", fresh: "fresh, clean flavours lift your plate", sweet: "you've got a real sweet tooth", rice: "rice is life, by your own picks", meat: "deep savoury meatiness is your draw", veg: "vegetables get top billing with you", home: "home-style comfort is your baseline", classic: "the classics never miss for you", street: "street food is your happy place", adventure: "you're always up for something new", healthy: "you like it light but satisfying", noodle: "noodles are a love language", soup: "a good broth is your thing", biryani: "layered, fragrant rice is your weakness", comfort: "comfort food means home to you", crisp: "you want that crisp bite", fermented: "a fermented tang excites you", cafe: "café food is your scene", chai: "chai-time flavours warm you", coffee: "coffee notes run deep for you", deccan: "Deccani flavours are home", seafood: "seafood is your soft spot", egg: "eggs make it better, in your book" };
-  const whyYouFor = (r, used) => {
+  // — Recommendation reasons (Aizaz, 2026-10-07, v21): every line is built
+  // from REFERENCES to the user's own answers — 2–3 per dish, each naming a
+  // food or level the user actually picked, on a dimension (a flavour axis
+  // or a shared tag) where this dish genuinely resembles that pick: the
+  // dish must express the pole strongly (or genuinely lack it, for lo-pole
+  // claims) AND the referenced pick must express it strongly too. Anything
+  // weaker is dropped rather than padded — a shorter honest line beats a
+  // full fake one.
+  const AXIS_SIM_HI = { salt: "Savoury and umami-rich", aromatics: "Big on garlic and aromatics", herbs: "Herb-loaded", earthy: "Deep and earthy", warmspice: "Warm-spiced and fragrant", crunch: "Properly crunchy", oil: "Rich and silky", funk: "Pleasantly funky", vegprotein: "Plant-forward", soup: "Brothy and sippable", pairing: "Made to pair with a drink", portion: "Feast-sized" };
+  const AXIS_SIM_LO = { salt: "Lightly salted and clean", aromatics: "Gentle on the aromatics", herbs: "Simply seasoned", oil: "Clean, never heavy", funk: "Unfermented and straightforward", vegprotein: "Meat-led", soup: "Dry, not brothy" }; // lo-pole claims only where low axis value truly implies the words: no "crisp" from mere absence of earthiness, no "smooth" from absence of crunch
+  const TAG_SIM = { spice: "Properly hot", smoky: "Smoky", creamy: "Creamy and rich", tangy: "Bright and tangy", fresh: "Fresh and bright", sweet: "Sweet-leaning", rice: "Rice at its heart", meat: "Deeply meaty", veg: "Vegetable-led", home: "Home-style", classic: "Classic at heart", street: "Street-stall style", adventure: "A step beyond the usual", healthy: "Light but satisfying", noodle: "Noodle-led", soup: "Brothy", biryani: "Layered and fragrant", comfort: "Pure comfort food", crisp: "Crisp-edged", fermented: "Fermented and tangy", cafe: "Café-style", chai: "Chai-time warm", coffee: "Coffee-deep", deccan: "Deccani at heart", seafood: "Seafood-led", egg: "Egg-rich" };
+  const TAG_TO_AXIS = { spice: "warmspice", smoky: "earthy", creamy: "oil", soup: "soup", crisp: "crunch", fermented: "funk", tangy: "funk" };
+  const whyYouFor = (r) => {
     const da = dishAxesCache[r.dish];
-    // Candidate reasons, strongest first: axis alignments (weighted by how
-    // hard the user leans × how strongly the dish expresses the pole), then
-    // the dish's best matched flavour tags. Reasons already spent on a
-    // higher-ranked card are demoted, so the twelve lines don't repeat the
-    // same two phrases down the list — each card argues its own case.
-    const cands = [];
-    AXES.map(ax => ({ ax, lean: leanOf[ax.id] || 0, dv: da[ax.id] || 0 }))
-      .filter(x => (x.lean > 0.2 && x.dv > 0.45) || (x.lean < -0.2 && x.dv < 0.25))
-      .sort((a, b) => Math.abs(b.lean) * (b.lean > 0 ? b.dv : 1 - b.dv) - Math.abs(a.lean) * (a.lean > 0 ? a.dv : 1 - a.dv))
-      .forEach(x => cands.push(x.lean > 0 ? AXIS_PHRASE_HI[x.ax.id] : AXIS_PHRASE_LO[x.ax.id]));
-    const e = entryByDish[r.dish];
-    if (e) e.mtags.forEach(t => { const p = TAG_PHRASE[t]; if (p && !cands.includes(p)) cands.push(p); });
-    if (!cands.length) cands.push("it lines up with the flavours you kept picking");
-    const parts = [];
-    for (const c of cands) { if (parts.length >= 2) break; if (!used.has(c)) { parts.push(c); used.add(c); } }
-    for (const c of cands) { if (parts.length >= 2) break; if (!parts.includes(c)) parts.push(c); }
-    const h = (r.dish.length * 7 + ((topTags[0] || "").length)) % 3;
-    const body = parts.length > 1 ? parts[0] + " — and " + parts[1] : parts[0];
-    return ["Picked for you: " + body + ".", "Your palate, in a dish: " + body + ".", "This one's speaking your language: " + body + "."][h];
+    const axisCands = (a, dir, minPick) => pickRefs
+      .map(p => ({ p, v: (p.axes[a] || 0) * dir }))
+      .filter(x => x.v >= minPick)
+      .sort((x, y) => (y.v * y.p.mult * Math.min(y.p.w, 3)) - (x.v * x.p.mult * Math.min(x.p.w, 3)));
+    const buildReasons = (minDvHi, minPick) => {
+      const reasons = [];
+      const usedAxes = new Set();
+      AXES.forEach(ax => {
+        const lean = leanOf[ax.id] || 0, dv = da[ax.id] || 0;
+        if (ax.id === "vegprotein") { // never claim plant-forward/meat-led for a dish that isn't one
+          if (lean > 0.15 && !(r.diet === "vegan" || r.diet === "veg" || (r.match || []).includes("veg"))) return;
+          if (lean < -0.15 && !(String(r.diet).startsWith("meat") || (r.match || []).includes("meat"))) return;
+        }
+        if (lean > 0.15 && dv >= minDvHi) {
+          const cands = axisCands(ax.id, 1, minPick);
+          if (cands.length) { reasons.push({ score: lean * dv * Math.min(1.5, cands[0].v), key: "ax:" + ax.id, cands, short: AXIS_SIM_HI[ax.id], dishVal: dv, pickVal: cands[0].v }); usedAxes.add(ax.id); }
+        } else if (lean < -0.15 && dv <= 0.22 && AXIS_SIM_LO[ax.id]) {
+          const cands = axisCands(ax.id, -1, minPick);
+          if (cands.length) { reasons.push({ score: -lean * (1 - dv) * Math.min(1.5, cands[0].v), key: "ax:" + ax.id, cands, short: AXIS_SIM_LO[ax.id], dishVal: dv, pickVal: cands[0].v }); usedAxes.add(ax.id); }
+        }
+      });
+      const e = entryByDish[r.dish];
+      if (e) e.mtags.forEach(t => {
+        const short = TAG_SIM[t]; if (!short) return;
+        const dom = TAG_TO_AXIS[t]; if (dom && usedAxes.has(dom)) return;
+        const cands = pickRefs.filter(p => p.tags.includes(t)).map(p => ({ p, v: p.mult * Math.min(p.w, 3) })).sort((a, b) => b.v - a.v);
+        if (cands.length) reasons.push({ score: 0.3 + ((tagCount[t] || 0) / maxPos) * rarity(t) * 0.3, key: "tag:" + t, cands, short, dishVal: (tagCount[t] || 0) / maxPos, pickVal: cands[0].v });
+      });
+      return reasons.sort((a, b) => b.score - a.score);
+    };
+    let reasons = buildReasons(0.5, 0.5);
+    const chosen = [], usedRefs = new Set();
+    const takeFrom = (list) => {
+      for (const rsn of list) {
+        if (chosen.length >= 3) break;
+        if (chosen.some(c => c.key === rsn.key)) continue;
+        const c = rsn.cands.find(x => !usedRefs.has(x.p.text) && (whyRefUse[x.p.text] || 0) < 2)
+          || rsn.cands.find(x => !usedRefs.has(x.p.text))
+          || (chosen.length < 2 ? rsn.cands[0] : null);
+        if (!c) continue;
+        usedRefs.add(c.p.text);
+        whyRefUse[c.p.text] = (whyRefUse[c.p.text] || 0) + 1;
+        chosen.push({ key: rsn.key, short: rsn.short, ref: c.p, dishVal: rsn.dishVal, pickVal: c.v });
+      }
+    };
+    takeFrom(reasons);
+    if (chosen.length < 2) { reasons = buildReasons(0.4, 0.35); takeFrom(reasons); } // one relaxed pass, still evidence-bound
+    whyDebugCache[r.dish] = chosen.map(c => ({ key: c.key, ref: c.ref.text, refQid: c.ref.qid, dishVal: Math.round(c.dishVal * 100) / 100, pickVal: Math.round(c.pickVal * 100) / 100 }));
+    if (!chosen.length) return "It lines up with the flavours you kept picking.";
+    const clause = (c, i) => {
+      const t = c.ref.text;
+      if (t.length <= 36 && !t.includes(" — ")) return c.short + ", like the " + t + " " + (c.ref.rank1 ? "you ranked #1" : ((r.dish.length + i) % 2 ? "you picked" : "you chose"));
+      const tt = t.length > 80 ? t.slice(0, 77) + "…" : t;
+      return c.short + " — just like your pick: '" + tt + "'";
+    };
+    const parts = chosen.map(clause);
+    const lc = (s) => s.charAt(0).toLowerCase() + s.slice(1);
+    let body = parts[0];
+    if (parts.length === 2) body = parts[0] + " — and " + lc(parts[1]);
+    if (parts.length >= 3) body = parts[0] + "; " + lc(parts[1]) + " — and " + lc(parts[2]);
+    return body + ".";
   };
   // Pure score order, no per-region quota: the best 12 matches win, wherever
   // in the world they come from. (15 read as a lot on the results page —
@@ -1609,9 +1674,8 @@ function computeResult(s) {
     if (more.length >= 12 || recs.find(x => x.dish === r.dish) || more.find(x => x.dish === r.dish)) return;
     more.push(r);
   });
-  const usedWhy = new Set(); // primaries argue first; alternates get what's left
-  const recObjs = recs.map(r => ({ dish: r.dish, from: r.from, why: r.why, yt: r.yt || "", axes: axisMatchLabels(r), whyYou: whyYouFor(r, usedWhy) }));
-  altRecsCache = more.map(r => ({ dish: r.dish, from: r.from, why: r.why, yt: r.yt || "", axes: axisMatchLabels(r), whyYou: whyYouFor(r, usedWhy) }));
+  const recObjs = recs.map(r => ({ dish: r.dish, from: r.from, why: r.why, yt: r.yt || "", axes: axisMatchLabels(r), whyYou: whyYouFor(r) }));
+  altRecsCache = more.map(r => ({ dish: r.dish, from: r.from, why: r.why, yt: r.yt || "", axes: axisMatchLabels(r), whyYou: whyYouFor(r) }));
   return {
     email: sessionUser ? sessionUser.email : "",
     diet: s.builtFor.diet, roots: s.builtFor.roots, roots2: s.builtFor.roots2 || null, city: s.builtFor.city || "",

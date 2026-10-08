@@ -1555,34 +1555,68 @@ function computeResult(s) {
     .filter(r => !r.alc || alcOk) // alcohol-cooked dishes only for users who opened that door
     .filter(r => !r.egg || s.builtFor.diet !== "vegetarian" || eggOk) // egg dishes: only no-egg vegetarians are filtered
     .filter(r => !aversions.some(av => av.length > 3 && r.dish.toLowerCase().includes(av.toLowerCase().split(" ")[0])))
-    .map(r => ({ r, score: dishScoreV2(r), matched: r.match.filter(t => (tagCount[t] || 0) > 0).length }))
+    .map(r => ({ r, score: dishScoreV2(r), matched: r.match.filter(t => (tagCount[t] || 0) > 0).length, mtags: r.match.filter(t => (tagCount[t] || 0) > 0).sort((a, b) => ((tagCount[b] / maxPos) * rarity(b)) - ((tagCount[a] / maxPos) * rarity(a))) }))
     .sort((a, b) => b.score - a.score || b.matched - a.matched);
-  // Pure score order, no per-region quota: the best 15 matches win, wherever
-  // in the world they come from.
+  const entryByDish = {};
+  scored.forEach(e => { entryByDish[e.r.dish] = e; });
+  // — The personal "why this dish, for you" line (Aizaz, 2026-10-07): one
+  // natural sentence naming the strongest ways the dish fits THIS user's
+  // palate — their axis leans first, then their strongest matched flavour
+  // signals — instead of a bare label list.
+  const AXIS_PHRASE_HI = { salt: "savoury depth is your thing", aromatics: "garlic and aromatics are your love language", herbs: "fresh herbs make your plate", earthy: "you go for deep, earthy flavours", warmspice: "warm spice is your home turf", crunch: "you hunt crunch in every bite", oil: "you like it rich and silky", funk: "a little funk excites you", vegprotein: "plants carry your plate", soup: "you're a sip-and-savour soup person", pairing: "you enjoy a proper drink alongside", portion: "you eat feast-style, and proud of it" };
+  const AXIS_PHRASE_LO = { salt: "you like flavours clean, never salty-heavy", aromatics: "you like aromatics gentle, not loud", herbs: "you keep seasoning simple and honest", earthy: "you like it clean and crisp, not deep and heavy", warmspice: "you take your warmth subtle", crunch: "soft and smooth beats crunch for you", oil: "you like it clean, never greasy-heavy", funk: "fresh and direct is your style — no funk", vegprotein: "meat plays the lead on your plate", soup: "dry and crisp beats brothy for you", pairing: "you're mocktail-minded, and it shows", portion: "light bites are your rhythm" };
+  const TAG_PHRASE = { spice: "proper heat is non-negotiable for you", smoky: "you love smoke and char", creamy: "rich and creamy is your comfort zone", tangy: "you chase a bright tang", fresh: "fresh, clean flavours lift your plate", sweet: "you've got a real sweet tooth", rice: "rice is life, by your own picks", meat: "deep savoury meatiness is your draw", veg: "vegetables get top billing with you", home: "home-style comfort is your baseline", classic: "the classics never miss for you", street: "street food is your happy place", adventure: "you're always up for something new", healthy: "you like it light but satisfying", noodle: "noodles are a love language", soup: "a good broth is your thing", biryani: "layered, fragrant rice is your weakness", comfort: "comfort food means home to you", crisp: "you want that crisp bite", fermented: "a fermented tang excites you", cafe: "café food is your scene", chai: "chai-time flavours warm you", coffee: "coffee notes run deep for you", deccan: "Deccani flavours are home", seafood: "seafood is your soft spot", egg: "eggs make it better, in your book" };
+  const whyYouFor = (r, used) => {
+    const da = dishAxesCache[r.dish];
+    // Candidate reasons, strongest first: axis alignments (weighted by how
+    // hard the user leans × how strongly the dish expresses the pole), then
+    // the dish's best matched flavour tags. Reasons already spent on a
+    // higher-ranked card are demoted, so the twelve lines don't repeat the
+    // same two phrases down the list — each card argues its own case.
+    const cands = [];
+    AXES.map(ax => ({ ax, lean: leanOf[ax.id] || 0, dv: da[ax.id] || 0 }))
+      .filter(x => (x.lean > 0.2 && x.dv > 0.45) || (x.lean < -0.2 && x.dv < 0.25))
+      .sort((a, b) => Math.abs(b.lean) * (b.lean > 0 ? b.dv : 1 - b.dv) - Math.abs(a.lean) * (a.lean > 0 ? a.dv : 1 - a.dv))
+      .forEach(x => cands.push(x.lean > 0 ? AXIS_PHRASE_HI[x.ax.id] : AXIS_PHRASE_LO[x.ax.id]));
+    const e = entryByDish[r.dish];
+    if (e) e.mtags.forEach(t => { const p = TAG_PHRASE[t]; if (p && !cands.includes(p)) cands.push(p); });
+    if (!cands.length) cands.push("it lines up with the flavours you kept picking");
+    const parts = [];
+    for (const c of cands) { if (parts.length >= 2) break; if (!used.has(c)) { parts.push(c); used.add(c); } }
+    for (const c of cands) { if (parts.length >= 2) break; if (!parts.includes(c)) parts.push(c); }
+    const h = (r.dish.length * 7 + ((topTags[0] || "").length)) % 3;
+    const body = parts.length > 1 ? parts[0] + " — and " + parts[1] : parts[0];
+    return ["Picked for you: " + body + ".", "Your palate, in a dish: " + body + ".", "This one's speaking your language: " + body + "."][h];
+  };
+  // Pure score order, no per-region quota: the best 12 matches win, wherever
+  // in the world they come from. (15 read as a lot on the results page —
+  // Aizaz, 2026-10-07.)
   const recs = [];
   scored.forEach(({ r }) => {
-    if (recs.length >= 15 || recs.find(x => x.dish === r.dish)) return;
+    if (recs.length >= 12 || recs.find(x => x.dish === r.dish)) return;
     recs.push(r);
   });
   const more = [];
   scored.forEach(({ r }) => {
-    if (more.length >= 15 || recs.find(x => x.dish === r.dish) || more.find(x => x.dish === r.dish)) return;
+    if (more.length >= 12 || recs.find(x => x.dish === r.dish) || more.find(x => x.dish === r.dish)) return;
     more.push(r);
   });
-  altRecsCache = more.map(r => ({ dish: r.dish, from: r.from, why: r.why, yt: r.yt || "", axes: axisMatchLabels(r) }));
+  const usedWhy = new Set(); // primaries argue first; alternates get what's left
+  const recObjs = recs.map(r => ({ dish: r.dish, from: r.from, why: r.why, yt: r.yt || "", axes: axisMatchLabels(r), whyYou: whyYouFor(r, usedWhy) }));
+  altRecsCache = more.map(r => ({ dish: r.dish, from: r.from, why: r.why, yt: r.yt || "", axes: axisMatchLabels(r), whyYou: whyYouFor(r, usedWhy) }));
   return {
     email: sessionUser ? sessionUser.email : "",
     diet: s.builtFor.diet, roots: s.builtFor.roots, roots2: s.builtFor.roots2 || null, city: s.builtFor.city || "",
     topTags, affinities, aversions, meters: meterPct, axes: axes.slice(0, 10),
     avgConfidence: wCount ? +(wSum / wCount).toFixed(2) : 1,
-    detail, recs: recs.map(r => ({ dish: r.dish, from: r.from, why: r.why, yt: r.yt || "", axes: axisMatchLabels(r) })),
+    detail, recs: recObjs,
     completedAt: new Date().toISOString()
   };
 }
 function recCardsHtml(list, res) {
   return list.map(r =>
     `<div class="rec"><span class="r-emoji">${(RECS.find(x => x.dish === r.dish) || {}).emoji || "🍽️"}</span>
-     <div><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong><p>${r.why}</p>${r.axes && r.axes.length ? `<p class="r-axes">Matches your: ${r.axes.join(" · ")}</p>` : ""}${r.yt ? `<a class="r-find" target="_blank" rel="noopener" href="${r.yt}"><svg class="yt-logo" viewBox="0 0 28 20" aria-hidden="true"><path fill="#FF0000" d="M27.4 3.1c-.3-1.2-1.3-2.2-2.5-2.5C22.7 0 14 0 14 0S5.3 0 3.1.6C1.9.9.9 1.9.6 3.1.1 5.2 0 8.9 0 10s0 4.8.6 6.9c.3 1.2 1.3 2.2 2.5 2.5C5.3 20 14 20 14 20s8.7 0 10.9-.6c1.2-.3 2.2-1.3 2.5-2.5.5-2.1.6-6.9.6-6.9s0-4.8-.6-6.9z"/><path fill="#fff" d="M11.2 14.3V5.7l7.4 4.3z"/></svg>Watch it being made →</a> ` : ""}${res.city ? `<a class="r-find" target="_blank" rel="noopener" href="https://www.google.com/maps/search/${encodeURIComponent(r.dish + " near " + res.city)}">📍 Find it near you in ${res.city} →</a>` : ""}</div></div>`).join("");
+     <div><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong><p>${r.why}</p>${r.whyYou ? `<p class="r-axes">${r.whyYou}</p>` : (r.axes && r.axes.length ? `<p class="r-axes">Matches your: ${r.axes.join(" · ")}</p>` : "")}${r.yt ? `<a class="r-find" target="_blank" rel="noopener" href="${r.yt}"><svg class="yt-logo" viewBox="0 0 28 20" aria-hidden="true"><path fill="#FF0000" d="M27.4 3.1c-.3-1.2-1.3-2.2-2.5-2.5C22.7 0 14 0 14 0S5.3 0 3.1.6C1.9.9.9 1.9.6 3.1.1 5.2 0 8.9 0 10s0 4.8.6 6.9c.3 1.2 1.3 2.2 2.5 2.5C5.3 20 14 20 14 20s8.7 0 10.9-.6c1.2-.3 2.2-1.3 2.5-2.5.5-2.1.6-6.9.6-6.9s0-4.8-.6-6.9z"/><path fill="#fff" d="M11.2 14.3V5.7l7.4 4.3z"/></svg>Watch it being made →</a> ` : ""}${res.city ? `<a class="r-find" target="_blank" rel="noopener" href="https://www.google.com/maps/search/${encodeURIComponent(r.dish + " near " + res.city)}">📍 Find it near you in ${res.city} →</a>` : ""}</div></div>`).join("");
 }
 let lastResult = null, recsAltShown = false;
 function renderResults() {

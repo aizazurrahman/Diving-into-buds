@@ -240,7 +240,15 @@ function fixOrder(s) {
       if (s.answers[kid.id]) continue;
       const kIdx = s.order.indexOf(kid.id);
       if (kIdx < 0 || !playable(kid, s)) continue;
-      if (kIdx > insertAt) { s.order.splice(kIdx, 1); s.order.splice(insertAt, 0, kid.id); insertAt++; }
+      if (kIdx > insertAt) {
+        // Never drag a follow-up across an answered or skipped question —
+        // those slots are the user's served history (a skip replacement
+        // answered in place sits exactly there). On restore, where pos is
+        // reset, re-compacting the chain used to leapfrog follow-ups over
+        // that history and scramble the numbering against what was seen.
+        if (s.order.slice(insertAt, kIdx).some(id => s.answers[id] || (s.skipped && s.skipped[id]))) break;
+        s.order.splice(kIdx, 1); s.order.splice(insertAt, 0, kid.id); insertAt++;
+      }
       else if (kIdx === insertAt) insertAt++;
     }
   }

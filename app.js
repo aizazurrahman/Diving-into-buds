@@ -1144,7 +1144,7 @@ function renderQuestion() {
   const skippedBefore = upto.filter(id => id !== q.id && st.skipped && st.skipped[id]).length;
   const posInRun = Math.min(upto.length - skippedBefore, runTotal(st));
 
-  $("qCounter").textContent = `Question ${posInRun}`;
+  $("qCounter").textContent = `Question ${posInRun} of ${runTotal(st)}`; // v23.1 (Aizaz): show the run's end — the shorter length is the point
   $("progressBar").style.width = (n / runTotal(st) * 100) + "%";
   $("progressWrap").setAttribute("aria-valuenow", n);
   $("progressWrap").setAttribute("aria-valuemax", runTotal(st));

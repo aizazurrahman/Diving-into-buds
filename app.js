@@ -3060,7 +3060,7 @@ let html = "";
 for (let i = 0; i < 150; i++) {
 const a = Math.round(Math.random() * 360);
 const r = Math.round(95 + Math.random() * (maxR - 95));
-const d = (Math.random() * 1.7).toFixed(2);
+const d = (Math.random() * 2.4).toFixed(2);
 const g = 110 + Math.round(Math.random() * 120);
 html += `<span style="--a:${a}deg;--r:${r}px;--d:${d}s;background:rgb(${g},${g},${g})"></span>`;
 }

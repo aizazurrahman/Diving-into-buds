@@ -404,6 +404,7 @@ footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 18
 
 /* ——— Loved dishes (v22) ——— */
 .dish-sub { display: block; font-size: .8em; font-weight: 400; opacity: .62; margin-top: 2px; }
+.opt-custom { border-style: dashed !important; }
 .love-x { float: right; opacity: .7; font-weight: 400; }
 .loves-sub { padding: 8px 24px 0; font-size: 1.02rem; line-height: 1.6; color: var(--ink); opacity: .92; }
 .loves-note { padding: 6px 24px 0; font-size: .86rem; line-height: 1.5; color: var(--muted); font-style: italic; }

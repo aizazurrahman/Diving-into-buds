@@ -142,7 +142,7 @@ input[type="email"]:focus, input[type="password"]:focus { outline: none; border-
 
 /* ——— fundamentals ——— */
 .fund-card { text-align: center; }
-.fund-label { font-family: 'Fraunces', serif; font-size: 1.12rem; margin: 26px 0 12px; text-align: left; }
+.fund-label { font-family: 'Fraunces', serif; font-size: 1.12rem; margin: 26px 0 12px; text-align: left; display: flex; align-items: center; gap: 8px; }
 .fund-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; }
 .fund-opt {
   font: inherit; cursor: pointer; border: 1.5px solid var(--line); background: linear-gradient(180deg, #FFFFFF, #FAF7FF);
@@ -257,7 +257,6 @@ input[type="range"]::-moz-range-thumb {
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='11' fill='%237C3AED'/%3E%3Cpath d='M12 17.5v-9' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3Cpath d='M6.8 11.4L12 6.2l5.2 5.2' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 28px 28px no-repeat;
   box-shadow: 0 2px 8px rgba(76,29,149,.28);
 }
-.slider-scale { display: flex; justify-content: space-between; font-size: .76rem; color: var(--muted); font-weight: 600; }
 .slider-hint { font-size: .8rem; color: var(--muted); margin-top: 8px; line-height: 1.45; }
 
 .quiz-foot { display: flex; justify-content: space-between; align-items: center; padding: 14px 24px 2px; gap: 10px; }

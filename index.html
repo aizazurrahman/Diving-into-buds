@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=27">
+<link rel="stylesheet" href="styles.css?v=28">
 </head>
 <body>
 
@@ -82,16 +82,16 @@
       <p class="lede">Your diet and roots build your questions. Your city powers our recommendations</p>
       <p class="lede">Expect this to take 15–20 minutes—your patience between questions is greatly appreciated.</p>
 
-      <h3 class="fund-label">Fundamental 1 · Pick your diet</h3>
+      <h3 class="fund-label">Fundamental 1 · Pick your diet<button type="button" id="dietInfoBtn" class="info-btn" aria-label="About the diet choices" title="About the diet choices">i</button></h3>
       <div class="fund-grid" id="dietGrid" role="radiogroup" aria-label="Pick your diet">
         <button type="button" class="fund-opt" data-diet="everything" role="radio" aria-checked="false"><span class="f-emoji">🍽️</span><strong>Everything</strong><span>No rules. Bring it all on.</span><span class="fi" data-fi="diet" data-key="everything" title="More about this choice">i</span></button>
         <button type="button" class="fund-opt" data-diet="vegetarian" role="radio" aria-checked="false"><span class="f-emoji">🥗</span><strong>Vegetarian</strong><span>No meat or seafood — dairy &amp; eggs welcome.</span><span class="fi" data-fi="diet" data-key="vegetarian" title="More about this choice">i</span></button>
         <button type="button" class="fund-opt" data-diet="vegan" role="radio" aria-checked="false"><span class="f-emoji">🌱</span><strong>Vegan</strong><span>Fully plant-based, all the way.</span><span class="fi" data-fi="diet" data-key="vegan" title="More about this choice">i</span></button>
         <button type="button" class="fund-opt" data-diet="halal" role="radio" aria-checked="false"><span class="f-emoji">🌙</span><strong>Everything Halal</strong><span>Everything, halal — no pork, no alcohol.</span><span class="fi" data-fi="diet" data-key="halal" title="More about this choice">i</span></button>
       </div>
-      <p class="fund-info" id="dietInfo">ℹ️ Your diet filters every option in all your questions — you will never be offered something you don't eat. Tap the ⓘ on any option to learn more.</p>
+      <p class="fund-info" id="dietInfo" hidden></p>
 
-      <h3 class="fund-label">Fundamental 2 · Your roots</h3>
+      <h3 class="fund-label">Fundamental 2 · Your roots<button type="button" id="rootsInfoBtn" class="info-btn" aria-label="About the roots choices" title="About the roots choices">i</button></h3>
       <p class="fund-note">Pick one — or <strong>up to two</strong>, if more than one place raised your palate. Your questions will blend the best of both.</p>
       <div class="fund-grid" id="rootsGrid" role="group" aria-label="Your roots">
         <button type="button" class="fund-opt" data-roots="africa" role="radio" aria-checked="false"><span class="f-emoji">🌍</span><strong>Africa</strong><span>Jollof to injera to the braai.</span><span class="fi" data-fi="roots" data-key="africa" title="More about this choice">i</span></button>
@@ -103,14 +103,14 @@
         <button type="button" class="fund-opt" data-roots="southasia" role="radio" aria-checked="false"><span class="f-emoji">🍛</span><strong>South Asia</strong><span>Beyond Hyderabad — the whole subcontinent.</span><span class="fi" data-fi="roots" data-key="southasia" title="More about this choice">i</span></button>
         <button type="button" class="fund-opt" data-roots="unitedstates" role="radio" aria-checked="false"><span class="f-emoji">🍔</span><strong>United States</strong><span>BBQ, diners &amp; big plates.</span><span class="fi" data-fi="roots" data-key="unitedstates" title="More about this choice">i</span></button>
       </div>
-      <p class="fund-info" id="rootsInfo">ℹ️ Why these roots? They cover the world's great food families — each has a full deck of questions written for it, plus bridges to everywhere else (every set mixes your roots with global questions). Pick the one closest to your palate. Tap the ⓘ on any option to learn more.</p>
+      <p class="fund-info" id="rootsInfo" hidden></p>
 
       <h3 class="fund-label">Which city do you live in?</h3>
       <div class="city-wrap">
         <input type="text" id="cityInput" class="city-input" placeholder="Start typing your city…" autocomplete="off" maxlength="60" role="combobox" aria-expanded="false" aria-controls="cityMenu" aria-autocomplete="list">
         <div class="city-menu" id="cityMenu" role="listbox" hidden></div>
       </div>
-      <p class="fund-hint" id="cityHint">Start typing and pick your city from the list — that keeps your suggestions accurate. Not used for questions, only to suggest foods from restaurants near you.</p>
+      <p class="fund-hint" id="cityHint">Start typing and pick your city from the list.</p>
 
 
       <div class="stack">
@@ -192,7 +192,6 @@
           </div>
           <input type="range" id="weightSlider" min="1" max="5" step="1" value="1"
                  aria-describedby="sliderHint">
-          <div class="slider-scale" aria-hidden="true"><span>1 · almost a tie</span><span>5 · no contest</span></div>
           <p class="slider-hint" id="sliderHint">1 = the others nearly won · 5 = no contest. Strong picks steer your profile most.</p>
         </div>
       </div>
@@ -250,6 +249,6 @@
 <script src="questions.js?v=18"></script>
 <script src="questions2.js?v=10"></script>
 <script src="questions3.js?v=7"></script>
-<script src="app.js?v=46"></script>
+<script src="app.js?v=47"></script>
 </body>
 </html>

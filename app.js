@@ -613,18 +613,45 @@ latinamerica: "Latin America & The Caribbean — tacos, ceviche, arepas, feijoad
 }
 };
 
+const FUND_DEFAULTS = {
+diet: "Your diet filters every option in all your questions — you will never be offered something you don't eat. Tap the ⓘ on any option to learn more.",
+roots: "Why these roots? They cover the world's great food families — each has a full deck of questions written for it, plus bridges to everywhere else (every set mixes your roots with global questions). Pick the one closest to your palate. Tap the ⓘ on any option to learn more."
+};
+
+function showFundInfo(kind, text, mode) {
+const box = $(kind + "Info"), btn = $(kind + "InfoBtn");
+if (!box) return;
+box.dataset.mode = mode;
+box.textContent = text;
+box.hidden = false;
+if (btn) btn.classList.add("open");
+box.classList.remove("flash");
+void box.offsetWidth;
+box.classList.add("flash");
+}
+
+function toggleFundInfo(kind) {
+const box = $(kind + "Info"), btn = $(kind + "InfoBtn");
+if (!box) return;
+if (!box.hidden && box.dataset.mode === "default") {
+box.hidden = true;
+if (btn) btn.classList.remove("open");
+return;
+}
+showFundInfo(kind, FUND_DEFAULTS[kind] || "", "default");
+}
+
 document.querySelectorAll(".fi").forEach(el => {
 el.addEventListener("click", e => {
 e.stopPropagation();
 e.preventDefault();
-const box = $(el.dataset.fi + "Info");
-if (!box) return;
-box.textContent = (FUND_INFO[el.dataset.fi] || {})[el.dataset.key] || "";
-box.classList.remove("flash");
-void box.offsetWidth;
-box.classList.add("flash");
+showFundInfo(el.dataset.fi, (FUND_INFO[el.dataset.fi] || {})[el.dataset.key] || "", "option");
 });
 });
+
+$("dietInfoBtn").addEventListener("click", () => toggleFundInfo("diet"));
+
+$("rootsInfoBtn").addEventListener("click", () => toggleFundInfo("roots"));
 
 const CITIES = [ "Hyderabad, India", "Bengaluru, India", "Mumbai, India", "Delhi, India", "Chennai, India", "Kolkata, India", "Pune, India", "Ahmedabad, India", "Jaipur, India", "Lucknow, India", "Kochi, India", "Panaji, India", "Indore, India", "Bhopal, India", "Chandigarh, India", "Coimbatore, India", "Nagpur, India", "Surat, India", "Vadodara, India", "Visakhapatnam, India", "Patna, India", "Guwahati, India", "Thiruvananthapuram, India", "Mysuru, India", "Madurai, India", "Varanasi, India", "Agra, India", "Kanpur, India", "Ranchi, India", "Bhubaneswar, India", "Dehradun, India", "Amritsar, India", "Ludhiana, India", "Udaipur, India", "Jodhpur, India", "Karachi, Pakistan", "Lahore, Pakistan", "Islamabad, Pakistan", "Hyderabad, Pakistan", "Faisalabad, Pakistan", "Rawalpindi, Pakistan", "Multan, Pakistan", "Peshawar, Pakistan", "Dhaka, Bangladesh", "Chattogram, Bangladesh", "Khulna, Bangladesh", "Sylhet, Bangladesh", "Colombo, Sri Lanka", "Kandy, Sri Lanka", "Kathmandu, Nepal", "Pokhara, Nepal", "Dubai, United Arab Emirates", "Abu Dhabi, United Arab Emirates", "Sharjah, United Arab Emirates", "Riyadh, Saudi Arabia", "Jeddah, Saudi Arabia", "Mecca, Saudi Arabia", "Medina, Saudi Arabia", "Dammam, Saudi Arabia", "Doha, Qatar", "Kuwait City, Kuwait", "Muscat, Oman", "Manama, Bahrain", "London, United Kingdom", "Manchester, United Kingdom", "Birmingham, United Kingdom", "Leeds, United Kingdom", "Glasgow, United Kingdom", "Edinburgh, United Kingdom", "Liverpool, United Kingdom", "Bristol, United Kingdom", "Sheffield, United Kingdom", "Cardiff, United Kingdom", "Belfast, United Kingdom", "Newcastle, United Kingdom", "Leicester, United Kingdom", "Nottingham, United Kingdom", "Oxford, United Kingdom", "Cambridge, United Kingdom", "Brighton, United Kingdom", "York, United Kingdom", "Dublin, Ireland", "Cork, Ireland", "Galway, Ireland", "New York, United States", "Los Angeles, United States", "Chicago, United States", "Houston, United States", "Phoenix, United States", "Philadelphia, United States", "San Antonio, United States", "San Diego, United States", "Dallas, United States", "Austin, United States", "San Jose, United States", "Columbus, United States", "Charlotte, United States", "San Francisco, United States", "Seattle, United States", "Denver, United States", "Washington DC, United States", "Boston, United States", "Nashville, United States", "Portland, United States", "Las Vegas, United States", "Miami, United States", "Atlanta, United States", "Minneapolis, United States", "Tampa, United States", "Sacramento, United States", "Orlando, United States", "Detroit, United States", "Honolulu, United States", "Milwaukee, United States", "Baltimore, United States", "Salt Lake City, United States", "New Orleans, United States", "Oklahoma City, United States", "Memphis, United States", "Louisville, United States", "Raleigh, United States", "Toronto, Canada", "Vancouver, Canada", "Montreal, Canada", "Calgary, Canada", "Ottawa, Canada", "Edmonton, Canada", "Winnipeg, Canada", "Quebec City, Canada", "Halifax, Canada", "Victoria, Canada", "Mexico City, Mexico", "Guadalajara, Mexico", "Monterrey, Mexico", "Puebla, Mexico", "Tijuana, Mexico", "Cancún, Mexico", "Mérida, Mexico", "São Paulo, Brazil", "Rio de Janeiro, Brazil", "Brasília, Brazil", "Salvador, Brazil", "Fortaleza, Brazil", "Belo Horizonte, Brazil", "Manaus, Brazil", "Curitiba, Brazil", "Recife, Brazil", "Porto Alegre, Brazil", "Buenos Aires, Argentina", "Santiago, Chile", "Lima, Peru", "Bogotá, Colombia", "Medellín, Colombia", "Quito, Ecuador", "Montevideo, Uruguay", "Asunción, Paraguay", "La Paz, Bolivia", "Caracas, Venezuela", "Panama City, Panama", "San José, Costa Rica", "Havana, Cuba", "Santo Domingo, Dominican Republic", "San Juan, Puerto Rico", "Paris, France", "Lyon, France", "Marseille, France", "Nice, France", "Bordeaux, France", "Toulouse, France", "Berlin, Germany", "Munich, Germany", "Hamburg, Germany", "Frankfurt, Germany", "Cologne, Germany", "Stuttgart, Germany", "Düsseldorf, Germany", "Madrid, Spain", "Barcelona, Spain", "Valencia, Spain", "Seville, Spain", "Bilbao, Spain", "Rome, Italy", "Milan, Italy", "Naples, Italy", "Turin, Italy", "Florence, Italy", "Venice, Italy", "Bologna, Italy", "Amsterdam, Netherlands", "Rotterdam, Netherlands", "Utrecht, Netherlands", "The Hague, Netherlands", "Brussels, Belgium", "Antwerp, Belgium", "Ghent, Belgium", "Vienna, Austria", "Salzburg, Austria", "Graz, Austria", "Zurich, Switzerland", "Geneva, Switzerland", "Basel, Switzerland", "Bern, Switzerland", "Lisbon, Portugal", "Porto, Portugal", "Athens, Greece", "Thessaloniki, Greece", "Stockholm, Sweden", "Gothenburg, Sweden", "Malmö, Sweden", "Oslo, Norway", "Bergen, Norway", "Copenhagen, Denmark", "Aarhus, Denmark", "Helsinki, Finland", "Tampere, Finland", "Reykjavik, Iceland", "Warsaw, Poland", "Kraków, Poland", "Gdańsk, Poland", "Poznań, Poland", "Prague, Czechia", "Brno, Czechia", "Budapest, Hungary", "Bucharest, Romania", "Sofia, Bulgaria", "Zagreb, Croatia", "Belgrade, Serbia", "Ljubljana, Slovenia", "Bratislava, Slovakia", "Vilnius, Lithuania", "Riga, Latvia", "Tallinn, Estonia", "Kyiv, Ukraine", "Istanbul, Türkiye", "Ankara, Türkiye", "Izmir, Türkiye", "Cairo, Egypt", "Alexandria, Egypt", "Lagos, Nigeria", "Abuja, Nigeria", "Nairobi, Kenya", "Accra, Ghana", "Johannesburg, South Africa", "Cape Town, South Africa", "Durban, South Africa", "Addis Ababa, Ethiopia", "Dar es Salaam, Tanzania", "Luanda, Angola", "Maputo, Mozambique", "Casablanca, Morocco", "Marrakech, Morocco", "Tunis, Tunisia", "Algiers, Algeria", "Tel Aviv, Israel", "Jerusalem, Israel", "Beirut, Lebanon", "Amman, Jordan", "Tehran, Iran", "Baghdad, Iraq", "Kabul, Afghanistan", "Beijing, China", "Shanghai, China", "Guangzhou, China", "Shenzhen, China", "Chengdu, China", "Xi'an, China", "Wuhan, China", "Hangzhou, China", "Nanjing, China", "Chongqing, China", "Hong Kong", "Taipei, Taiwan", "Tokyo, Japan", "Osaka, Japan", "Kyoto, Japan", "Nagoya, Japan", "Fukuoka, Japan", "Sapporo, Japan", "Seoul, South Korea", "Busan, South Korea", "Incheon, South Korea", "Bangkok, Thailand", "Chiang Mai, Thailand", "Phuket, Thailand", "Hanoi, Vietnam", "Ho Chi Minh City, Vietnam", "Da Nang, Vietnam", "Kuala Lumpur, Malaysia", "Penang, Malaysia", "Johor Bahru, Malaysia", "Singapore", "Jakarta, Indonesia", "Surabaya, Indonesia", "Bandung, Indonesia", "Denpasar, Indonesia", "Manila, Philippines", "Cebu, Philippines", "Davao, Philippines", "Yangon, Myanmar", "Phnom Penh, Cambodia", "Vientiane, Laos", "Ulaanbaatar, Mongolia", "Almaty, Kazakhstan", "Tashkent, Uzbekistan", "Baku, Azerbaijan", "Tbilisi, Georgia", "Yerevan, Armenia", "Sydney, Australia", "Melbourne, Australia", "Brisbane, Australia", "Perth, Australia", "Adelaide, Australia", "Canberra, Australia", "Gold Coast, Australia", "Hobart, Australia", "Darwin, Australia", "Auckland, New Zealand", "Wellington, New Zealand", "Christchurch, New Zealand", "Hamilton, New Zealand", "Suva, Fiji" ];
 

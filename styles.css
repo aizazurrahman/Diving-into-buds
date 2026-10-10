@@ -87,18 +87,19 @@ main { flex: 1; width: 100%; max-width: 880px; margin: 0 auto; padding: 8px 18px
 
 /* ——— landing info ——— */
 .info-card { margin-bottom: 18px; }
-.info-title { font-size: 1.35rem; margin-bottom: 16px; }
-.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.info-title { font-size: 1.35rem; margin-bottom: 18px; letter-spacing: -.01em; }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 .step {
-  background: linear-gradient(180deg, #FFFFFF, var(--bg)); border: 1px solid var(--line); border-radius: 14px; padding: 16px 14px;
+  background: linear-gradient(180deg, #FFFFFF, var(--bg)); border: 1px solid var(--line); border-radius: 16px; padding: 18px 16px;
+  box-shadow: 0 1px 3px rgba(76, 29, 149, .05);
   display: flex; flex-direction: column; gap: 4px;
 }
 .step-emoji { font-size: 1.5rem; margin-bottom: 4px; }
 .step strong { font-size: .95rem; }
-.step span { color: var(--muted); font-size: .85rem; line-height: 1.45; }
+.step span { color: var(--muted); font-size: .85rem; line-height: 1.5; }
 .slider-explain {
   margin-top: 16px; background: linear-gradient(140deg, #EFE3FF, #E2CFFC); border: 1px solid #D3BDF5;
-  border-radius: 14px; padding: 16px;
+  border-radius: 16px; padding: 18px 20px;
 }
 .se-head { font-size: 1rem; margin-bottom: 6px; }
 .slider-explain p { color: #463862; font-size: .92rem; line-height: 1.55; }
@@ -403,13 +404,15 @@ footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 18
 .r-axes { font-size: .82rem; color: #7C3AED; margin-top: 2px; }
 
 /* ——— Loved dishes (v22) ——— */
-.dish-sub { display: block; font-size: .8em; font-weight: 400; opacity: .62; margin-top: 2px; }
+.dish-sub { display: block; font-size: .8em; font-weight: 400; opacity: .68; margin-top: 2px; }
 .opt-custom { border-style: dashed !important; }
 .love-x { float: right; opacity: .7; font-weight: 400; }
 .loves-sub { padding: 8px 24px 0; font-size: 1.02rem; line-height: 1.6; color: var(--ink); opacity: .92; }
 .loves-note { padding: 6px 24px 0; font-size: .86rem; line-height: 1.5; color: var(--muted); font-style: italic; }
-.loves-search { margin: 14px 0 12px; }
-.loves-picked-title { margin: 20px 0 8px; font-size: 1rem; }
+.loves-search { margin: 16px 0 10px; }
+.loves-search .city-input { padding: 13px 16px; border-radius: 12px; font-size: 1rem; }
+#lovesPicked:empty::after { content: "Nothing picked yet — dishes you choose will appear here."; display: block; padding: 6px 2px; color: var(--muted); font-size: .88rem; font-style: italic; }
+.loves-picked-title { margin: 22px 0 8px; font-size: 1rem; letter-spacing: -.01em; }
 .loves-picked-title span { opacity: .62; font-weight: 400; font-size: .85em; margin-left: .35em; }
 
 /* ——— Compiling (v23.5, Aizaz; ring removed + dots slowed v24.1): full-screen

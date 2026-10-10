@@ -3368,6 +3368,12 @@ p.hidden = !p.hidden;
 $("qInfoBtn").classList.toggle("open", !p.hidden);
 };
 
+$("seInfoBtn").onclick = () => {
+const p = $("seInfoPanel");
+p.hidden = !p.hidden;
+$("seInfoBtn").classList.toggle("open", !p.hidden);
+};
+
 (() => {
 if (!("IntersectionObserver" in window)) {
 document.querySelectorAll(".reveal").forEach(el => el.classList.add("inview"));

@@ -950,16 +950,27 @@ return hits.slice(0, 24).map(h => h.e);
 
 function paintLoveResults(list) {
 lovesLastQuery = list;
-let html = list.map(e => {
+let html = list.slice(0, 3).map(e => {
 const picked = (st.loves || []).includes(e.id);
 return `<button type="button" class="opt${picked ? " sel" : ""}" data-pick="${e.id}">${e.name}<span class="dish-sub">${[ e.origin, e.course ].filter(Boolean).join(" · ")}</span></button>`;
 }).join("");
 const q = normDishText(lovesQueryRaw || "");
 if (q.length >= 3 && !list.some(e => e.nn === q) && (st.loves || []).length < LOVES_MAX && !(st.loves || []).includes(customDishId(lovesQueryRaw))) {
 const shown = (lovesQueryRaw || "").trim().replace(/\s+/g, " ");
-html += `<button type="button" class="opt opt-custom" data-custom="1">＋ Add “${shown}”<span class="dish-sub">Not in our list yet — add yours anyway; we'll read its flavours from the name</span></button>`;
+html += `<button type="button" class="opt opt-custom" data-custom="1">＋ Add “${shown}”<span class="dish-sub">Not in our list yet — add yours; we'll look it up online, and share it so others can find it too</span></button>`;
 }
 $("lovesResults").innerHTML = html;
+}
+
+function clearLovesSearch() {
+const inp = $("lovesInput");
+if (inp) {
+inp.value = "";
+inp.focus();
+}
+lovesQueryRaw = "";
+lovesCommunityHits = [];
+paintLoveResults([]);
 }
 
 const NAME_FLAVOR_RULES = [ [ /biryani|briyani/, [ "rice", "biryani", "spice" ] ], [ /pulao|pilaf|pilau|rice|risotto|paella|jollof|fried rice/, [ "rice" ] ], [ /noodle|ramen|pasta|spaghetti|udon|soba|pho|mee |laksa|chow mein|pad thai/, [ "noodle" ] ], [ /soup|stew|broth|shorba|rasam|curry/, [ "soup" ] ], [ /salad|slaw/, [ "fresh", "healthy" ] ], [ /grill|bbq|barbecue|tandoori|kebab|kabab|skewer|suya|robata/, [ "smoky" ] ], [ /fried|crispy|tempura|pakora|bajji|samosa|spring roll/, [ "crisp" ] ], [ /cake|pie|pudding|halwa|laddu|ladoo|barfi|burfi|gulab jamun|rasmalai|rasgulla|kheer|payasam|falooda|kulfi|ice cream|brownie|cookie|biscuit|tiramisu|cheesecake|mousse|jelabi|jalebi|imarti|baklava|kunafa|halva|mysore pak|sandesh|peda/, [ "sweet" ] ], [ /chicken|murgh/, [ "meat" ] ], [ /beef|mutton|lamb|gosht|pork|ham|bacon|sausage|steak|veal|duck|turkey|keema|qeema|mince/, [ "meat" ] ], [ /fish|machli|salmon|tuna|cod|sea bass|pomfret|hilsa|rohu|surmai/, [ "seafood" ] ], [ /prawn|shrimp|jhinga|crab|lobster|squid|oyster|mussel|scallop|seafood/, [ "seafood" ] ], [ /egg|anda|omelette|omelet/, [ "egg" ] ], [ /paneer|tofu/, [ "veg" ] ], [ /dal|daal|lentil|sambar|sambhar/, [ "veg", "soup" ] ], [ /sabzi|bhaji|poriyal|thoran|avial|curry leaves/, [ "veg" ] ], [ /tea|chai/, [ "chai" ] ], [ /coffee|espresso|cappuccino|latte/, [ "coffee" ] ], [ /spicy|chilli|chili|mirchi|peri peri|harissa|sichuan|szechuan/, [ "spice" ] ], [ /pickle|achar|kimchi|sauerkraut/, [ "fermented" ] ], [ /yoghurt|yogurt|curd|raita/, [ "tangy", "creamy" ] ], [ /cream|makhani|malai|alfredo|carbonara/, [ "creamy" ] ], [ /tikka masala|butter chicken/, [ "creamy", "spice" ] ], [ /street|chaat|taco|burger|pizza|wrap|roll\b/, [ "street" ] ], [ /home ?style|traditional|classic/, [ "classic" ] ] ];
@@ -1002,6 +1013,7 @@ i: [],
 f: deriveNameFlavors(name)
 };
 addLove(id);
+clearLovesSearch();
 enrichAndSubmitCustom(id, pretty);
 }
 
@@ -1185,7 +1197,10 @@ f: r.flavors || []
 });
 return dishById.get(id);
 });
-if (lovesCommunityHits.length) paintLoveResults([ ...local, ...lovesCommunityHits ]);
+if (lovesCommunityHits.length) {
+const exact = lovesCommunityHits.filter(e => e.nn === q), rest = lovesCommunityHits.filter(e => e.nn !== q);
+paintLoveResults([ ...exact, ...local, ...rest ]);
+}
 } catch (e) {
 communityOff = true;
 }
@@ -1195,7 +1210,7 @@ function paintLoves() {
 const loves = st.loves || [];
 $("lovesCount").textContent = `${loves.length}/${LOVES_MAX} picked`;
 $("lovesNext").disabled = !(loves.length >= LOVES_MIN || lovesLoadFailed && loves.length === 0);
-$("lovesHint").textContent = lovesLoadFailed ? "The dish list couldn't load — tap Continue to go straight to the questions." : loves.length >= LOVES_MAX ? "That's your 15 — tap a picked dish to swap it out." : loves.length >= LOVES_MIN ? "Lovely list. Add more, or continue when you're ready." : `Pick at least ${LOVES_MIN} to continue — ${LOVES_MIN - loves.length} to go.`;
+$("lovesHint").textContent = lovesLoadFailed ? "The dish list couldn't load — tap Continue to go straight to the questions." : loves.length >= LOVES_MAX ? "That's your 15 — tap a picked dish to swap it out." : loves.length >= LOVES_MIN ? "Lovely list. Add more, or continue when you're ready." : loves.length === 0 ? "Pick 5 to get started — you can add up to 15 in total." : `Pick at least ${LOVES_MIN} to continue — ${LOVES_MIN - loves.length} to go (up to ${LOVES_MAX} in total).`;
 $("lovesPicked").innerHTML = loves.map(id => {
 const d = (st.lovesData || {})[id];
 const name = d ? d.n : (dishById.get(id) || {}).name || "Dish";
@@ -1284,7 +1299,10 @@ return;
 const b = e.target.closest("[data-pick]");
 if (!b) return;
 const id = +b.dataset.pick;
-if ((st.loves || []).includes(id)) removeLove(id); else addLove(id);
+if ((st.loves || []).includes(id)) removeLove(id); else {
+addLove(id);
+clearLovesSearch();
+}
 });
 $("lovesPicked").addEventListener("click", e => {
 const b = e.target.closest("[data-love]");
@@ -1366,10 +1384,10 @@ img.alt = q.q;
 $("qText").textContent = q.q;
 $("multiHint").hidden = !(q.multi || q.rank);
 $("multiHint").textContent = q.rank ? q.rank === 3 ? "🥇 Tap in order — your #1 first, then #2, then #3." : "🥇 Tap your #1 pick first — then your #2." : "✋ Pick all that apply — then hit Next.";
-$("qInfoBtn").hidden = !q.info;
+$("qInfoBtn").hidden = false;
 $("qInfoBtn").classList.remove("open");
 $("qInfoPanel").hidden = true;
-$("qInfoPanel").textContent = q.info || "";
+$("qInfoPanel").textContent = [ q.info, "🎚️ The confidence slider: every pick carries a strength from 1 to 5. At 1 the other options nearly won; at 5 it's this pick, no debate. Your high-confidence picks count for more when your taste profile and recommendations are built — so slide up only when you really mean it, and leave it at 1 when you're torn." ].filter(Boolean).join(" ");
 pendingSel = new Set(saved && Array.isArray(saved.o) ? saved.o : []);
 pendingRank = saved && saved.r ? [ ...saved.o ] : [];
 const box = $("qOptions");
@@ -1395,10 +1413,7 @@ pendingW = saved ? saved.w : 1;
 $("weightSlider").value = pendingW;
 updateSliderLabel();
 const sliderHint = $("sliderHint");
-if (sliderHint) {
-const firstRanked = q.rank && !Object.values(st.answers).some(a => a && a.r);
-sliderHint.textContent = firstRanked ? "First ranked question — this slider is how much your picks matter: 1 means the others nearly won, 5 means no contest. It steers your whole profile." : "1 means the other options nearly won. 5 means this pick, no debate.";
-}
+if (sliderHint) sliderHint.textContent = "1 = the others nearly won · 5 = no contest. Strong picks steer your profile most.";
 const hasAnswer = q.rank ? pendingRank.length > 0 : q.multi ? pendingSel.size > 0 : !!saved;
 $("nextBtn").disabled = !hasAnswer;
 $("nextBtn").textContent = hasAnswer && n >= runTotal(st) - 1 && findNext(0) === -1 ? "Finish — see my profile 🎉" : "Next →";

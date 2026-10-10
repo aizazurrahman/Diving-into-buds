@@ -414,6 +414,7 @@ footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 18
 .loves-dots { display: inline-flex; gap: 5px; margin-left: 10px; vertical-align: 1px; }
 .loves-dots .dot { width: 9px; height: 9px; border-radius: 50%; border: 2px solid #C0A6F2; transition: background .25s ease, border-color .25s ease, transform .25s ease; }
 .loves-dots .dot.on { background: var(--accent); border-color: var(--accent); transform: scale(1.1); }
+.loves-max-note { margin: 12px 0 0; font-size: .85rem; color: var(--muted); }
 .loves-picked-title span { opacity: .62; font-weight: 400; font-size: .85em; margin-left: .35em; }
 
 /* ——— Compiling (v23.5, Aizaz; ring removed + dots slowed v24.1): full-screen

@@ -414,7 +414,7 @@ st.finished = !!row.finished;
 st.result = result;
 st.sheetSent = !!result;
 const savedOrder = (rawAnswers.__order || {}).o, savedReserve = (rawAnswers.__order || {}).r;
-const orderOk = Array.isArray(savedOrder) && savedOrder.length >= 40 && savedOrder.filter(id => QBANK_BY_ID[id]).length >= savedOrder.length * .95;
+const orderOk = Array.isArray(savedOrder) && savedOrder.length >= 10 && savedOrder.filter(id => QBANK_BY_ID[id]).length >= savedOrder.length * .95;
 if (orderOk) {
 st.order = savedOrder.slice();
 st.reserve = Array.isArray(savedReserve) ? savedReserve.filter(id => QBANK_BY_ID[id]) : [];
@@ -1002,6 +1002,193 @@ i: [],
 f: deriveNameFlavors(name)
 };
 addLove(id);
+enrichAndSubmitCustom(id, pretty);
+}
+
+const ING_FLAVOR_KEYS = [ [ [ "chilli", "chili", "jalapeno", "habanero", "cayenne", "paprika", "gochujang", "harissa", "sriracha", "hot sauce", "pepper flakes" ], [ "spice" ] ], [ [ "chipotle", "smoked paprika" ], [ "smoky" ] ], [ [ "cream", "cheese", "butter", "milk", "yoghurt", "yogurt", "paneer", "mozzarella", "parmesan", "ghee", "coconut milk" ], [ "creamy" ] ], [ [ "lemon", "lime", "vinegar", "tamarind", "tomato", "sumac", "orange" ], [ "tangy" ] ], [ [ "kimchi", "sauerkraut", "miso", "soy sauce", "fish sauce", "pickle", "pickled" ], [ "fermented" ] ], [ [ "sugar", "honey", "jaggery", "caramel", "chocolate" ], [ "sweet" ] ], [ [ "chicken", "beef", "lamb", "mutton", "pork", "veal", "duck", "turkey", "mince", "keema", "sausage", "bacon", "ham", "meat" ], [ "meat" ] ], [ [ "fish", "prawn", "shrimp", "crab", "lobster", "squid", "mussel", "oyster", "scallop", "salmon", "tuna", "cod", "anchovy" ], [ "seafood" ] ], [ [ "rice", "basmati" ], [ "rice" ] ], [ [ "noodle", "pasta", "spaghetti", "ramen", "udon", "soba", "vermicelli" ], [ "noodle" ] ], [ [ "lentil", "chickpea", "tofu", "potato", "cauliflower", "spinach", "okra", "aubergine", "eggplant", "mushroom", "cabbage", "carrot", "beans" ], [ "veg" ] ], [ [ "coriander", "cilantro", "mint", "basil", "parsley", "dill", "lettuce", "cucumber" ], [ "fresh" ] ], [ [ "tea" ], [ "chai" ] ], [ [ "coffee", "espresso" ], [ "coffee" ] ], [ [ "breadcrumbs", "batter" ], [ "crisp" ] ] ];
+
+function flavorsFromIngredients(ings) {
+const text = " " + (ings || []).join(" ").toLowerCase() + " ";
+const out = [];
+ING_FLAVOR_KEYS.forEach(([keys, tags]) => {
+if (keys.some(k => new RegExp("\\b" + k.replace(/ /g, "\\s") + "(e?s)?\\b").test(text))) tags.forEach(t => {
+if (!out.includes(t)) out.push(t);
+});
+});
+return out.slice(0, 8);
+}
+
+const ING_LEXICON = [ "chicken", "beef", "lamb", "mutton", "pork", "duck", "meat", "fish", "prawn", "shrimp", "crab", "lobster", "squid", "mussel", "oyster", "salmon", "tuna", "egg", "rice", "noodle", "pasta", "potato", "sweet potato", "onion", "garlic", "ginger", "tomato", "chilli", "chili", "pepper", "cumin", "turmeric", "coriander", "cardamom", "cinnamon", "clove", "mustard", "fenugreek", "mint", "basil", "parsley", "cilantro", "lemon", "lime", "tamarind", "coconut", "milk", "cream", "butter", "ghee", "cheese", "yoghurt", "yogurt", "paneer", "tofu", "lentil", "chickpea", "bean", "pea", "spinach", "okra", "aubergine", "eggplant", "cauliflower", "cabbage", "carrot", "mushroom", "corn", "flour", "bread", "sugar", "honey", "olive oil", "sesame", "peanut", "cashew", "almond", "walnut", "vinegar", "soy sauce", "fish sauce", "miso", "kimchi", "sausage", "bacon", "ham" ];
+
+function ingredientsFromText(text) {
+const t = " " + (text || "").toLowerCase() + " ";
+return ING_LEXICON.filter(w => new RegExp("(^|[^a-z])" + w.replace(/ /g, "\\s") + "s?([^a-z]|$)").test(t));
+}
+
+function mealToDish(meal, wantNorm) {
+if (!meal || !meal.strMeal) return null;
+const nn = normDishText(meal.strMeal);
+if (!nn || wantNorm && nn !== wantNorm && !nn.includes(wantNorm) && !wantNorm.includes(nn)) return null;
+const ings = [];
+for (let i = 1; i <= 20; i++) {
+const v = (meal["strIngredient" + i] || "").trim();
+if (v) ings.push(v);
+}
+if (ings.length < 2) return null;
+const f = flavorsFromIngredients(ings);
+if (!f.length) return null;
+return {
+name: meal.strMeal,
+origin: (meal.strArea || "").trim(),
+i: ings.slice(0, 10),
+f: f,
+source: "themealdb"
+};
+}
+
+function wikiToDish(extract, name) {
+if (!extract || extract.length < 60) return null;
+const ings = ingredientsFromText(extract);
+if (ings.length < 2) return null;
+const f = flavorsFromIngredients(ings);
+if (!f.length) return null;
+return {
+name: name,
+origin: "",
+i: ings.slice(0, 10),
+f: f,
+source: "wikipedia"
+};
+}
+
+function communityRowFor(name, data, sourced, uid) {
+return {
+name: name,
+norm: normDishText(name),
+origin: data && data.origin || null,
+ingredients: data && data.i || [],
+flavors: data && data.f || [],
+source: data && data.source || "name",
+confidence: sourced ? "sourced" : "name",
+status: sourced ? "live" : "pending",
+submitted_by: uid
+};
+}
+
+let communityOff = false;
+
+const commDataById = new Map;
+
+async function fetchJsonTimeout(url, ms) {
+const c = new AbortController;
+const t = setTimeout(() => c.abort(), ms || 6e3);
+try {
+const r = await fetch(url, {
+signal: c.signal
+});
+if (!r.ok) return null;
+return await r.json();
+} catch (e) {
+return null;
+} finally {
+clearTimeout(t);
+}
+}
+
+async function enrichDishOnline(name) {
+const q = encodeURIComponent(name);
+const mj = await fetchJsonTimeout("https://www.themealdb.com/api/json/v1/1/search.php?s=" + q);
+const fromMeal = mealToDish(mj && mj.meals && mj.meals[0], normDishText(name));
+if (fromMeal) return fromMeal;
+const wj = await fetchJsonTimeout("https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&format=json&origin=*&redirects=1&titles=" + q);
+const pages = wj && wj.query && wj.query.pages;
+const page = pages && Object.values(pages)[0];
+if (page && page.extract) {
+const d = wikiToDish(page.extract, name);
+if (d) return d;
+}
+const fj = await fetchJsonTimeout("https://en.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=1&format=json&origin=*&redirects=1&titles=" + q);
+const fpages = fj && fj.query && fj.query.pages;
+const fpage = fpages && Object.values(fpages)[0];
+if (fpage && fpage.extract) return wikiToDish(fpage.extract, name);
+return null;
+}
+
+async function enrichAndSubmitCustom(id, pretty) {
+let data = null;
+try {
+data = await enrichDishOnline(pretty);
+} catch (e) {
+data = null;
+}
+if (!(st.loves || []).includes(id)) return;
+if (data) {
+st.lovesData[id] = {
+n: pretty,
+i: data.i,
+f: data.f
+};
+saveState();
+}
+submitCommunityDish(pretty, data || {
+i: [],
+f: (st.lovesData[id] || {}).f || [],
+source: "name"
+}, !!data);
+}
+
+async function submitCommunityDish(pretty, data, sourced) {
+if (!sb || !st.user || communityOff) return;
+try {
+const {error: error} = await sb.from("community_dishes").insert(communityRowFor(pretty, data, sourced, st.user.id));
+if (error && !/duplicate|23505|unique/i.test(error.message || "")) communityOff = true;
+} catch (e) {
+communityOff = true;
+}
+}
+
+let lovesCommunityHits = [], communitySeq = 0, communityTimer = null;
+
+function scheduleCommunitySearch() {
+clearTimeout(communityTimer);
+communityTimer = setTimeout(runCommunitySearch, 300);
+}
+
+async function runCommunitySearch() {
+const q = normDishText(lovesQueryRaw || "");
+lovesCommunityHits = [];
+if (!sb || communityOff || q.length < 3) return;
+const local = searchDishes(lovesQueryRaw);
+if (local.some(e => e.nn === q)) return;
+const seq = ++communitySeq;
+try {
+const {data: data, error: error} = await sb.from("community_dishes").select("name,norm,origin,ingredients,flavors").eq("status", "live").ilike("norm", "%" + q + "%").limit(8);
+if (error) {
+communityOff = true;
+return;
+}
+if (seq !== communitySeq || normDishText(lovesQueryRaw || "") !== q) return;
+lovesCommunityHits = (data || []).filter(r => !local.some(e => e.nn === r.norm)).map(r => {
+const id = customDishId(r.name);
+dishById.set(id, {
+id: id,
+name: r.name,
+origin: r.origin || "Added by the community",
+course: "",
+nn: r.norm,
+no: "",
+comm: true
+});
+commDataById.set(id, {
+i: r.ingredients || [],
+f: r.flavors || []
+});
+return dishById.get(id);
+});
+if (lovesCommunityHits.length) paintLoveResults([ ...local, ...lovesCommunityHits ]);
+} catch (e) {
+communityOff = true;
+}
 }
 
 function paintLoves() {
@@ -1025,11 +1212,20 @@ return;
 st.loves.push(id);
 const entry = dishById.get(id);
 st.lovesData = st.lovesData || {};
+if (id < 0 && commDataById.has(id)) {
+const cd = commDataById.get(id);
 st.lovesData[id] = {
 n: entry ? entry.name : "Dish",
-i: [],
+i: cd.i || [],
+f: cd.f || []
+};
+} else {
+st.lovesData[id] = {
+n: entry ? entry.name : "Dish",
+i: id < 0 ? (st.lovesData[id] || {}).i || [] : [],
 f: id < 0 ? (st.lovesData[id] || {}).f || [] : []
 };
+}
 saveState();
 paintLoves();
 if (lovesLastQuery) paintLoveResults(lovesLastQuery);
@@ -1072,10 +1268,12 @@ lovesQueryRaw = e.target.value;
 const q = e.target.value.trim();
 if (!DISH_LIST) return;
 if (!q) {
+lovesCommunityHits = [];
 paintLoveResults([]);
 return;
 }
 paintLoveResults(searchDishes(q));
+scheduleCommunitySearch();
 });
 $("lovesResults").addEventListener("click", e => {
 const c = e.target.closest("[data-custom]");
@@ -2727,7 +2925,18 @@ return null;
 }).filter(Boolean).sort((a, b) => b.wgt - a.wgt).slice(0, 2).map(x => x.label);
 };
 const dishScoreV2 = r => dishScore(r) + .55 * axisAlign(r) + exploreBonus(r);
-const scored = RECS.filter(r => optVisible(r, s.builtFor.diet, meats)).filter(r => !r.raw || rawOk).filter(r => !r.alc || alcOk).filter(r => !r.egg || s.builtFor.diet !== "vegetarian" || eggOk).filter(r => !aversions.some(av => av.length > 3 && r.dish.toLowerCase().includes(av.toLowerCase().split(" ")[0]))).map(r => ({
+const AV_STOP = new Set([ "bitter", "raw", "smoked", "dry", "sweet", "mushy", "slimy", "stinky", "salty", "overcooked", "gristly", "chewy", "fishy", "everything", "friends", "overload", "hiding", "chalky", "vegetable", "vegetables", "fish" ]);
+const stemW = w => w.replace(/ies$/, "y").replace(/es$/, "").replace(/s$/, "");
+const aversionKeys = av => {
+const words = av.toLowerCase().split("—")[0].replace(/[^a-z ]/g, " ").split(/\s+/).filter(w => w.length > 2 && !AV_STOP.has(w));
+if (!words.length) return [];
+return [ ...new Set([ words[0], words[words.length - 1] ].map(stemW)) ];
+};
+const vetoedByAversion = dish => {
+const dw = dish.toLowerCase().replace(/[^a-z ]/g, " ").split(/\s+/).filter(Boolean).map(stemW);
+return aversions.some(av => aversionKeys(av).some(k => dw.some(w => w === k || k.length >= 4 && w.startsWith(k))));
+};
+const scored = RECS.filter(r => optVisible(r, s.builtFor.diet, meats)).filter(r => !r.raw || rawOk).filter(r => !r.alc || alcOk).filter(r => !r.egg || s.builtFor.diet !== "vegetarian" || eggOk).filter(r => !vetoedByAversion(r.dish)).map(r => ({
 r: r,
 score: dishScoreV2(r),
 matched: r.match.filter(t => (tagCount[t] || 0) > 0).length,

@@ -2932,7 +2932,7 @@ TAG_FREQ[t] = (TAG_FREQ[t] || 0) + 1;
 const TAG_TOTAL = Object.values(TAG_FREQ).reduce((a, b) => a + b, 0) || 1;
 const rarity = t => Math.log2(1 + TAG_TOTAL / (TAG_FREQ[t] || TAG_TOTAL));
 const maxPos = Math.max(1, ...Object.values(tagCount));
-const dishScore = r => r.match.reduce((acc, t) => acc + (tagCount[t] || 0) / maxPos * rarity(t), 0) / Math.sqrt(r.match.length) + (ownRoots.includes(r.region) ? 0 : .35);
+const dishScore = r => r.match.reduce((acc, t) => acc + (tagCount[t] || 0) / maxPos * rarity(t), 0) / Math.sqrt(r.match.length);
 const dishAxesCache = {};
 RECS.forEach(r => {
 dishAxesCache[r.dish] = dishAxesFor(r);
@@ -2946,7 +2946,6 @@ s2 += (leanOf[ax.id] || 0) * (da[ax.id] || 0);
 return s2;
 };
 const exploreBonus = r => {
-if (ownRoots.includes(r.region)) return 0;
 const da = dishAxesCache[r.dish];
 let b = 0;
 AXES.forEach(ax => {
@@ -2981,7 +2980,7 @@ const vetoedByAversion = dish => {
 const dw = dish.toLowerCase().replace(/[^a-z ]/g, " ").split(/\s+/).filter(Boolean).map(stemW);
 return aversions.some(av => aversionKeys(av).some(k => dw.some(w => w === k || k.length >= 4 && w.startsWith(k))));
 };
-const scored = RECS.filter(r => optVisible(r, s.builtFor.diet, meats)).filter(r => !r.raw || rawOk).filter(r => !r.alc || alcOk).filter(r => !r.egg || s.builtFor.diet !== "vegetarian" || eggOk).filter(r => !vetoedByAversion(r.dish)).map(r => ({
+const scored = RECS.filter(r => !ownRoots.includes(r.region)).filter(r => optVisible(r, s.builtFor.diet, meats)).filter(r => !r.raw || rawOk).filter(r => !r.alc || alcOk).filter(r => !r.egg || s.builtFor.diet !== "vegetarian" || eggOk).filter(r => !vetoedByAversion(r.dish)).map(r => ({
 r: r,
 score: dishScoreV2(r),
 matched: r.match.filter(t => (tagCount[t] || 0) > 0).length,

@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=28">
+<link rel="stylesheet" href="styles.css?v=29">
 </head>
 <body>
 
@@ -142,13 +142,13 @@
     <div class="card qcard">
       <div class="qmeta"><span class="chip">First question</span></div>
       <h2 class="qtext">Tell us what you love! ❤️</h2>
-      <p class="loves-sub">Pick up to 15 of your favorite foods or drinks — whether they're starters, main courses, desserts, regional foods, or global dishes.</p>
-      <p class="loves-note">We've done our best to feature as many of your favorites as we can.</p>
+      <p class="loves-sub">Pick 5 of your favorite foods or drinks to get started — whether they're starters, main courses, desserts, regional foods, or global dishes.</p>
+      <p class="loves-note">Want to keep going? You can add up to 15 in total — and we've done our best to feature as many of your favorites as we can.</p>
       <div class="loves-search">
-        <input type="text" id="lovesInput" class="city-input" placeholder="Type a dish you love — pick 5 to start, up to 15…" autocomplete="off" maxlength="60" aria-label="Search dishes and drinks you love">
+        <input type="text" id="lovesInput" class="city-input" placeholder="Type a dish or drink you love…" autocomplete="off" maxlength="60" aria-label="Search dishes and drinks you love">
       </div>
       <div class="options" id="lovesResults" role="group" aria-label="Dish matches"></div>
-      <h3 class="loves-picked-title">Your Favs <span id="lovesCount">0/15 picked</span></h3>
+      <h3 class="loves-picked-title">Your Favs <span class="loves-dots" id="lovesDots" aria-hidden="true"></span><span id="lovesCount">0 of 5 to get started</span></h3>
       <div class="options" id="lovesPicked" role="group" aria-label="Your picked dishes"></div>
       <p class="fund-hint" id="lovesHint">Pick 5 to get started — you can add up to 15 in total.</p>
       <div class="quiz-foot">
@@ -249,6 +249,6 @@
 <script src="questions.js?v=18"></script>
 <script src="questions2.js?v=10"></script>
 <script src="questions3.js?v=7"></script>
-<script src="app.js?v=47"></script>
+<script src="app.js?v=48"></script>
 </body>
 </html>

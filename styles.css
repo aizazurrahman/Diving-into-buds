@@ -412,6 +412,9 @@ footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 18
 .loves-search .city-input { padding: 13px 16px; border-radius: 12px; font-size: 1rem; }
 #lovesPicked:empty::after { content: "Nothing picked yet — dishes you choose will appear here."; display: block; padding: 6px 2px; color: var(--muted); font-size: .88rem; font-style: italic; }
 .loves-picked-title { margin: 22px 0 8px; font-size: 1rem; letter-spacing: -.01em; }
+.loves-dots { display: inline-flex; gap: 5px; margin-left: 10px; vertical-align: 1px; }
+.loves-dots .dot { width: 9px; height: 9px; border-radius: 50%; border: 2px solid #C0A6F2; transition: background .25s ease, border-color .25s ease, transform .25s ease; }
+.loves-dots .dot.on { background: var(--accent); border-color: var(--accent); transform: scale(1.1); }
 .loves-picked-title span { opacity: .62; font-weight: 400; font-size: .85em; margin-left: .35em; }
 
 /* ——— Compiling (v23.5, Aizaz; ring removed + dots slowed v24.1): full-screen

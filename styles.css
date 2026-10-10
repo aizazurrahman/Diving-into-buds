@@ -101,9 +101,9 @@ main { flex: 1; width: 100%; max-width: 880px; margin: 0 auto; padding: 8px 18px
   margin-top: 16px; background: linear-gradient(140deg, #EFE3FF, #E2CFFC); border: 1px solid #D3BDF5;
   border-radius: 16px; padding: 18px 20px;
 }
-.se-head { font-size: 1rem; margin-bottom: 6px; }
+.se-head { font-size: 1rem; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
 .slider-explain p { color: #463862; font-size: .92rem; line-height: 1.55; }
-.slider-explain .se-tip { margin-top: 8px; font-weight: 600; color: var(--accent-dark); }
+.slider-explain .info-panel { margin: 10px 0 0; background: rgba(255, 255, 255, .5); }
 .fund-note {
   margin-top: 16px; text-align: center; color: var(--muted); font-size: .92rem; line-height: 1.55;
 }

@@ -1235,9 +1235,12 @@ communityOff = true;
 
 function paintLoves() {
 const loves = st.loves || [];
-$("lovesCount").textContent = `${loves.length}/${LOVES_MAX} picked`;
+$("lovesCount").textContent = loves.length < LOVES_MIN ? `${loves.length} of ${LOVES_MIN} to get started` : `${loves.length} picked · up to ${LOVES_MAX} if you like`;
+$("lovesDots").innerHTML = Array.from({
+length: LOVES_MIN
+}, (_, i) => `<span class="dot${i < loves.length ? " on" : ""}"></span>`).join("");
 $("lovesNext").disabled = !(loves.length >= LOVES_MIN || lovesLoadFailed && loves.length === 0);
-$("lovesHint").textContent = lovesLoadFailed ? "The dish list couldn't load — tap Continue to go straight to the questions." : loves.length >= LOVES_MAX ? "That's your 15 — tap a picked dish to swap it out." : loves.length >= LOVES_MIN ? "Lovely list. Add more, or continue when you're ready." : loves.length === 0 ? "Pick 5 to get started — you can add up to 15 in total." : `Pick at least ${LOVES_MIN} to continue — ${LOVES_MIN - loves.length} to go (up to ${LOVES_MAX} in total).`;
+$("lovesHint").textContent = lovesLoadFailed ? "The dish list couldn't load — tap Continue to go straight to the questions." : loves.length >= LOVES_MAX ? "That's your 15 — tap a picked dish to swap it out." : loves.length >= LOVES_MIN ? "Lovely list. Add more, or continue when you're ready." : loves.length === 0 ? "Pick 5 to get started — you can add up to 15 in total." : `${LOVES_MIN - loves.length} more to get started — that's all we need.`;
 $("lovesPicked").innerHTML = loves.map(id => {
 const d = (st.lovesData || {})[id];
 const name = d ? d.n : (dishById.get(id) || {}).name || "Dish";

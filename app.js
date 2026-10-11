@@ -437,7 +437,7 @@ if (!st.lovesData) st.lovesData = {};
 }
 
 function show(view) {
-[ "view-auth", "view-fund", "view-home", "view-loves", "view-quiz", "view-compiling", "view-results" ].forEach(v => {
+[ "view-landing", "view-start", "view-fund", "view-home", "view-loves", "view-quiz", "view-compiling", "view-results" ].forEach(v => {
 $(v).hidden = v !== view;
 });
 const u = currentUser();
@@ -526,7 +526,7 @@ if (sb) await sb.auth.signOut();
 sessionUser = null;
 st = null;
 setMode("login");
-show("view-auth");
+show("view-landing");
 };
 
 function routeAfterLogin() {
@@ -631,6 +631,10 @@ block: "center"
 const b = $(id);
 if (b) b.onclick = () => setPickMode(m);
 });
+
+const landingStartBtn = $("landingStart");
+
+if (landingStartBtn) landingStartBtn.onclick = () => show("view-start");
 
 document.querySelectorAll("#dietGrid .fund-opt").forEach(b => b.onclick = () => {
 pickDiet = b.dataset.diet;
@@ -2874,7 +2878,7 @@ $("retakeBtn").onclick = doRestart;
 (async function init() {
 store.del("dib_session");
 if (!sb) {
-show("view-auth");
+show("view-landing");
 return;
 }
 const {data: data} = await sb.auth.getSession();
@@ -2886,7 +2890,7 @@ email: data.session.user.email
 await hydrate();
 routeAfterLogin();
 } else {
-show("view-auth");
+show("view-landing");
 }
 })();
 

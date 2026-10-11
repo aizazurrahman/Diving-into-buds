@@ -1,4 +1,4 @@
-/* Recommendation pool: 633 dishes, each with a region, a country
+/* Recommendation pool: 717 dishes, each with a region, a country
    and a course (drink / appetizer / main / dessert) for the course-structured
    results (v37) and the country-led travel composition (v38).
    Loaded by index.html immediately before app.js; recs2.js/recs3.js carry the rest. */

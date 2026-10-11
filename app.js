@@ -618,11 +618,14 @@ if (sessionUser) {
 initFundPicks();
 show("view-fund");
 } else {
+show("view-start");
+setTimeout(() => {
 const ac = document.querySelector(".auth-card");
 if (ac) ac.scrollIntoView({
 behavior: "smooth",
 block: "center"
 });
+}, 380);
 }
 };
 });
@@ -631,10 +634,6 @@ block: "center"
 const b = $(id);
 if (b) b.onclick = () => setPickMode(m);
 });
-
-const landingStartBtn = $("landingStart");
-
-if (landingStartBtn) landingStartBtn.onclick = () => show("view-start");
 
 document.querySelectorAll("#dietGrid .fund-opt").forEach(b => b.onclick = () => {
 pickDiet = b.dataset.diet;

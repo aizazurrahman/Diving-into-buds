@@ -482,3 +482,4 @@ footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 18
   .mode-card { transition: none; }
   .mode-card:hover { transform: none; }
 }
+.hero-cta { margin-top: 22px; }

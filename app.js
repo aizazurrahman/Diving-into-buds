@@ -2205,6 +2205,11 @@ if (city === "Hyderabad, India") return "hyderabad";
 return COUNTRY_REGION[city.slice(city.lastIndexOf(",") + 1).trim()] || null;
 }
 
+function destCountryOf(city) {
+if (!city) return null;
+return city.slice(city.lastIndexOf(",") + 1).trim() || null;
+}
+
 function computeResult(s) {
 const tagCount = {};
 const meters = {
@@ -2638,13 +2643,21 @@ return lovedNamesNorm.some(ln => ln && (dn === ln || ln.length >= 5 && dn.includ
 const freshPool = scored.filter(e => !isLovedEcho(e.r.dish));
 const pool = freshPool.length >= 20 ? freshPool : scored;
 const COURSE_FRAME = [ [ "drink", 2 ], [ "appetizer", 6 ], [ "main", 8 ], [ "dessert", 4 ] ];
-const destR = s.builtFor.mode === "travel" ? destRegionOf(s.builtFor.city) : null;
+const isTravel = s.builtFor.mode === "travel";
+const destR = isTravel ? destRegionOf(s.builtFor.city) : null;
+const destC = isTravel ? destCountryOf(s.builtFor.city) : null;
 const usedC = new Set;
 const composeCourses = want => {
 const out = [];
+const tierOf = e => {
+if (destR === "hyderabad" && e.r.region === "hyderabad") return 0;
+if (destC && e.r.country === destC) return 1;
+if (destR && e.r.region === destR) return 2;
+return 3;
+};
 const orderedFor = course => {
 const bucket = pool.filter(e => e.r.course === course && !usedC.has(e.r.dish));
-return destR ? [ ...bucket.filter(e => e.r.region === destR), ...bucket.filter(e => e.r.region !== destR) ] : bucket;
+return isTravel ? [ ...bucket ].sort((a, b) => tierOf(a) - tierOf(b)) : bucket;
 };
 for (const [course, quota] of COURSE_FRAME) {
 let left = quota;

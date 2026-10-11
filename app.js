@@ -2098,6 +2098,113 @@ out[ax.id] = Math.max(0, Math.min(1, (sig[ax.id] || 0) / 2));
 return out;
 }
 
+const COUNTRY_REGION = {
+India: "southasia",
+Pakistan: "southasia",
+Bangladesh: "southasia",
+"Sri Lanka": "southasia",
+Nepal: "southasia",
+Afghanistan: "southasia",
+China: "eastasia",
+Japan: "eastasia",
+"South Korea": "eastasia",
+Indonesia: "eastasia",
+Thailand: "eastasia",
+Vietnam: "eastasia",
+Malaysia: "eastasia",
+Philippines: "eastasia",
+"Hong Kong": "eastasia",
+Taiwan: "eastasia",
+Singapore: "eastasia",
+Myanmar: "eastasia",
+Cambodia: "eastasia",
+Laos: "eastasia",
+Mongolia: "eastasia",
+"Saudi Arabia": "middleeast",
+"United Arab Emirates": "middleeast",
+Qatar: "middleeast",
+Kuwait: "middleeast",
+Oman: "middleeast",
+Bahrain: "middleeast",
+Israel: "middleeast",
+Lebanon: "middleeast",
+Jordan: "middleeast",
+Iran: "middleeast",
+Iraq: "middleeast",
+"Türkiye": "middleeast",
+Egypt: "middleeast",
+Kazakhstan: "middleeast",
+Uzbekistan: "middleeast",
+"United Kingdom": "europe",
+Germany: "europe",
+Italy: "europe",
+France: "europe",
+Spain: "europe",
+Netherlands: "europe",
+Switzerland: "europe",
+Poland: "europe",
+Ireland: "europe",
+Belgium: "europe",
+Austria: "europe",
+Sweden: "europe",
+Portugal: "europe",
+Greece: "europe",
+Norway: "europe",
+Denmark: "europe",
+Finland: "europe",
+Czechia: "europe",
+Iceland: "europe",
+Hungary: "europe",
+Romania: "europe",
+Bulgaria: "europe",
+Croatia: "europe",
+Serbia: "europe",
+Slovenia: "europe",
+Slovakia: "europe",
+Lithuania: "europe",
+Latvia: "europe",
+Estonia: "europe",
+Ukraine: "europe",
+Georgia: "europe",
+Armenia: "europe",
+Azerbaijan: "europe",
+"South Africa": "africa",
+Nigeria: "africa",
+Morocco: "africa",
+Kenya: "africa",
+Ghana: "africa",
+Ethiopia: "africa",
+Tanzania: "africa",
+Angola: "africa",
+Mozambique: "africa",
+Tunisia: "africa",
+Algeria: "africa",
+"United States": "unitedstates",
+Canada: "unitedstates",
+Brazil: "latinamerica",
+Mexico: "latinamerica",
+Colombia: "latinamerica",
+Argentina: "latinamerica",
+Chile: "latinamerica",
+Peru: "latinamerica",
+Ecuador: "latinamerica",
+Uruguay: "latinamerica",
+Paraguay: "latinamerica",
+Bolivia: "latinamerica",
+Venezuela: "latinamerica",
+Panama: "latinamerica",
+"Costa Rica": "latinamerica",
+Cuba: "latinamerica",
+"Dominican Republic": "latinamerica",
+"Puerto Rico": "latinamerica"
+};
+
+function destRegionOf(city) {
+if (!city) return null;
+if (city === "Hyderabad, India") return "hyderabad";
+return COUNTRY_REGION[city.slice(city.lastIndexOf(",") + 1).trim()] || null;
+}
+
 function computeResult(s) {
 const tagCount = {};
 const meters = {
@@ -2530,16 +2637,47 @@ return lovedNamesNorm.some(ln => ln && (dn === ln || ln.length >= 5 && dn.includ
 };
 const freshPool = scored.filter(e => !isLovedEcho(e.r.dish));
 const pool = freshPool.length >= 12 ? freshPool : scored;
-const recs = [];
+const recs = [], more = [];
+if (s.builtFor.mode === "travel") {
+const dr = destRegionOf(s.builtFor.city);
+const usedT = new Set;
+const takeSplit = want => {
+const out = [];
+if (dr) for (const e of pool) {
+if (out.length >= 8 || out.length >= want) break;
+if (e.r.region === dr && !usedT.has(e.r.dish)) {
+out.push(e.r);
+usedT.add(e.r.dish);
+}
+}
+for (const e of pool) {
+if (out.length >= want) break;
+if ((!dr || e.r.region !== dr) && !usedT.has(e.r.dish)) {
+out.push(e.r);
+usedT.add(e.r.dish);
+}
+}
+if (out.length < want) for (const e of pool) {
+if (out.length >= want) break;
+if (!usedT.has(e.r.dish)) {
+out.push(e.r);
+usedT.add(e.r.dish);
+}
+}
+return out;
+};
+recs.push(...takeSplit(12));
+more.push(...takeSplit(12));
+} else {
 pool.forEach(({r: r}) => {
 if (recs.length >= 12 || recs.find(x => x.dish === r.dish)) return;
 recs.push(r);
 });
-const more = [];
 pool.forEach(({r: r}) => {
 if (more.length >= 12 || recs.find(x => x.dish === r.dish) || more.find(x => x.dish === r.dish)) return;
 more.push(r);
 });
+}
 const recObjs = recs.map(r => ({
 dish: r.dish,
 from: r.from,

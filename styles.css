@@ -385,6 +385,8 @@ footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 18
 .slider-ico svg { width: 18px; height: 18px; }
 .se-ico svg { width: 19px; height: 19px; }
 .rec-title2 { font-family: 'Fraunces', serif; font-size: 1.05rem; margin: 18px 0 8px; text-align: left; }
+.course-h { margin-top: 24px; }
+.course-h:first-child { margin-top: 6px; }
 .trait.no { background: #FDECEC; color: #8C2B2B; border-color: #F0C4C4; }
 .neg-note { font-size: .85rem; color: var(--muted); margin: 6px 0 0; text-align: left; }
 .more-recs { display: block; margin: 14px auto 2px; }

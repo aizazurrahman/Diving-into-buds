@@ -2636,51 +2636,41 @@ const dn = dish.toLowerCase().replace(/[^a-z0-9]/g, "");
 return lovedNamesNorm.some(ln => ln && (dn === ln || ln.length >= 5 && dn.includes(ln) || dn.length >= 5 && ln.includes(dn)));
 };
 const freshPool = scored.filter(e => !isLovedEcho(e.r.dish));
-const pool = freshPool.length >= 12 ? freshPool : scored;
-const recs = [], more = [];
-if (s.builtFor.mode === "travel") {
-const dr = destRegionOf(s.builtFor.city);
-const usedT = new Set;
-const takeSplit = want => {
+const pool = freshPool.length >= 20 ? freshPool : scored;
+const COURSE_FRAME = [ [ "drink", 2 ], [ "appetizer", 6 ], [ "main", 8 ], [ "dessert", 4 ] ];
+const destR = s.builtFor.mode === "travel" ? destRegionOf(s.builtFor.city) : null;
+const usedC = new Set;
+const composeCourses = want => {
 const out = [];
-if (dr) for (const e of pool) {
-if (out.length >= 8 || out.length >= want) break;
-if (e.r.region === dr && !usedT.has(e.r.dish)) {
+const orderedFor = course => {
+const bucket = pool.filter(e => e.r.course === course && !usedC.has(e.r.dish));
+return destR ? [ ...bucket.filter(e => e.r.region === destR), ...bucket.filter(e => e.r.region !== destR) ] : bucket;
+};
+for (const [course, quota] of COURSE_FRAME) {
+let left = quota;
+for (const e of orderedFor(course)) {
+if (left <= 0 || out.length >= want) break;
 out.push(e.r);
-usedT.add(e.r.dish);
+usedC.add(e.r.dish);
+left--;
 }
 }
-for (const e of pool) {
+for (const course of [ "main", "appetizer", "dessert", "drink" ]) {
 if (out.length >= want) break;
-if ((!dr || e.r.region !== dr) && !usedT.has(e.r.dish)) {
-out.push(e.r);
-usedT.add(e.r.dish);
-}
-}
-if (out.length < want) for (const e of pool) {
+for (const e of orderedFor(course)) {
 if (out.length >= want) break;
-if (!usedT.has(e.r.dish)) {
 out.push(e.r);
-usedT.add(e.r.dish);
+usedC.add(e.r.dish);
 }
 }
 return out;
 };
-recs.push(...takeSplit(12));
-more.push(...takeSplit(12));
-} else {
-pool.forEach(({r: r}) => {
-if (recs.length >= 12 || recs.find(x => x.dish === r.dish)) return;
-recs.push(r);
-});
-pool.forEach(({r: r}) => {
-if (more.length >= 12 || recs.find(x => x.dish === r.dish) || more.find(x => x.dish === r.dish)) return;
-more.push(r);
-});
-}
+const recs = composeCourses(20);
+const more = composeCourses(20);
 const recObjs = recs.map(r => ({
 dish: r.dish,
 from: r.from,
+course: r.course,
 why: r.why,
 yt: r.yt || "",
 axes: axisMatchLabels(r),
@@ -2689,6 +2679,7 @@ whyYou: whyYouFor(r)
 altRecsCache = more.map(r => ({
 dish: r.dish,
 from: r.from,
+course: r.course,
 why: r.why,
 yt: r.yt || "",
 axes: axisMatchLabels(r),
@@ -2718,6 +2709,20 @@ return list.map(r => `<div class="rec"><span class="r-emoji">${(RECS.find(x => x
 }
 
 let lastResult = null, recsAltShown = false;
+
+const COURSE_SECTIONS = [ [ "drink", "🥤 Drinks" ], [ "appetizer", "🥗 Appetizers" ], [ "main", "🍽️ Main Dishes" ], [ "dessert", "🍮 Desserts" ] ];
+
+function recSectionsHtml(list, res) {
+const known = new Set(COURSE_SECTIONS.map(([c]) => c));
+let html = "";
+for (const [course, label] of COURSE_SECTIONS) {
+const items = list.filter(r => r.course === course);
+if (items.length) html += `<h3 class="rec-title2 course-h">${label}</h3>` + recCardsHtml(items, res);
+}
+const rest = list.filter(r => !known.has(r.course));
+if (rest.length) html += recCardsHtml(rest, res);
+return html;
+}
 
 function renderResults() {
 const res = st.result || computeResult(st);
@@ -2755,7 +2760,7 @@ f.style.width = f.dataset.w + "%";
 const axEl = $("profileAxes");
 if (axEl) axEl.innerHTML = res.axes && res.axes.length ? `<h3 class="rec-title2">🧭 Your flavour axes — your top ${res.axes.length}</h3>` + res.axes.map(a => `<div class="axis"><div class="a-head"><span>${a.emoji} ${a.name}</span><span class="a-lean">${a.lean === "hi" ? a.hi : a.lean === "lo" ? a.lo : "Balanced"}</span></div>` + `<div class="a-track"><span class="a-pole">${a.lo}</span><div class="a-bar"><div class="a-marker" style="left:${a.pct}%"></div></div><span class="a-pole">${a.hi}</span></div></div>`).join("") : "";
 $("profileNote").textContent = (res.partial ? `⚠️ This profile is based on ${res.answered || res.detail.length} answers${res.skipped ? `, with ${res.skipped} question${res.skipped > 1 ? "s" : ""} skipped` : " — you finished early"}, so treat it as a first sketch, not the full picture. ` : "") + `Weighted by your confidence slider — your average pick strength was ${res.avgConfidence} / 5. Strong opinions shaped this profile most.`;
-$("profileRecs").innerHTML = recCardsHtml(res.recs, res);
+$("profileRecs").innerHTML = recSectionsHtml(res.recs, res);
 const recTitleEl = $("recTitle");
 if (recTitleEl) recTitleEl.textContent = res.mode === "travel" && res.city ? `What to eat in ${res.city.split(",")[0]} 🌍` : "Your personalized picks, Handpicked based on what you love 🌍";
 upgradePlaces(res);
@@ -2765,7 +2770,7 @@ mrb.hidden = !(st.altRecs || []).length;
 mrb.textContent = "🎲 Show me different flavours";
 mrb.onclick = () => {
 recsAltShown = !recsAltShown;
-$("profileRecs").innerHTML = recCardsHtml(recsAltShown ? st.altRecs : lastResult.recs || [], lastResult);
+$("profileRecs").innerHTML = recSectionsHtml(recsAltShown ? st.altRecs : lastResult.recs || [], lastResult);
 upgradePlaces(lastResult);
 mrb.textContent = recsAltShown ? "↩️ Back to my top matches" : "🎲 Show me different flavours";
 };
@@ -2837,10 +2842,10 @@ async function cityPool(city) {
 if (poolMemCache[city]) return poolMemCache[city];
 const g = await geoCity(city);
 const cats = "catering.restaurant,catering.cafe,catering.fast_food";
-let d = await fetchJsonTimeout(`https://api.geoapify.com/v2/places?categories=${cats}&filter=place:${g.placeId}&limit=60&apiKey=${GEOAPIFY_KEY}`, 8e3);
+let d = await fetchJsonTimeout(`https://api.geoapify.com/v2/places?categories=${cats}&filter=place:${g.placeId}&bias=proximity:${g.lon},${g.lat}&limit=200&apiKey=${GEOAPIFY_KEY}`, 8e3);
 let feats = d && d.features || [];
 if (!feats.length) {
-d = await fetchJsonTimeout(`https://api.geoapify.com/v2/places?categories=${cats}&filter=circle:${g.lon},${g.lat},12000&bias=proximity:${g.lon},${g.lat}&limit=60&apiKey=${GEOAPIFY_KEY}`, 8e3);
+d = await fetchJsonTimeout(`https://api.geoapify.com/v2/places?categories=${cats}&filter=circle:${g.lon},${g.lat},12000&bias=proximity:${g.lon},${g.lat}&limit=200&apiKey=${GEOAPIFY_KEY}`, 8e3);
 feats = d && d.features || [];
 }
 const pool = feats.map(f => {
@@ -2901,7 +2906,7 @@ any = true;
 if (any && !document.querySelector(".places-attr")) {
 const d = document.createElement("p");
 d.className = "places-attr";
-d.textContent = "Restaurant picks from OpenStreetMap data · via Geoapify";
+d.innerHTML = 'Restaurant picks from OpenStreetMap data · Powered by <a href="https://www.geoapify.com/" target="_blank" rel="noopener">Geoapify</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>';
 const host = $("profileRecs");
 if (host && host.parentNode) host.parentNode.insertBefore(d, host.nextSibling);
 }

@@ -15,9 +15,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=32">
+<link rel="stylesheet" href="styles.css?v=33">
 </head>
 <body>
+
+<div class="bg-fx" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span></div>
 
 <header class="topbar">
   <div class="brand">🍽️ Diving into <span>Buds</span></div>
@@ -38,6 +40,25 @@
       <div class="badge">✦ A flavour journey ✦</div>
       <h1>Take a dive into your<br><em>taste buds</em>.</h1>
       <p class="lede">Thoughtful questions. Zero fluff. We figure out what makes your taste buds tick, then match your tastes to quietly introduce you to world flavors you didn't know you'd love.</p>
+      <div class="floaties" aria-hidden="true"><span>🍜</span><span>🌮</span><span>🍣</span><span>🥐</span><span>🍛</span><span>🍕</span></div>
+    </div>
+
+    <div class="mode-gate reveal">
+      <h2 class="mode-q">First — how are we eating?</h2>
+      <div class="mode-cards">
+        <button type="button" class="mode-card" id="modeTravel" aria-pressed="false">
+          <span class="mode-emoji">✈️</span>
+          <strong>I'm travelling</strong>
+          <span class="mode-line">New city? We'll line up what to eat there — and the places to eat it.</span>
+          <span class="mode-go">Plan my trip food →</span>
+        </button>
+        <button type="button" class="mode-card" id="modeExplore" aria-pressed="false">
+          <span class="mode-emoji">🏠</span>
+          <strong>I'm exploring</strong>
+          <span class="mode-line">Discover world flavours you'll love, right where you live.</span>
+          <span class="mode-go">Explore from home →</span>
+        </button>
+      </div>
     </div>
 
     <div class="card info-card reveal">
@@ -80,6 +101,10 @@
       <div class="big-emoji">🧭</div>
       <h2>Before you dive in</h2>
       <p class="lede">Your diet and roots build your questions. Your city powers our recommendations</p>
+      <div class="mode-switch" role="group" aria-label="Travelling or exploring">
+        <button type="button" class="mode-pill" id="fundModeTravel" aria-pressed="false">✈️ I'm travelling</button>
+        <button type="button" class="mode-pill" id="fundModeExplore" aria-pressed="false">🏠 I'm exploring</button>
+      </div>
 
       <h3 class="fund-label">Fundamental 1 · Pick your diet<button type="button" id="dietInfoBtn" class="info-btn" aria-label="About the diet choices" title="About the diet choices">i</button></h3>
       <div class="fund-grid" id="dietGrid" role="radiogroup" aria-label="Pick your diet">
@@ -104,7 +129,7 @@
       </div>
       <p class="fund-info" id="rootsInfo" hidden></p>
 
-      <h3 class="fund-label">Which city do you live in?</h3>
+      <h3 class="fund-label" id="cityQuestion">Which city do you live in?</h3>
       <div class="city-wrap">
         <input type="text" id="cityInput" class="city-input" placeholder="Start typing your city…" autocomplete="off" maxlength="60" role="combobox" aria-expanded="false" aria-controls="cityMenu" aria-autocomplete="list">
         <div class="city-menu" id="cityMenu" role="listbox" hidden></div>
@@ -229,7 +254,7 @@
       <div id="profileAxes"></div>
       <div id="profileAffinities"></div>
       <div id="profileAversions"></div>
-      <h3 class="rec-title">Your personalized picks, Handpicked based on what you love 🌍</h3>
+      <h3 class="rec-title" id="recTitle">Your personalized picks, Handpicked based on what you love 🌍</h3>
       <div class="recs" id="profileRecs"></div>
       <button class="btn ghost more-recs" id="moreRecsBtn" type="button" hidden>🎲 Show me different flavours</button>
       <p class="fineprint" id="sheetNote"></p>
@@ -248,6 +273,6 @@
 <script src="questions2.js?v=10"></script>
 <script src="questions3.js?v=7"></script>
 <script src="recs.js?v=2"></script>
-<script src="app.js?v=51"></script>
+<script src="app.js?v=52"></script>
 </body>
 </html>

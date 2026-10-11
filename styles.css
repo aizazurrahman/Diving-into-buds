@@ -439,3 +439,46 @@ footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 18
 @keyframes phrase-breathe { from { opacity: .6; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .hole *, .compile-phrase, .compile-bar span { animation: none !important; } }
 .loves-line { margin: 2px 0 10px; font-size: .95rem; opacity: .85; }
+
+/* ——— v33: animated backdrop + mode gate ——— */
+.bg-fx { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.bg-fx .blob { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .55; will-change: transform; }
+.bg-fx .b1 { width: 55vmax; height: 55vmax; left: -14vmax; top: -18vmax; background: radial-gradient(circle at 35% 35%, #A855F7, transparent 65%); animation: blobDrift1 36s ease-in-out infinite alternate; }
+.bg-fx .b2 { width: 48vmax; height: 48vmax; right: -12vmax; top: 12vh; background: radial-gradient(circle at 60% 40%, #6366F1, transparent 65%); animation: blobDrift2 44s ease-in-out infinite alternate; }
+.bg-fx .b3 { width: 40vmax; height: 40vmax; left: 22vw; bottom: -20vmax; background: radial-gradient(circle at 50% 50%, #D946EF, transparent 65%); opacity: .35; animation: blobDrift1 52s ease-in-out infinite alternate-reverse; }
+@keyframes blobDrift1 { from { transform: translate(0, 0) scale(1); } to { transform: translate(9vmax, 5vmax) scale(1.15); } }
+@keyframes blobDrift2 { from { transform: translate(0, 0) scale(1.1); } to { transform: translate(-8vmax, 9vmax) scale(.95); } }
+.hero { position: relative; }
+.floaties { position: absolute; inset: 0; pointer-events: none; }
+.floaties span { position: absolute; font-size: 1.5rem; opacity: .55; filter: drop-shadow(0 4px 10px rgba(76, 29, 149, .25)); animation: floaty2 7s ease-in-out infinite; }
+.floaties span:nth-child(1) { left: 4%; top: 58%; animation-delay: 0s; }
+.floaties span:nth-child(2) { left: 12%; top: 16%; animation-delay: 1.2s; font-size: 1.2rem; }
+.floaties span:nth-child(3) { right: 10%; top: 22%; animation-delay: .6s; }
+.floaties span:nth-child(4) { right: 4%; top: 62%; animation-delay: 1.8s; font-size: 1.25rem; }
+.floaties span:nth-child(5) { left: 24%; top: 82%; animation-delay: 2.4s; font-size: 1.15rem; }
+.floaties span:nth-child(6) { right: 24%; top: 84%; animation-delay: .3s; font-size: 1.35rem; }
+@keyframes floaty2 { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-11px) rotate(5deg); } }
+.mode-gate { max-width: 640px; margin: 0 auto 26px; text-align: center; }
+.mode-q { margin-bottom: 14px; }
+.mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.mode-card { font: inherit; text-align: left; cursor: pointer; border: 1.5px solid var(--line); border-radius: var(--radius); padding: 20px 18px 16px; color: var(--ink);
+  background: linear-gradient(160deg, rgba(255,255,255,.92), rgba(233,220,251,.75)); box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 7px; transition: transform .25s cubic-bezier(.22,.8,.36,1), box-shadow .25s, border-color .25s; }
+.mode-card:hover { transform: translateY(-4px); border-color: var(--accent-2); box-shadow: 0 20px 44px rgba(76, 29, 149, .28); }
+.mode-card:active { transform: translateY(-1px) scale(.99); }
+.mode-card .mode-emoji { font-size: 2rem; line-height: 1; }
+.mode-card strong { font-family: 'Fraunces', serif; font-size: 1.3rem; }
+.mode-card .mode-line { color: var(--muted); font-size: .92rem; line-height: 1.45; }
+.mode-card .mode-go { margin-top: 4px; color: var(--accent); font-weight: 600; font-size: .9rem; }
+.mode-card.picked { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow); }
+.mode-switch { display: flex; gap: 8px; justify-content: center; margin: 14px 0 4px; flex-wrap: wrap; }
+.mode-pill { font: inherit; font-size: .9rem; font-weight: 600; cursor: pointer; padding: 8px 16px; border-radius: 999px; border: 1.5px solid var(--line); background: #fff; color: var(--muted); transition: all .2s; }
+.mode-pill:hover { border-color: var(--accent-2); color: var(--ink); }
+.mode-pill.on { background: var(--grad); border-color: transparent; color: #fff; box-shadow: 0 6px 18px rgba(124, 58, 237, .35); }
+.places-attr { color: var(--muted); font-size: .78rem; text-align: center; margin: 10px 0 2px; }
+@media (max-width: 560px) { .mode-cards { grid-template-columns: 1fr; } .floaties span:nth-child(5), .floaties span:nth-child(6) { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .bg-fx .blob, .floaties span { animation: none !important; }
+  .mode-card { transition: none; }
+  .mode-card:hover { transform: none; }
+}

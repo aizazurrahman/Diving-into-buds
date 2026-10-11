@@ -2886,5 +2886,807 @@ RECS.push(
   "noodle"
  ],
  "why": "Hand-pulled noodle soup with chicken and vegetables — the Himalayan warmer."
+},
+{
+ "dish": "Yakhni pulao",
+ "yt": "https://www.youtube.com/watch?v=3wMHxS0F9h8",
+ "from": "Karachi · South Asia",
+ "region": "southasia",
+ "country": "Pakistan",
+ "diet": "meat:lamb",
+ "emoji": "🍚",
+ "course": "main",
+ "match": [
+  "rice",
+  "home",
+  "classic"
+ ],
+ "why": "Mutton stock-cooked rice, gentle and aromatic — Karachi's celebration pulao."
+},
+{
+ "dish": "Peshawari namkeen gosht",
+ "yt": "https://www.youtube.com/watch?v=H4_RS33AZBs",
+ "from": "Peshawar · South Asia",
+ "region": "southasia",
+ "country": "Pakistan",
+ "diet": "meat:lamb",
+ "emoji": "🥩",
+ "course": "main",
+ "match": [
+  "meat",
+  "classic",
+  "home"
+ ],
+ "why": "Lamb cooked in its own fat with salt, green chillies and tomato — nothing else needed."
+},
+{
+ "dish": "Kunna gosht",
+ "yt": "https://www.youtube.com/watch?v=YaGzC1TnGMk",
+ "from": "Chiniot · South Asia",
+ "region": "southasia",
+ "country": "Pakistan",
+ "diet": "meat:lamb",
+ "emoji": "🍲",
+ "course": "main",
+ "match": [
+  "meat",
+  "spice",
+  "classic"
+ ],
+ "why": "Mutton slow-cooked in a clay pot with black cumin — Chiniot's wedding dish."
+},
+{
+ "dish": "Lahori chargha",
+ "yt": "https://www.youtube.com/watch?v=9O-aMD-h9ck",
+ "from": "Lahore · South Asia",
+ "region": "southasia",
+ "country": "Pakistan",
+ "diet": "meat:chicken",
+ "emoji": "🍗",
+ "course": "main",
+ "match": [
+  "crisp",
+  "spice",
+  "street"
+ ],
+ "why": "A whole chicken, spice-steamed then fried crisp — Lahore's showpiece."
+},
+{
+ "dish": "Daal mash",
+ "yt": "https://www.youtube.com/watch?v=3mNLV7p8eh0",
+ "from": "Lahore · South Asia",
+ "region": "southasia",
+ "country": "Pakistan",
+ "diet": "vegan",
+ "emoji": "🍛",
+ "course": "main",
+ "match": [
+  "home",
+  "comfort",
+  "classic"
+ ],
+ "why": "White lentils fried dhaba-style with ginger, tomato and green chilli."
+},
+{
+ "dish": "Chana pulao",
+ "yt": "https://www.youtube.com/watch?v=HPDmPxBxXG8",
+ "from": "Lahore · South Asia",
+ "region": "southasia",
+ "country": "Pakistan",
+ "diet": "vegan",
+ "emoji": "🍚",
+ "course": "main",
+ "match": [
+  "rice",
+  "street",
+  "home"
+ ],
+ "why": "Chickpea rice from Lahore's street carts, with a sharp green chutney."
+},
+{
+ "dish": "Chana chaat",
+ "yt": "https://www.youtube.com/watch?v=Ct5Omiu1x04",
+ "from": "Karachi · South Asia",
+ "region": "southasia",
+ "country": "Pakistan",
+ "diet": "vegan",
+ "emoji": "🥗",
+ "course": "appetizer",
+ "match": [
+  "tangy",
+  "spice",
+  "street"
+ ],
+ "why": "Chickpeas with onion, tomato, tamarind and chaat masala — Karachi's beach snack."
+},
+{
+ "dish": "Rooh Afza",
+ "yt": "https://www.youtube.com/watch?v=-vFpEMSkZyk",
+ "from": "Karachi · South Asia",
+ "region": "southasia",
+ "country": "Pakistan",
+ "diet": "vegan",
+ "emoji": "🥤",
+ "course": "drink",
+ "match": [
+  "sweet",
+  "fresh",
+  "classic"
+ ],
+ "why": "The ruby herbal sharbat of Karachi, poured over ice-cold water."
+},
+{
+ "dish": "Firni",
+ "yt": "https://www.youtube.com/watch?v=JtABFzmN-UA",
+ "from": "Lahore · South Asia",
+ "region": "southasia",
+ "country": "Pakistan",
+ "diet": "veg",
+ "emoji": "🍮",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "creamy",
+  "classic"
+ ],
+ "why": "Ground-rice pudding set in clay bowls, scented with cardamom."
+},
+{
+ "dish": "Jalebi",
+ "yt": "https://www.youtube.com/watch?v=pdFm9Rnz4H8",
+ "from": "India · South Asia",
+ "region": "southasia",
+ "country": "India",
+ "diet": "vegan",
+ "emoji": "🌀",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "crisp",
+  "street"
+ ],
+ "why": "Fermented batter spirals, fried and soaked in saffron syrup — crisp outside, syrupy in."
+},
+{
+ "dish": "Ada pradhaman",
+ "yt": "https://www.youtube.com/watch?v=JnN-pJAHrtA",
+ "from": "Kerala · South Asia",
+ "region": "southasia",
+ "country": "India",
+ "diet": "vegan",
+ "emoji": "🍮",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "creamy",
+  "classic"
+ ],
+ "why": "Rice flakes simmered in coconut milk and jaggery — Kerala's king of payasams."
+},
+{
+ "dish": "Bhapa pithe",
+ "yt": "https://www.youtube.com/watch?v=TLcFr_mDZpQ",
+ "from": "Bangladesh · South Asia",
+ "region": "southasia",
+ "country": "Bangladesh",
+ "diet": "vegan",
+ "emoji": "🍰",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "home",
+  "classic"
+ ],
+ "why": "Steamed rice cakes with coconut and jaggery, made through the winter."
+},
+{
+ "dish": "Yomari",
+ "yt": "https://www.youtube.com/watch?v=uHQLtwipDs4",
+ "from": "Kathmandu · South Asia",
+ "region": "southasia",
+ "country": "Nepal",
+ "diet": "vegan",
+ "emoji": "🥟",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "classic",
+  "home"
+ ],
+ "why": "Fish-shaped rice dumplings filled with jaggery and sesame — the Newari harvest sweet."
+},
+{
+ "dish": "Pazham pori",
+ "yt": "https://www.youtube.com/watch?v=T4yx3fC_rnk",
+ "from": "Kerala · South Asia",
+ "region": "southasia",
+ "country": "India",
+ "diet": "vegan",
+ "emoji": "🍌",
+ "course": "appetizer",
+ "match": [
+  "sweet",
+  "crisp",
+  "street"
+ ],
+ "why": "Banana fritters from Kerala's tea stalls — crisp batter, jammy inside."
+},
+{
+ "dish": "Bagara baingan",
+ "yt": "https://www.youtube.com/watch?v=P68XYjqazJs",
+ "from": "Hyderabad · Deccan",
+ "region": "hyderabad",
+ "country": "India",
+ "diet": "vegan",
+ "emoji": "🍆",
+ "course": "main",
+ "match": [
+  "tangy",
+  "creamy",
+  "classic"
+ ],
+ "why": "Baby aubergines in a peanut, sesame and tamarind gravy — the biryani's true partner."
+},
+{
+ "dish": "Mirchi bajji",
+ "yt": "https://www.youtube.com/watch?v=MFLGmnzE1Zg",
+ "from": "Hyderabad · Deccan",
+ "region": "hyderabad",
+ "country": "India",
+ "diet": "vegan",
+ "emoji": "🌶️",
+ "course": "appetizer",
+ "match": [
+  "spice",
+  "crisp",
+  "street"
+ ],
+ "why": "Big green chillies in chickpea batter, fried and split open with onion and lemon."
+},
+{
+ "dish": "Buddha's delight",
+ "yt": "https://www.youtube.com/watch?v=nzFIhl74hbU",
+ "from": "China · East Asia",
+ "region": "eastasia",
+ "country": "China",
+ "diet": "vegan",
+ "emoji": "🥦",
+ "course": "main",
+ "match": [
+  "healthy",
+  "home",
+  "classic"
+ ],
+ "why": "Luohan zhai — a monastery stir-fry of a dozen vegetables, tofu and mushrooms."
+},
+{
+ "dish": "Sayur lodeh",
+ "yt": "https://www.youtube.com/watch?v=bKk_gu_ys-o",
+ "from": "Java · East Asia",
+ "region": "eastasia",
+ "country": "Indonesia",
+ "diet": "vegan",
+ "emoji": "🍲",
+ "course": "main",
+ "match": [
+  "creamy",
+  "soup",
+  "home"
+ ],
+ "why": "Vegetables and tempeh in a light coconut broth — Java's everyday curry."
+},
+{
+ "dish": "Pad see ew",
+ "yt": "https://www.youtube.com/watch?v=JpPiLwuGmks",
+ "from": "Bangkok · East Asia",
+ "region": "eastasia",
+ "country": "Thailand",
+ "diet": "vegan",
+ "emoji": "🍜",
+ "course": "main",
+ "match": [
+  "noodle",
+  "smoky",
+  "street"
+ ],
+ "why": "Wide rice noodles charred in dark soy with Chinese broccoli — made jay (vegan) here."
+},
+{
+ "dish": "Vegetable chow mein",
+ "yt": "https://www.youtube.com/watch?v=oYBN84Q1uaM",
+ "from": "Hong Kong · East Asia",
+ "region": "eastasia",
+ "country": "China",
+ "diet": "vegan",
+ "emoji": "🍜",
+ "course": "main",
+ "match": [
+  "noodle",
+  "crisp",
+  "street"
+ ],
+ "why": "Crisp-edged noodles over crunchy vegetables in a glossy sauce."
+},
+{
+ "dish": "Mujaddara",
+ "yt": "https://www.youtube.com/watch?v=eTTqRq6KlrA",
+ "from": "Lebanon · Middle East",
+ "region": "middleeast",
+ "country": "Lebanon",
+ "diet": "vegan",
+ "emoji": "🍛",
+ "course": "main",
+ "match": [
+  "home",
+  "comfort",
+  "healthy"
+ ],
+ "why": "Lentils and rice under a tumble of caramelised onions — the Levant's store-cupboard feast."
+},
+{
+ "dish": "Halva",
+ "yt": "https://www.youtube.com/watch?v=7bYPz_iieoc",
+ "from": "Jerusalem · Middle East",
+ "region": "middleeast",
+ "country": "Israel",
+ "diet": "vegan",
+ "emoji": "🍬",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "classic",
+  "home"
+ ],
+ "why": "Tahini fudge in marbled slabs — plain, pistachio or chocolate-swirled."
+},
+{
+ "dish": "Meghli",
+ "yt": "https://www.youtube.com/watch?v=cMy9zmHlntI",
+ "from": "Beirut · Middle East",
+ "region": "middleeast",
+ "country": "Lebanon",
+ "diet": "vegan",
+ "emoji": "🍮",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "spice",
+  "classic"
+ ],
+ "why": "Spiced rice-flour pudding with coconut and nuts, made to celebrate a birth."
+},
+{
+ "dish": "Awamat",
+ "yt": "https://www.youtube.com/watch?v=yQzmoJklxs4",
+ "from": "Lebanon · Middle East",
+ "region": "middleeast",
+ "country": "Lebanon",
+ "diet": "vegan",
+ "emoji": "🍯",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "crisp",
+  "street"
+ ],
+ "why": "Crisp doughnut balls drenched in orange-blossom syrup."
+},
+{
+ "dish": "Arnold Palmer",
+ "yt": "https://www.youtube.com/watch?v=AI07N2k1zu4",
+ "from": "United States · North America",
+ "region": "unitedstates",
+ "country": "United States",
+ "diet": "vegan",
+ "emoji": "🍋",
+ "course": "drink",
+ "match": [
+  "tangy",
+  "fresh",
+  "classic"
+ ],
+ "why": "Half iced tea, half lemonade — the golfer's cooler, ordered by name everywhere."
+},
+{
+ "dish": "Fried green tomatoes",
+ "yt": "https://www.youtube.com/watch?v=oOhlw2W23vg",
+ "from": "Alabama · United States",
+ "region": "unitedstates",
+ "country": "United States",
+ "diet": "vegan",
+ "emoji": "🍅",
+ "course": "appetizer",
+ "match": [
+  "crisp",
+  "tangy",
+  "classic"
+ ],
+ "why": "Cornmeal-crusted tart tomato slices, fried golden — a Southern icon."
+},
+{
+ "dish": "Hush puppies",
+ "yt": "https://www.youtube.com/watch?v=z-fxhRvgk8Q",
+ "from": "South Carolina · United States",
+ "region": "unitedstates",
+ "country": "United States",
+ "diet": "veg",
+ "emoji": "🧆",
+ "course": "appetizer",
+ "match": [
+  "crisp",
+  "comfort",
+  "street"
+ ],
+ "why": "Cornmeal dumplings fried crisp, served beside every fish fry in the South.",
+ "egg": true
+},
+{
+ "dish": "Fried pickles",
+ "yt": "https://www.youtube.com/watch?v=3HtOLDBjJ0M",
+ "from": "Arkansas · United States",
+ "region": "unitedstates",
+ "country": "United States",
+ "diet": "vegan",
+ "emoji": "🥒",
+ "course": "appetizer",
+ "match": [
+  "crisp",
+  "tangy",
+  "street"
+ ],
+ "why": "Battered dill pickle chips with ranch — Arkansas fair food."
+},
+{
+ "dish": "Peanut soup",
+ "yt": "https://www.youtube.com/watch?v=3a6JpFCH7HE",
+ "from": "Virginia · United States",
+ "region": "unitedstates",
+ "country": "United States",
+ "diet": "vegan",
+ "emoji": "🥜",
+ "course": "appetizer",
+ "match": [
+  "creamy",
+  "soup",
+  "classic"
+ ],
+ "why": "Virginia's colonial peanut soup — rich, savoury and smooth."
+},
+{
+ "dish": "Gumbo z'herbes",
+ "yt": "https://www.youtube.com/watch?v=d2m5kkmmQGE",
+ "from": "Louisiana · United States",
+ "region": "unitedstates",
+ "country": "United States",
+ "diet": "vegan",
+ "emoji": "🍲",
+ "course": "main",
+ "match": [
+  "soup",
+  "spice",
+  "home"
+ ],
+ "why": "The Lenten green gumbo — a pot of slow-cooked greens and herbs over rice."
+},
+{
+ "dish": "Three sisters soup",
+ "yt": "https://www.youtube.com/watch?v=E0lKTuj2tZc",
+ "from": "New Mexico · United States",
+ "region": "unitedstates",
+ "country": "United States",
+ "diet": "vegan",
+ "emoji": "🍲",
+ "course": "main",
+ "match": [
+  "soup",
+  "healthy",
+  "home"
+ ],
+ "why": "Corn, beans and squash — the Three Sisters — in one nourishing bowl."
+},
+{
+ "dish": "Chili sin carne",
+ "yt": "https://www.youtube.com/watch?v=w-afw35noy0",
+ "from": "Texas · United States",
+ "region": "unitedstates",
+ "country": "United States",
+ "diet": "vegan",
+ "emoji": "🌶️",
+ "course": "main",
+ "match": [
+  "spice",
+  "soup",
+  "comfort"
+ ],
+ "why": "Texas chilli without the meat — beans and peppers in a deep red brew."
+},
+{
+ "dish": "Macaroni and cheese",
+ "yt": "https://www.youtube.com/watch?v=XuBeqe9Ak2g",
+ "from": "United States · North America",
+ "region": "unitedstates",
+ "country": "United States",
+ "diet": "veg",
+ "emoji": "🧀",
+ "course": "main",
+ "match": [
+  "creamy",
+  "comfort",
+  "classic"
+ ],
+ "why": "Elbow pasta in a sharp cheddar sauce with a browned top — the American comfort dish."
+},
+{
+ "dish": "Eggplant parmesan",
+ "yt": "https://www.youtube.com/watch?v=bZTI9VGQKNw",
+ "from": "New York · United States",
+ "region": "unitedstates",
+ "country": "United States",
+ "diet": "veg",
+ "emoji": "🍆",
+ "course": "main",
+ "match": [
+  "creamy",
+  "comfort",
+  "classic"
+ ],
+ "why": "Breaded aubergine layered with tomato and mozzarella — Italian-American Sunday food.",
+ "egg": true
+},
+{
+ "dish": "Baked apples",
+ "yt": "https://www.youtube.com/watch?v=fR8R8HJgVqE",
+ "from": "New England · United States",
+ "region": "unitedstates",
+ "country": "United States",
+ "diet": "vegan",
+ "emoji": "🍎",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "spice",
+  "home"
+ ],
+ "why": "Whole apples baked with cinnamon and raisins — a colonial farmhouse dessert."
+},
+{
+ "dish": "Soupe au pistou",
+ "yt": "https://www.youtube.com/watch?v=PD8EkP-nEW0",
+ "from": "Provence · Europe",
+ "region": "europe",
+ "country": "France",
+ "diet": "vegan",
+ "emoji": "🍲",
+ "course": "main",
+ "match": [
+  "soup",
+  "fresh",
+  "home"
+ ],
+ "why": "Summer vegetable and bean soup with a basil-garlic pistou stirred in."
+},
+{
+ "dish": "Lecsó",
+ "yt": "https://www.youtube.com/watch?v=zhmzmEzKWAc",
+ "from": "Hungary · Europe",
+ "region": "europe",
+ "country": "Hungary",
+ "diet": "vegan",
+ "emoji": "🫑",
+ "course": "main",
+ "match": [
+  "tangy",
+  "home",
+  "classic"
+ ],
+ "why": "Peppers, tomato and onion stewed down sweet — Hungary's summer pan."
+},
+{
+ "dish": "Fasolada",
+ "yt": "https://www.youtube.com/watch?v=1s22lUYEOQI",
+ "from": "Greece · Europe",
+ "region": "europe",
+ "country": "Greece",
+ "diet": "vegan",
+ "emoji": "🍲",
+ "course": "main",
+ "match": [
+  "soup",
+  "healthy",
+  "home"
+ ],
+ "why": "White beans, tomato and olive oil — Greece's national soup."
+},
+{
+ "dish": "Granita",
+ "yt": "https://www.youtube.com/watch?v=8Zy0Jf_FW4Y",
+ "from": "Sicily · Europe",
+ "region": "europe",
+ "country": "Italy",
+ "diet": "vegan",
+ "emoji": "🍧",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "fresh",
+  "classic"
+ ],
+ "why": "Sicilian shaved ice — lemon, coffee or almond — eaten with a spoon and a brioche."
+},
+{
+ "dish": "Castagnaccio",
+ "yt": "https://www.youtube.com/watch?v=ZfjGI2fPMK0",
+ "from": "Tuscany · Europe",
+ "region": "europe",
+ "country": "Italy",
+ "diet": "vegan",
+ "emoji": "🌰",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "home",
+  "classic"
+ ],
+ "why": "Chestnut-flour cake with rosemary, pine nuts and raisins — all Tuscany, nothing else needed."
+},
+{
+ "dish": "Rote Grütze",
+ "yt": "https://www.youtube.com/watch?v=lWilltwNbMQ",
+ "from": "Hamburg · Europe",
+ "region": "europe",
+ "country": "Germany",
+ "diet": "vegan",
+ "emoji": "🍒",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "tangy",
+  "classic"
+ ],
+ "why": "Northern Germany's red-berry compote, tart and jewel-bright."
+},
+{
+ "dish": "Churros",
+ "yt": "https://www.youtube.com/watch?v=453mpKHVaBs",
+ "from": "Madrid · Europe",
+ "region": "europe",
+ "country": "Spain",
+ "diet": "vegan",
+ "emoji": "🥖",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "crisp",
+  "street"
+ ],
+ "why": "Ridged dough sticks, fried and rolled in cinnamon sugar — Madrid's breakfast ritual."
+},
+{
+ "dish": "Kashata",
+ "yt": "https://www.youtube.com/watch?v=JSJFZkckrb0",
+ "from": "Mombasa · Africa",
+ "region": "africa",
+ "country": "Kenya",
+ "diet": "vegan",
+ "emoji": "🥥",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "crisp",
+  "street"
+ ],
+ "why": "Coconut and peanut brittle from the Swahili coast — crunchy, caramel-dark."
+},
+{
+ "dish": "Chin chin",
+ "yt": "https://www.youtube.com/watch?v=qVK-uM9Tn4c",
+ "from": "Lagos · Africa",
+ "region": "africa",
+ "country": "Nigeria",
+ "diet": "vegan",
+ "emoji": "🍪",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "crisp",
+  "street"
+ ],
+ "why": "Crunchy fried dough bites with nutmeg — Nigeria's party snack by the bowlful."
+},
+{
+ "dish": "Guacamole",
+ "yt": "https://www.youtube.com/watch?v=a6yCQdx3Pkg",
+ "from": "Mexico City · Latin America",
+ "region": "latinamerica",
+ "country": "Mexico",
+ "diet": "vegan",
+ "emoji": "🥑",
+ "course": "appetizer",
+ "match": [
+  "fresh",
+  "tangy",
+  "classic"
+ ],
+ "why": "Avocado crushed with lime, onion, coriander and chilli — made at the table."
+},
+{
+ "dish": "Tostones",
+ "yt": "https://www.youtube.com/watch?v=722gwEzpqhI",
+ "from": "San Juan · Latin America",
+ "region": "latinamerica",
+ "country": "Puerto Rico",
+ "diet": "vegan",
+ "emoji": "🍌",
+ "course": "appetizer",
+ "match": [
+  "crisp",
+  "street",
+  "classic"
+ ],
+ "why": "Twice-fried green plantain discs with garlic salt."
+},
+{
+ "dish": "Sopaipillas",
+ "yt": "https://www.youtube.com/watch?v=TY4mCJsdZrQ",
+ "from": "Chile · Latin America",
+ "region": "latinamerica",
+ "country": "Chile",
+ "diet": "vegan",
+ "emoji": "🎃",
+ "course": "appetizer",
+ "match": [
+  "crisp",
+  "street",
+  "home"
+ ],
+ "why": "Golden pumpkin fritters — rainy-day food, plain or with pebre."
+},
+{
+ "dish": "Pupusa de frijol",
+ "yt": "https://www.youtube.com/watch?v=qNa1yYuRPio",
+ "from": "San Salvador · Latin America",
+ "region": "latinamerica",
+ "country": "El Salvador",
+ "diet": "vegan",
+ "emoji": "🫓",
+ "course": "appetizer",
+ "match": [
+  "comfort",
+  "street",
+  "classic"
+ ],
+ "why": "Thick corn cakes stuffed with refried beans, with curtido slaw alongside."
+},
+{
+ "dish": "Tacu tacu",
+ "yt": "https://www.youtube.com/watch?v=1OHTqMOQn5U",
+ "from": "Lima · Latin America",
+ "region": "latinamerica",
+ "country": "Peru",
+ "diet": "vegan",
+ "emoji": "🍛",
+ "course": "main",
+ "match": [
+  "rice",
+  "crisp",
+  "home"
+ ],
+ "why": "Beans and rice fried into a crisp-edged cake — Afro-Peruvian thrift at its best."
+},
+{
+ "dish": "Locro de zapallo",
+ "yt": "https://www.youtube.com/watch?v=CNwG8BQTXc0",
+ "from": "Arequipa · Latin America",
+ "region": "latinamerica",
+ "country": "Peru",
+ "diet": "vegan",
+ "emoji": "🎃",
+ "course": "main",
+ "match": [
+  "creamy",
+  "home",
+  "comfort"
+ ],
+ "why": "Squash stew with potato, corn and broad beans — Andean comfort."
 }
 );

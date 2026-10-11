@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=31">
+<link rel="stylesheet" href="styles.css?v=32">
 </head>
 <body>
 
@@ -80,7 +80,6 @@
       <div class="big-emoji">🧭</div>
       <h2>Before you dive in</h2>
       <p class="lede">Your diet and roots build your questions. Your city powers our recommendations</p>
-      <p class="lede">Expect this to take 15–20 minutes—your patience between questions is greatly appreciated.</p>
 
       <h3 class="fund-label">Fundamental 1 · Pick your diet<button type="button" id="dietInfoBtn" class="info-btn" aria-label="About the diet choices" title="About the diet choices">i</button></h3>
       <div class="fund-grid" id="dietGrid" role="radiogroup" aria-label="Pick your diet">
@@ -92,7 +91,7 @@
       <p class="fund-info" id="dietInfo" hidden></p>
 
       <h3 class="fund-label">Fundamental 2 · Your roots<button type="button" id="rootsInfoBtn" class="info-btn" aria-label="About the roots choices" title="About the roots choices">i</button></h3>
-      <p class="fund-note">Pick one — or <strong>up to two</strong>, if more than one place raised your palate. Your questions will blend the best of both.</p>
+      <p class="fund-note">Pick one — or <strong>up to two</strong>.</p>
       <div class="fund-grid" id="rootsGrid" role="group" aria-label="Your roots">
         <button type="button" class="fund-opt" data-roots="africa" role="radio" aria-checked="false"><span class="f-emoji">🌍</span><strong>Africa</strong><span>Jollof to injera to the braai.</span><span class="fi" data-fi="roots" data-key="africa" title="More about this choice">i</span></button>
         <button type="button" class="fund-opt" data-roots="eastasia" role="radio" aria-checked="false"><span class="f-emoji">🥢</span><strong>East/Southeast Asia</strong><span>From ramen to rendang.</span><span class="fi" data-fi="roots" data-key="eastasia" title="More about this choice">i</span></button>
@@ -117,7 +116,6 @@
         <button class="btn primary big" id="buildBtn" type="button" disabled>Build my questions →</button>
         <button class="btn ghost" id="fundExitBtn" type="button">💾 Save &amp; exit</button>
       </div>
-      <p class="fineprint">Changing diet or roots later restarts your questionnaire — those picks decide your questions. City only steers your suggestions, and you can change it anytime.</p>
     </div>
   </section>
 
@@ -232,7 +230,6 @@
       <div id="profileAffinities"></div>
       <div id="profileAversions"></div>
       <h3 class="rec-title">Your personalized picks, Handpicked based on what you love 🌍</h3>
-      <p class="rec-sub">Matched to your profile — similar enough to love, new enough to explore.</p>
       <div class="recs" id="profileRecs"></div>
       <button class="btn ghost more-recs" id="moreRecsBtn" type="button" hidden>🎲 Show me different flavours</button>
       <p class="fineprint" id="sheetNote"></p>
@@ -250,7 +247,7 @@
 <script src="questions.js?v=18"></script>
 <script src="questions2.js?v=10"></script>
 <script src="questions3.js?v=7"></script>
-<script src="recs.js?v=1"></script>
+<script src="recs.js?v=2"></script>
 <script src="app.js?v=51"></script>
 </body>
 </html>

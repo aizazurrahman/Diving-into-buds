@@ -530,6 +530,10 @@ show("view-auth");
 };
 
 function routeAfterLogin() {
+if (st && st.fundamentals && st.fundamentals.mode) {
+store.set("dib_mode", st.fundamentals.mode);
+pickMode = st.fundamentals.mode;
+}
 if (st && st.builtFor && st.builtFor.city) {
 renderHome();
 show("view-home");
@@ -539,14 +543,15 @@ show("view-fund");
 }
 }
 
-let pickDiet = null, pickRoots = null, pickRoots2 = null, pickCity = "";
+let pickDiet = null, pickRoots = null, pickRoots2 = null, pickCity = "", pickMode = "explore";
 
 function savePending() {
 store.set("dib_pending_fund", {
 diet: pickDiet,
 roots: pickRoots,
 roots2: pickRoots2,
-city: pickCity
+city: pickCity,
+mode: pickMode
 });
 }
 
@@ -557,6 +562,8 @@ pickRoots = saved ? normRootsValue(saved.roots) : null;
 pickRoots2 = saved && saved.roots2 ? normRootsValue(saved.roots2) : null;
 if (pickRoots2 === pickRoots) pickRoots2 = null;
 pickCity = saved && saved.city ? canonicalCity(saved.city) : "";
+const mStore = store.get("dib_mode", "");
+pickMode = mStore === "travel" || mStore === "explore" ? mStore : saved && saved.mode === "travel" ? "travel" : "explore";
 $("cityInput").value = pickCity;
 $("cityInput").classList.remove("invalid");
 paintFundPicks();
@@ -576,7 +583,54 @@ b.setAttribute("aria-checked", on || on2 ? "true" : "false");
 });
 $("buildBtn").disabled = !(pickDiet && pickRoots && pickCity);
 $("buildBtn").textContent = st && st.builtFor ? "Rebuild my questions →" : "Build my questions →";
+const trav = pickMode === "travel";
+[ [ "modeTravel", trav ], [ "modeExplore", !trav ] ].forEach(([id, on]) => {
+const b = $(id);
+if (b) {
+b.classList.toggle("picked", on);
+b.setAttribute("aria-pressed", on ? "true" : "false");
 }
+});
+[ [ "fundModeTravel", trav ], [ "fundModeExplore", !trav ] ].forEach(([id, on]) => {
+const b = $(id);
+if (b) {
+b.classList.toggle("on", on);
+b.setAttribute("aria-pressed", on ? "true" : "false");
+}
+});
+const cq = $("cityQuestion");
+if (cq) cq.textContent = trav ? "Which city are you travelling to?" : "Which city do you live in?";
+}
+
+function setPickMode(m) {
+pickMode = m === "travel" ? "travel" : "explore";
+store.set("dib_mode", pickMode);
+savePending();
+paintFundPicks();
+}
+
+[ [ "modeTravel", "travel" ], [ "modeExplore", "explore" ] ].forEach(([id, m]) => {
+const b = $(id);
+if (!b) return;
+b.onclick = () => {
+setPickMode(m);
+if (sessionUser) {
+initFundPicks();
+show("view-fund");
+} else {
+const ac = document.querySelector(".auth-card");
+if (ac) ac.scrollIntoView({
+behavior: "smooth",
+block: "center"
+});
+}
+};
+});
+
+[ [ "fundModeTravel", "travel" ], [ "fundModeExplore", "explore" ] ].forEach(([id, m]) => {
+const b = $(id);
+if (b) b.onclick = () => setPickMode(m);
+});
 
 document.querySelectorAll("#dietGrid .fund-opt").forEach(b => b.onclick = () => {
 pickDiet = b.dataset.diet;
@@ -751,7 +805,8 @@ const F = {
 diet: pickDiet,
 roots: pickRoots,
 roots2: pickRoots2 || null,
-city: city
+city: city,
+mode: pickMode
 };
 const prev = st.builtFor;
 if (prev && prev.diet === F.diet && prev.roots === F.roots && (prev.roots2 || null) === F.roots2) {
@@ -808,7 +863,7 @@ function renderHome() {
 if (!st) return;
 const n = answeredCount(st);
 const restart = $("restartBtn"), change = $("changeFundBtn");
-$("fundSummary").textContent = st.builtFor ? `Your fundamentals: ${DIET_LABELS[st.builtFor.diet]} · ${ROOT_EMOJI[st.builtFor.roots]} ${rootsLabelOf(st.builtFor)} roots${st.builtFor.city ? ` · 📍 ${st.builtFor.city}` : ""}` : "";
+$("fundSummary").textContent = st.builtFor ? `Your fundamentals: ${DIET_LABELS[st.builtFor.diet]} · ${ROOT_EMOJI[st.builtFor.roots]} ${rootsLabelOf(st.builtFor)} roots${st.builtFor.city ? st.builtFor.mode === "travel" ? ` · ✈️ Travelling to ${st.builtFor.city}` : ` · 📍 ${st.builtFor.city}` : ""}` : "";
 restart.hidden = !(n > 0 || st.finished);
 change.hidden = !st.builtFor;
 if (!st.builtFor) {
@@ -2284,7 +2339,7 @@ const vetoedByAversion = dish => {
 const dw = dish.toLowerCase().replace(/[^a-z ]/g, " ").split(/\s+/).filter(Boolean).map(stemW);
 return aversions.some(av => aversionKeys(av).some(k => dw.some(w => w === k || k.length >= 4 && w.startsWith(k))));
 };
-const scored = RECS.filter(r => !ownRoots.includes(r.region)).filter(r => optVisible(r, s.builtFor.diet, meats)).filter(r => !r.raw || rawOk).filter(r => !r.alc || alcOk).filter(r => !r.egg || s.builtFor.diet !== "vegetarian" || eggOk).filter(r => !vetoedByAversion(r.dish)).map(r => ({
+const scored = RECS.filter(r => s.builtFor.mode === "travel" || !ownRoots.includes(r.region)).filter(r => optVisible(r, s.builtFor.diet, meats)).filter(r => !r.raw || rawOk).filter(r => !r.alc || alcOk).filter(r => !r.egg || s.builtFor.diet !== "vegetarian" || eggOk).filter(r => !vetoedByAversion(r.dish)).map(r => ({
 r: r,
 score: dishScoreV2(r),
 matched: r.match.filter(t => (tagCount[t] || 0) > 0).length,
@@ -2504,6 +2559,7 @@ diet: s.builtFor.diet,
 roots: s.builtFor.roots,
 roots2: s.builtFor.roots2 || null,
 city: s.builtFor.city || "",
+mode: s.builtFor.mode || "explore",
 topTags: topTags,
 affinities: affinities,
 aversions: aversions,
@@ -2517,7 +2573,7 @@ completedAt: (new Date).toISOString()
 }
 
 function recCardsHtml(list, res) {
-return list.map(r => `<div class="rec"><span class="r-emoji">${(RECS.find(x => x.dish === r.dish) || {}).emoji || "🍽️"}</span>\n     <div><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong><p>${r.why}</p>${r.whyYou ? `<p class="r-axes">${r.whyYou}</p>` : r.axes && r.axes.length ? `<p class="r-axes">Matches your: ${r.axes.join(" · ")}</p>` : ""}${r.yt ? `<a class="r-find" target="_blank" rel="noopener" href="${r.yt}"><svg class="yt-logo" viewBox="0 0 28 20" aria-hidden="true"><path fill="#FF0000" d="M27.4 3.1c-.3-1.2-1.3-2.2-2.5-2.5C22.7 0 14 0 14 0S5.3 0 3.1.6C1.9.9.9 1.9.6 3.1.1 5.2 0 8.9 0 10s0 4.8.6 6.9c.3 1.2 1.3 2.2 2.5 2.5C5.3 20 14 20 14 20s8.7 0 10.9-.6c1.2-.3 2.2-1.3 2.5-2.5.5-2.1.6-6.9.6-6.9s0-4.8-.6-6.9z"/><path fill="#fff" d="M11.2 14.3V5.7l7.4 4.3z"/></svg>Watch it being made →</a> ` : ""}${res.city ? `<a class="r-find" target="_blank" rel="noopener" href="https://www.google.com/maps/search/${encodeURIComponent(r.dish + " near " + res.city)}">📍 Find it near you in ${res.city} →</a>` : ""}</div></div>`).join("");
+return list.map(r => `<div class="rec"><span class="r-emoji">${(RECS.find(x => x.dish === r.dish) || {}).emoji || "🍽️"}</span>\n     <div><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong><p>${r.why}</p>${r.whyYou ? `<p class="r-axes">${r.whyYou}</p>` : r.axes && r.axes.length ? `<p class="r-axes">Matches your: ${r.axes.join(" · ")}</p>` : ""}${r.yt ? `<a class="r-find" target="_blank" rel="noopener" href="${r.yt}"><svg class="yt-logo" viewBox="0 0 28 20" aria-hidden="true"><path fill="#FF0000" d="M27.4 3.1c-.3-1.2-1.3-2.2-2.5-2.5C22.7 0 14 0 14 0S5.3 0 3.1.6C1.9.9.9 1.9.6 3.1.1 5.2 0 8.9 0 10s0 4.8.6 6.9c.3 1.2 1.3 2.2 2.5 2.5C5.3 20 14 20 14 20s8.7 0 10.9-.6c1.2-.3 2.2-1.3 2.5-2.5.5-2.1.6-6.9.6-6.9s0-4.8-.6-6.9z"/><path fill="#fff" d="M11.2 14.3V5.7l7.4 4.3z"/></svg>Watch it being made →</a> ` : ""}${res.city ? `<a class="r-find r-place" data-dish="${r.dish}" target="_blank" rel="noopener" href="https://www.google.com/maps/search/${encodeURIComponent(r.dish + " near " + res.city)}">${res.mode === "travel" ? `📍 Find it in ${res.city} →` : `📍 Find it near you in ${res.city} →`}</a>` : ""}</div></div>`).join("");
 }
 
 let lastResult = null, recsAltShown = false;
@@ -2559,6 +2615,9 @@ const axEl = $("profileAxes");
 if (axEl) axEl.innerHTML = res.axes && res.axes.length ? `<h3 class="rec-title2">🧭 Your flavour axes — your top ${res.axes.length}</h3>` + res.axes.map(a => `<div class="axis"><div class="a-head"><span>${a.emoji} ${a.name}</span><span class="a-lean">${a.lean === "hi" ? a.hi : a.lean === "lo" ? a.lo : "Balanced"}</span></div>` + `<div class="a-track"><span class="a-pole">${a.lo}</span><div class="a-bar"><div class="a-marker" style="left:${a.pct}%"></div></div><span class="a-pole">${a.hi}</span></div></div>`).join("") : "";
 $("profileNote").textContent = (res.partial ? `⚠️ This profile is based on ${res.answered || res.detail.length} answers${res.skipped ? `, with ${res.skipped} question${res.skipped > 1 ? "s" : ""} skipped` : " — you finished early"}, so treat it as a first sketch, not the full picture. ` : "") + `Weighted by your confidence slider — your average pick strength was ${res.avgConfidence} / 5. Strong opinions shaped this profile most.`;
 $("profileRecs").innerHTML = recCardsHtml(res.recs, res);
+const recTitleEl = $("recTitle");
+if (recTitleEl) recTitleEl.textContent = res.mode === "travel" && res.city ? `What to eat in ${res.city.split(",")[0]} 🌍` : "Your personalized picks, Handpicked based on what you love 🌍";
+upgradePlaces(res);
 const mrb = $("moreRecsBtn");
 if (mrb) {
 mrb.hidden = !(st.altRecs || []).length;
@@ -2566,6 +2625,7 @@ mrb.textContent = "🎲 Show me different flavours";
 mrb.onclick = () => {
 recsAltShown = !recsAltShown;
 $("profileRecs").innerHTML = recCardsHtml(recsAltShown ? st.altRecs : lastResult.recs || [], lastResult);
+upgradePlaces(lastResult);
 mrb.textContent = recsAltShown ? "↩️ Back to my top matches" : "🎲 Show me different flavours";
 };
 }
@@ -2589,6 +2649,141 @@ saveState();
 console.warn("Sheets save failed:", e);
 }
 }
+
+const GEOAPIFY_KEY = "";
+
+let placesOff = false;
+
+const geoMemCache = {}, poolMemCache = {};
+
+const REGION_CUISINES = {
+hyderabad: [ "biryani", "hyderabadi", "deccan", "indian", "kebab", "mughlai" ],
+southasia: [ "indian", "biryani", "punjabi", "bengali", "sri lankan", "nepali", "pakistani", "curry" ],
+eastasia: [ "chinese", "japanese", "korean", "thai", "vietnamese", "asian", "noodle", "sushi", "ramen", "malaysian", "indonesian" ],
+middleeast: [ "lebanese", "arab", "turkish", "persian", "middle eastern", "mediterranean", "kebab", "egyptian", "moroccan" ],
+europe: [ "italian", "french", "spanish", "greek", "mediterranean", "german", "polish", "european", "pizza", "portuguese" ],
+africa: [ "ethiopian", "african", "nigerian", "moroccan", "south african", "egyptian", "kenyan", "ghanaian" ],
+latinamerica: [ "mexican", "peruvian", "brazilian", "argentinian", "colombian", "cuban", "latin", "taco", "caribbean" ],
+unitedstates: [ "american", "burger", "bbq", "barbecue", "southern", "cajun", "diner", "steakhouse", "tex-mex" ]
+};
+
+async function geoCity(city) {
+if (geoMemCache[city]) return geoMemCache[city];
+const lsKey = "dib_geo_v1_" + city;
+try {
+const c = JSON.parse(localStorage.getItem(lsKey) || "null");
+if (c && c.placeId) {
+geoMemCache[city] = c;
+return c;
+}
+} catch (e) {}
+const d = await fetchJsonTimeout(`https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&type=city&format=json&limit=1&apiKey=${GEOAPIFY_KEY}`, 6e3);
+const r = d && d.results && d.results[0];
+if (!r || !r.place_id) throw new Error("geocode miss");
+const out = {
+placeId: r.place_id,
+lon: r.lon,
+lat: r.lat
+};
+geoMemCache[city] = out;
+try {
+localStorage.setItem(lsKey, JSON.stringify(out));
+} catch (e) {}
+return out;
+}
+
+async function cityPool(city) {
+if (poolMemCache[city]) return poolMemCache[city];
+const g = await geoCity(city);
+const cats = "catering.restaurant,catering.cafe,catering.fast_food";
+let d = await fetchJsonTimeout(`https://api.geoapify.com/v2/places?categories=${cats}&filter=place:${g.placeId}&limit=60&apiKey=${GEOAPIFY_KEY}`, 8e3);
+let feats = d && d.features || [];
+if (!feats.length) {
+d = await fetchJsonTimeout(`https://api.geoapify.com/v2/places?categories=${cats}&filter=circle:${g.lon},${g.lat},12000&bias=proximity:${g.lon},${g.lat}&limit=60&apiKey=${GEOAPIFY_KEY}`, 8e3);
+feats = d && d.features || [];
+}
+const pool = feats.map(f => {
+const p = f.properties || {}, raw = p.datasource && p.datasource.raw || {};
+const areaRaw = (p.address_line2 || "").split(",")[0].trim();
+return {
+name: p.name || "",
+area: p.suburb || p.district || (areaRaw && areaRaw.toLowerCase() !== city.split(",")[0].toLowerCase() ? areaRaw : "") || "",
+cuisine: (raw.cuisine || "").toLowerCase(),
+cats: (p.categories || []).join(" ").toLowerCase(),
+website: raw.website || p.website || "",
+distKm: typeof p.lat === "number" && typeof p.lon === "number" ? Math.hypot((p.lon - g.lon) * 85, (p.lat - g.lat) * 111) : 0
+};
+}).filter(x => x.name);
+poolMemCache[city] = pool;
+return pool;
+}
+
+function dishPlaceFor(dishName, pool) {
+const rec = RECS.find(x => x.dish === dishName) || {};
+const stop = new Set([ "style", "with", "and", "the" ]);
+const toks = dishName.toLowerCase().replace(/[^a-z ]/g, " ").split(/\s+/).filter(w => w.length >= 4 && !stop.has(w));
+const cuis = REGION_CUISINES[rec.region] || [];
+let best = null, bestScore = 0;
+pool.forEach(p => {
+const nm = p.name.toLowerCase();
+let sc = 0;
+toks.forEach(t => {
+if (nm.includes(t)) sc += 3;
+});
+cuis.forEach(c => {
+if (nm.includes(c) || p.cuisine.includes(c) || p.cats.includes(c)) sc += 2;
+});
+if (p.website) sc += .5;
+sc -= Math.min(p.distKm || 0, 20) * .02;
+if (sc > bestScore) {
+bestScore = sc;
+best = p;
+}
+});
+return bestScore >= 2 ? best : null;
+}
+
+async function upgradePlaces(res) {
+if (!GEOAPIFY_KEY || placesOff || !res || !res.city) return;
+try {
+const pool = await cityPool(res.city);
+if (!pool.length) return;
+let any = false;
+document.querySelectorAll("#profileRecs .r-place").forEach(a => {
+const p = dishPlaceFor(a.dataset.dish || "", pool);
+if (p) {
+a.textContent = `📍 Try it at ${p.name}${p.area ? " · " + p.area : ""} →`;
+a.href = "https://www.google.com/maps/search/" + encodeURIComponent(p.name + " " + res.city);
+any = true;
+}
+});
+if (any && !document.querySelector(".places-attr")) {
+const d = document.createElement("p");
+d.className = "places-attr";
+d.textContent = "Restaurant picks from OpenStreetMap data · via Geoapify";
+const host = $("profileRecs");
+if (host && host.parentNode) host.parentNode.insertBefore(d, host.nextSibling);
+}
+} catch (e) {
+placesOff = true;
+}
+}
+
+(() => {
+const fx = document.querySelector(".bg-fx");
+if (!fx || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+let ticking = false;
+addEventListener("scroll", () => {
+if (ticking) return;
+ticking = true;
+requestAnimationFrame(() => {
+fx.style.transform = `translateY(${Math.min(window.scrollY * .05, 110)}px)`;
+ticking = false;
+});
+}, {
+passive: true
+});
+})();
 
 function finish(early) {
 st.finished = true;

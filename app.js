@@ -2812,7 +2812,7 @@ console.warn("Sheets save failed:", e);
 }
 }
 
-const GEOAPIFY_KEY = "";
+const GEOAPIFY_KEY = "79a958030a5b49e191bdf89215ce9710";
 
 let placesOff = false;
 

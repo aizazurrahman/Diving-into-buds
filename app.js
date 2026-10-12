@@ -2646,14 +2646,17 @@ const COURSE_FRAME = [ [ "drink", 2 ], [ "appetizer", 6 ], [ "main", 8 ], [ "des
 const isTravel = s.builtFor.mode === "travel";
 const destR = isTravel ? destRegionOf(s.builtFor.city) : null;
 const destC = isTravel ? destCountryOf(s.builtFor.city) : null;
+const destPlace = isTravel && s.builtFor.city ? s.builtFor.city.split(",")[0].trim().toLowerCase() : null;
 const usedC = new Set;
 const composeCourses = want => {
 const out = [];
+const placeOf = r => (r.from || "").split("·")[0].trim().toLowerCase();
 const tierOf = e => {
 if (destR === "hyderabad" && e.r.region === "hyderabad") return 0;
-if (destC && e.r.country === destC) return 1;
-if (destR && e.r.region === destR) return 2;
-return 3;
+if (destC && e.r.country === destC && destPlace && placeOf(e.r) === destPlace) return 1;
+if (destC && e.r.country === destC) return 2;
+if (destR && e.r.region === destR) return 3;
+return 4;
 };
 const orderedFor = course => {
 const bucket = pool.filter(e => e.r.course === course && !usedC.has(e.r.dish));

@@ -437,9 +437,10 @@ if (!st.lovesData) st.lovesData = {};
 }
 
 function show(view) {
-[ "view-landing", "view-start", "view-fund", "view-home", "view-loves", "view-quiz", "view-compiling", "view-results" ].forEach(v => {
+[ "view-landing", "view-start", "view-fund", "view-home", "view-loves", "view-quiz", "view-compiling", "view-results", "view-profile", "view-dishes" ].forEach(v => {
 $(v).hidden = v !== view;
 });
+document.body.classList.toggle("dark-results", view === "view-results" || view === "view-profile" || view === "view-dishes");
 const u = currentUser();
 $("userbox").hidden = !u;
 $("userEmail").textContent = u || "";
@@ -2733,11 +2734,26 @@ const known = new Set(COURSE_SECTIONS.map(([c]) => c));
 let html = "";
 for (const [course, label] of COURSE_SECTIONS) {
 const items = list.filter(r => r.course === course);
-if (items.length) html += `<h3 class="rec-title2 course-h">${label}</h3>` + recCardsHtml(items, res);
+if (items.length) html += `<h3 class="rec-title2 course-h" id="course-${course}">${label}</h3>` + recCardsHtml(items, res);
 }
 const rest = list.filter(r => !known.has(r.course));
 if (rest.length) html += recCardsHtml(rest, res);
 return html;
+}
+
+function paintCourseNav(list) {
+const nav = $("courseNav");
+if (!nav) return;
+const present = COURSE_SECTIONS.filter(([c]) => (list || []).some(r => r.course === c));
+nav.hidden = !present.length;
+nav.innerHTML = present.map(([c, label]) => `<button type="button" data-course="${c}">${label}</button>`).join("");
+nav.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+const target = document.getElementById("course-" + b.dataset.course);
+if (target) target.scrollIntoView({
+behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+block: "start"
+});
+}));
 }
 
 function renderResults() {
@@ -2769,14 +2785,14 @@ fresh: "🌿 Fresh & bright",
 classic: "💛 Comfort & classic"
 };
 const meterRow = ([k, pct]) => `<div class="meter"><div class="mhead"><span>${names[k]}</span><span>${meterLabel(k, pct)}</span></div>\n     <div class="track"><div class="fill" style="width:0%" data-w="${pct}"></div></div></div>`;
-const rankedMeters = Object.entries(res.meters).sort((x, y) => Math.abs(y[1] - 50) - Math.abs(x[1] - 50) || y[1] - x[1]);
-$("profileMeters").innerHTML = rankedMeters.slice(0, 3).map(meterRow).join("") + (rankedMeters.length > 3 ? `<div id="metersExtra" hidden>${rankedMeters.slice(3).map(meterRow).join("")}</div><button type="button" id="metersToggle" class="meters-toggle">Show all ${rankedMeters.length} meters</button>` : "");
+const rankedMeters = Object.entries(res.meters).sort((x, y) => y[1] - x[1]);
+$("profileMeters").innerHTML = rankedMeters.slice(0, 3).map(meterRow).join("") + (rankedMeters.length > 3 ? `<div id="metersExtra" hidden>${rankedMeters.slice(3).map(meterRow).join("")}</div><button type="button" id="metersToggle" class="meters-toggle">Show all</button>` : "");
 const mtBtn = $("metersToggle");
 if (mtBtn) mtBtn.addEventListener("click", () => {
 const ex = $("metersExtra");
 const open = ex.hidden;
 ex.hidden = !open;
-mtBtn.textContent = open ? "Show fewer meters" : `Show all ${rankedMeters.length} meters`;
+mtBtn.textContent = open ? "Show less" : "Show all";
 });
 requestAnimationFrame(() => requestAnimationFrame(() => {
 document.querySelectorAll("#profileMeters .fill").forEach(f => {
@@ -2787,6 +2803,7 @@ const axEl = $("profileAxes");
 if (axEl) axEl.innerHTML = res.axes && res.axes.length ? `<h3 class="rec-title2">🧭 Your flavour axes</h3><div class="axes-chips">` + res.axes.map(a => `<button type="button" class="axis-chip">${a.emoji} ${a.lean === "hi" ? a.hi : a.lean === "lo" ? a.lo : a.name + " · Balanced"}</button>`).join("") + "</div>" : "";
 $("profileNote").textContent = (res.partial ? `⚠️ This profile is based on ${res.answered || res.detail.length} answers${res.skipped ? `, with ${res.skipped} question${res.skipped > 1 ? "s" : ""} skipped` : " — you finished early"}, so treat it as a first sketch, not the full picture. ` : "") + `Weighted by your confidence slider — your average pick strength was ${res.avgConfidence} / 5. Strong opinions shaped this profile most.`;
 $("profileRecs").innerHTML = recSectionsHtml(res.recs, res);
+paintCourseNav(res.recs);
 const recTitleEl = $("recTitle");
 if (recTitleEl) recTitleEl.textContent = res.mode === "travel" && res.city ? `What to eat in ${res.city.split(",")[0]} 🌍` : "Your personalized picks, Handpicked based on what you love 🌍";
 upgradeAllPlaces(res);
@@ -2797,6 +2814,7 @@ mrb.textContent = "🎲 Show me different flavours";
 mrb.onclick = () => {
 recsAltShown = !recsAltShown;
 $("profileRecs").innerHTML = recSectionsHtml(recsAltShown ? st.altRecs : lastResult.recs || [], lastResult);
+paintCourseNav(recsAltShown ? st.altRecs : lastResult.recs || []);
 upgradeAllPlaces(lastResult);
 mrb.textContent = recsAltShown ? "↩️ Back to my top matches" : "🎲 Show me different flavours";
 };
@@ -3165,6 +3183,18 @@ top: 0
 $("endBtn").onclick = () => {
 if (st && !st.finished && answeredCount(st) >= 5) finish(true);
 };
+
+$("pickProfileBtn").addEventListener("click", () => show("view-profile"));
+
+$("pickDishesBtn").addEventListener("click", () => show("view-dishes"));
+
+$("profileBackBtn").addEventListener("click", () => show("view-results"));
+
+$("dishesBackBtn").addEventListener("click", () => show("view-results"));
+
+$("profileToDishesBtn").addEventListener("click", () => show("view-dishes"));
+
+$("dishesToProfileBtn").addEventListener("click", () => show("view-profile"));
 
 $("endInfoBtn").onclick = () => {
 const p = $("endInfoPanel");

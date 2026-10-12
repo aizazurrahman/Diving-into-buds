@@ -2722,7 +2722,7 @@ completedAt: (new Date).toISOString()
 }
 
 function recCardsHtml(list, res) {
-return list.map(r => `<div class="rec"><span class="r-emoji">${(RECS.find(x => x.dish === r.dish) || {}).emoji || "🍽️"}</span>\n     <div><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong><p>${r.why}</p>${r.whyYou ? `<p class="r-axes">${r.whyYou}</p>` : r.axes && r.axes.length ? `<p class="r-axes">Matches your: ${r.axes.join(" · ")}</p>` : ""}${r.yt ? `<a class="r-find" target="_blank" rel="noopener" href="${r.yt}"><svg class="yt-logo" viewBox="0 0 28 20" aria-hidden="true"><path fill="#FF0000" d="M27.4 3.1c-.3-1.2-1.3-2.2-2.5-2.5C22.7 0 14 0 14 0S5.3 0 3.1.6C1.9.9.9 1.9.6 3.1.1 5.2 0 8.9 0 10s0 4.8.6 6.9c.3 1.2 1.3 2.2 2.5 2.5C5.3 20 14 20 14 20s8.7 0 10.9-.6c1.2-.3 2.2-1.3 2.5-2.5.5-2.1.6-6.9.6-6.9s0-4.8-.6-6.9z"/><path fill="#fff" d="M11.2 14.3V5.7l7.4 4.3z"/></svg>Watch it being made →</a> ` : ""}${res.city ? `<a class="r-find r-place" data-dish="${r.dish}" target="_blank" rel="noopener" href="https://www.google.com/maps/search/${encodeURIComponent(r.dish + " near " + res.city)}">${res.mode === "travel" ? `📍 Find it in ${res.city} →` : `📍 Find it near you in ${res.city} →`}</a>` : ""}</div></div>`).join("");
+return list.map(r => `<div class="rec"><span class="r-emoji">${(RECS.find(x => x.dish === r.dish) || {}).emoji || "🍽️"}</span>\n     <div><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong><p>${r.why}</p>${r.whyYou ? `<p class="r-axes">${r.whyYou}</p>` : r.axes && r.axes.length ? `<p class="r-axes">Matches your: ${r.axes.join(" · ")}</p>` : ""}${r.yt ? `<a class="r-find" target="_blank" rel="noopener" href="${r.yt}"><svg class="yt-logo" viewBox="0 0 28 20" aria-hidden="true"><path fill="#FF0000" d="M27.4 3.1c-.3-1.2-1.3-2.2-2.5-2.5C22.7 0 14 0 14 0S5.3 0 3.1.6C1.9.9.9 1.9.6 3.1.1 5.2 0 8.9 0 10s0 4.8.6 6.9c.3 1.2 1.3 2.2 2.5 2.5C5.3 20 14 20 14 20s8.7 0 10.9-.6c1.2-.3 2.2-1.3 2.5-2.5.5-2.1.6-6.9.6-6.9s0-4.8-.6-6.9z"/><path fill="#fff" d="M11.2 14.3V5.7l7.4 4.3z"/></svg>Watch it being made →</a> ` : ""}</div>${res.city ? `<a class="place-btn generic r-place" data-dish="${r.dish}" target="_blank" rel="noopener" href="https://www.google.com/maps/search/${encodeURIComponent(r.dish + " near " + res.city)}">📍 ${res.city.split(",")[0]}<small>Find this dish</small></a>` : ""}</div>`).join("");
 }
 
 let lastResult = null, recsAltShown = false;
@@ -2946,7 +2946,9 @@ document.querySelectorAll("#profileRecs .r-place").forEach(a => {
 if (a.dataset.places) return;
 const p = dishPlaceFor(a.dataset.dish || "", pool, usedCounts);
 if (p) {
-a.textContent = `📍 Try it at ${p.name}${p.area ? " · " + p.area : ""} →`;
+a.innerHTML = `📍 ${p.name}${p.area ? `<small>${p.area}</small>` : ""}`;
+a.classList.remove("generic");
+a.classList.add("found");
 a.href = "https://www.google.com/maps/search/" + encodeURIComponent(p.name + " " + res.city);
 a.dataset.places = "geoapify";
 usedCounts.set(p.name, (usedCounts.get(p.name) || 0) + 1);
@@ -3098,7 +3100,9 @@ googleOff = true;
 break;
 }
 if (p) {
-a.textContent = `📍 Try it at ${p.name}${p.area ? " · " + p.area : ""}${p.rating ? " · ★" + p.rating.toFixed(1) : ""} →`;
+a.innerHTML = `📍 ${p.name}${p.area || p.rating ? `<small>${[ p.area, p.rating ? "★" + p.rating.toFixed(1) : "" ].filter(Boolean).join(" · ")}</small>` : ""}`;
+a.classList.remove("generic");
+a.classList.add("found");
 a.href = p.uri || "https://www.google.com/maps/search/" + encodeURIComponent(p.name + " " + res.city);
 a.dataset.places = "google";
 upgraded++;

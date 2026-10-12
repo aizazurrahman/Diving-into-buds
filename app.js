@@ -440,7 +440,6 @@ function show(view) {
 [ "view-landing", "view-start", "view-fund", "view-home", "view-loves", "view-quiz", "view-compiling", "view-results", "view-profile", "view-dishes" ].forEach(v => {
 $(v).hidden = v !== view;
 });
-document.body.classList.toggle("dark-results", view === "view-results" || view === "view-profile" || view === "view-dishes");
 const u = currentUser();
 $("userbox").hidden = !u;
 $("userEmail").textContent = u || "";
@@ -2889,10 +2888,10 @@ async function cityPool(city) {
 if (poolMemCache[city]) return poolMemCache[city];
 const g = await geoCity(city);
 const cats = "catering.restaurant,catering.cafe,catering.fast_food";
-let d = await fetchJsonTimeout(`https://api.geoapify.com/v2/places?categories=${cats}&filter=place:${g.placeId}&bias=proximity:${g.lon},${g.lat}&limit=200&apiKey=${GEOAPIFY_KEY}`, 8e3);
+let d = await fetchJsonTimeout(`https://api.geoapify.com/v2/places?categories=${cats}&filter=place:${g.placeId}&limit=500&apiKey=${GEOAPIFY_KEY}`, 8e3);
 let feats = d && d.features || [];
 if (!feats.length) {
-d = await fetchJsonTimeout(`https://api.geoapify.com/v2/places?categories=${cats}&filter=circle:${g.lon},${g.lat},12000&bias=proximity:${g.lon},${g.lat}&limit=200&apiKey=${GEOAPIFY_KEY}`, 8e3);
+d = await fetchJsonTimeout(`https://api.geoapify.com/v2/places?categories=${cats}&filter=circle:${g.lon},${g.lat},12000&limit=500&apiKey=${GEOAPIFY_KEY}`, 8e3);
 feats = d && d.features || [];
 }
 const pool = feats.map(f => {
@@ -2911,7 +2910,7 @@ poolMemCache[city] = pool;
 return pool;
 }
 
-function dishPlaceFor(dishName, pool, usedCounts) {
+function dishPlaceFor(dishName, pool, usedCounts, areaCounts) {
 const rec = RECS.find(x => x.dish === dishName) || {};
 const stop = new Set([ "style", "with", "and", "the" ]);
 const toks = dishName.toLowerCase().replace(/[^a-z ]/g, " ").split(/\s+/).filter(w => w.length >= 4 && !stop.has(w));
@@ -2927,6 +2926,7 @@ if (nm.includes(t)) sc += 5;
 if (cuis.some(c => nm.includes(c) || p.cuisine.includes(c) || p.cats.includes(c))) sc += 2;
 if (p.website) sc += .5;
 sc -= Math.min(p.distKm || 0, 20) * .02;
+if (areaCounts && p.area && (areaCounts.get(p.area) || 0) >= 2) sc -= 1.5;
 if (sc > bestScore) {
 bestScore = sc;
 best = p;
@@ -2942,9 +2942,10 @@ const pool = await cityPool(res.city);
 if (!pool.length) return 0;
 let any = 0;
 const usedCounts = new Map;
+const areaCounts = new Map;
 document.querySelectorAll("#profileRecs .r-place").forEach(a => {
 if (a.dataset.places) return;
-const p = dishPlaceFor(a.dataset.dish || "", pool, usedCounts);
+const p = dishPlaceFor(a.dataset.dish || "", pool, usedCounts, areaCounts);
 if (p) {
 a.innerHTML = `📍 ${p.name}${p.area ? `<small>${p.area}</small>` : ""}`;
 a.classList.remove("generic");
@@ -2952,6 +2953,7 @@ a.classList.add("found");
 a.href = "https://www.google.com/maps/search/" + encodeURIComponent(p.name + " " + res.city);
 a.dataset.places = "geoapify";
 usedCounts.set(p.name, (usedCounts.get(p.name) || 0) + 1);
+if (p.area) areaCounts.set(p.area, (areaCounts.get(p.area) || 0) + 1);
 any++;
 }
 });

@@ -2754,8 +2754,7 @@ ll.textContent = loveNames.length ? `❤️ Shaped by the dishes you love: ${lov
 }
 lastResult = res;
 recsAltShown = false;
-const affLabels = Object.keys(res.affinities || {}).map(t => TAG_LABELS[t]).filter(Boolean).slice(0, 8);
-$("profileAffinities").innerHTML = affLabels.length ? `<h3 class="rec-title2">✨ Flavours you're drawn to</h3><div class="traits">${affLabels.map(l => `<span class="trait">${l}</span>`).join("")}</div>` : "";
+$("profileAffinities").innerHTML = "";
 $("profileAversions").innerHTML = (res.aversions || []).length ? `<h3 class="rec-title2">🚫 Your hard no's</h3><div class="traits">${res.aversions.map(a => `<span class="trait no">${a}</span>`).join("")}</div><p class="neg-note">We will never match you with these.</p>` : "";
 const names = {
 spice: "🌶️ Heat level",
@@ -2767,19 +2766,28 @@ creamy: "🥛 Rich & creamy",
 fresh: "🌿 Fresh & bright",
 classic: "💛 Comfort & classic"
 };
-$("profileMeters").innerHTML = Object.entries(res.meters).map(([k, pct]) => `<div class="meter"><div class="mhead"><span>${names[k]}</span><span>${meterLabel(k, pct)}</span></div>\n     <div class="track"><div class="fill" style="width:0%" data-w="${pct}"></div></div></div>`).join("");
+const meterRow = ([k, pct]) => `<div class="meter"><div class="mhead"><span>${names[k]}</span><span>${meterLabel(k, pct)}</span></div>\n     <div class="track"><div class="fill" style="width:0%" data-w="${pct}"></div></div></div>`;
+const rankedMeters = Object.entries(res.meters).sort((x, y) => Math.abs(y[1] - 50) - Math.abs(x[1] - 50) || y[1] - x[1]);
+$("profileMeters").innerHTML = rankedMeters.slice(0, 3).map(meterRow).join("") + (rankedMeters.length > 3 ? `<div id="metersExtra" hidden>${rankedMeters.slice(3).map(meterRow).join("")}</div><button type="button" id="metersToggle" class="meters-toggle">Show all ${rankedMeters.length} meters</button>` : "");
+const mtBtn = $("metersToggle");
+if (mtBtn) mtBtn.addEventListener("click", () => {
+const ex = $("metersExtra");
+const open = ex.hidden;
+ex.hidden = !open;
+mtBtn.textContent = open ? "Show fewer meters" : `Show all ${rankedMeters.length} meters`;
+});
 requestAnimationFrame(() => requestAnimationFrame(() => {
 document.querySelectorAll("#profileMeters .fill").forEach(f => {
 f.style.width = f.dataset.w + "%";
 });
 }));
 const axEl = $("profileAxes");
-if (axEl) axEl.innerHTML = res.axes && res.axes.length ? `<h3 class="rec-title2">🧭 Your flavour axes — your top ${res.axes.length}</h3>` + res.axes.map(a => `<div class="axis"><div class="a-head"><span>${a.emoji} ${a.name}</span><span class="a-lean">${a.lean === "hi" ? a.hi : a.lean === "lo" ? a.lo : "Balanced"}</span></div>` + `<div class="a-track"><span class="a-pole">${a.lo}</span><div class="a-bar"><div class="a-marker" style="left:${a.pct}%"></div></div><span class="a-pole">${a.hi}</span></div></div>`).join("") : "";
+if (axEl) axEl.innerHTML = res.axes && res.axes.length ? `<h3 class="rec-title2">🧭 Your flavour axes</h3><div class="axes-chips">` + res.axes.map(a => `<button type="button" class="axis-chip">${a.emoji} ${a.lean === "hi" ? a.hi : a.lean === "lo" ? a.lo : a.name + " · Balanced"}</button>`).join("") + "</div>" : "";
 $("profileNote").textContent = (res.partial ? `⚠️ This profile is based on ${res.answered || res.detail.length} answers${res.skipped ? `, with ${res.skipped} question${res.skipped > 1 ? "s" : ""} skipped` : " — you finished early"}, so treat it as a first sketch, not the full picture. ` : "") + `Weighted by your confidence slider — your average pick strength was ${res.avgConfidence} / 5. Strong opinions shaped this profile most.`;
 $("profileRecs").innerHTML = recSectionsHtml(res.recs, res);
 const recTitleEl = $("recTitle");
 if (recTitleEl) recTitleEl.textContent = res.mode === "travel" && res.city ? `What to eat in ${res.city.split(",")[0]} 🌍` : "Your personalized picks, Handpicked based on what you love 🌍";
-upgradePlaces(res);
+upgradeAllPlaces(res);
 const mrb = $("moreRecsBtn");
 if (mrb) {
 mrb.hidden = !(st.altRecs || []).length;
@@ -2787,7 +2795,7 @@ mrb.textContent = "🎲 Show me different flavours";
 mrb.onclick = () => {
 recsAltShown = !recsAltShown;
 $("profileRecs").innerHTML = recSectionsHtml(recsAltShown ? st.altRecs : lastResult.recs || [], lastResult);
-upgradePlaces(lastResult);
+upgradeAllPlaces(lastResult);
 mrb.textContent = recsAltShown ? "↩️ Back to my top matches" : "🎲 Show me different flavours";
 };
 }
@@ -2814,6 +2822,8 @@ console.warn("Sheets save failed:", e);
 
 const GEOAPIFY_KEY = "79a958030a5b49e191bdf89215ce9710";
 
+const GOOGLE_PLACES_KEY = "";
+
 let placesOff = false;
 
 const geoMemCache = {}, poolMemCache = {};
@@ -2826,7 +2836,8 @@ middleeast: [ "lebanese", "arab", "turkish", "persian", "middle eastern", "medit
 europe: [ "italian", "french", "spanish", "greek", "mediterranean", "german", "polish", "european", "pizza", "portuguese" ],
 africa: [ "ethiopian", "african", "nigerian", "moroccan", "south african", "egyptian", "kenyan", "ghanaian" ],
 latinamerica: [ "mexican", "peruvian", "brazilian", "argentinian", "colombian", "cuban", "latin", "taco", "caribbean" ],
-unitedstates: [ "american", "burger", "bbq", "barbecue", "southern", "cajun", "diner", "steakhouse", "tex-mex" ]
+unitedstates: [ "american", "burger", "bbq", "barbecue", "southern", "cajun", "diner", "steakhouse", "tex-mex" ],
+oceania: [ "australian", "pacific", "cafe", "bakery", "kiwi" ]
 };
 
 async function geoCity(city) {
@@ -2880,21 +2891,20 @@ poolMemCache[city] = pool;
 return pool;
 }
 
-function dishPlaceFor(dishName, pool) {
+function dishPlaceFor(dishName, pool, usedCounts) {
 const rec = RECS.find(x => x.dish === dishName) || {};
 const stop = new Set([ "style", "with", "and", "the" ]);
 const toks = dishName.toLowerCase().replace(/[^a-z ]/g, " ").split(/\s+/).filter(w => w.length >= 4 && !stop.has(w));
 const cuis = REGION_CUISINES[rec.region] || [];
 let best = null, bestScore = 0;
 pool.forEach(p => {
+if (usedCounts && (usedCounts.get(p.name) || 0) >= 2) return;
 const nm = p.name.toLowerCase();
 let sc = 0;
 toks.forEach(t => {
-if (nm.includes(t)) sc += 3;
+if (nm.includes(t)) sc += 5;
 });
-cuis.forEach(c => {
-if (nm.includes(c) || p.cuisine.includes(c) || p.cats.includes(c)) sc += 2;
-});
+if (cuis.some(c => nm.includes(c) || p.cuisine.includes(c) || p.cats.includes(c))) sc += 2;
 if (p.website) sc += .5;
 sc -= Math.min(p.distKm || 0, 20) * .02;
 if (sc > bestScore) {
@@ -2906,29 +2916,175 @@ return bestScore >= 2 ? best : null;
 }
 
 async function upgradePlaces(res) {
-if (!GEOAPIFY_KEY || placesOff || !res || !res.city) return;
+if (!GEOAPIFY_KEY || placesOff || !res || !res.city) return 0;
 try {
 const pool = await cityPool(res.city);
-if (!pool.length) return;
-let any = false;
+if (!pool.length) return 0;
+let any = 0;
+const usedCounts = new Map;
 document.querySelectorAll("#profileRecs .r-place").forEach(a => {
-const p = dishPlaceFor(a.dataset.dish || "", pool);
+if (a.dataset.places) return;
+const p = dishPlaceFor(a.dataset.dish || "", pool, usedCounts);
 if (p) {
 a.textContent = `📍 Try it at ${p.name}${p.area ? " · " + p.area : ""} →`;
 a.href = "https://www.google.com/maps/search/" + encodeURIComponent(p.name + " " + res.city);
-any = true;
+a.dataset.places = "geoapify";
+usedCounts.set(p.name, (usedCounts.get(p.name) || 0) + 1);
+any++;
 }
 });
-if (any && !document.querySelector(".places-attr")) {
+return any;
+} catch (e) {
+placesOff = true;
+return 0;
+}
+}
+
+function appendPlacesAttr(googleUsed, geoapifyUsed) {
+if (document.querySelector(".places-attr")) return;
+const seg = [];
+if (geoapifyUsed) seg.push('Restaurant picks from OpenStreetMap data · Powered by <a href="https://www.geoapify.com/" target="_blank" rel="noopener">Geoapify</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>');
+if (googleUsed) seg.push((geoapifyUsed ? "" : "Restaurant picks · ") + "Ratings by Google");
+if (!seg.length) return;
 const d = document.createElement("p");
 d.className = "places-attr";
-d.innerHTML = 'Restaurant picks from OpenStreetMap data · Powered by <a href="https://www.geoapify.com/" target="_blank" rel="noopener">Geoapify</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>';
+d.innerHTML = seg.join(" · ");
 const host = $("profileRecs");
 if (host && host.parentNode) host.parentNode.insertBefore(d, host.nextSibling);
 }
-} catch (e) {
-placesOff = true;
+
+async function upgradeAllPlaces(res) {
+let g = 0, a = 0;
+try {
+g = await upgradePlacesGoogle(res);
+} catch (e) {}
+try {
+a = await upgradePlaces(res);
+} catch (e) {}
+if (g + a > 0) appendPlacesAttr(g > 0, a > 0);
 }
+
+function gFame(p) {
+return (p.rating || 0) * Math.log10((p.userRatingCount || 0) + 1);
+}
+
+function gPickBest(places) {
+const ps = (places || []).filter(p => p && p.displayName && p.displayName.text);
+if (!ps.length) return null;
+let best = ps[0];
+for (const p of ps.slice(1)) if (gFame(p) > gFame(best) * 1.5) best = p;
+return best;
+}
+
+function gAreaOf(formattedAddress, city) {
+const parts = String(formattedAddress || "").split(",").map(s => s.trim()).filter(Boolean);
+if (parts.length < 2) return "";
+const cityBase = String(city || "").split(",")[0].trim().toLowerCase();
+const idx = parts.findIndex(s => s.toLowerCase().startsWith(cityBase));
+let area = "";
+if (idx > 0) area = parts[idx - 1]; else if (parts.length >= 3) area = parts[1];
+area = (area || "").replace(/\s+\d[\d\s-]*$/, "").trim();
+if (!area || /^\d/.test(area) || area.length > 34) return "";
+return area;
+}
+
+const G_DISH_CAP = 12;
+
+const gPlaceMem = {};
+
+let googleOff = false;
+
+async function googleDishPlace(city, dish, geo) {
+const ck = city + "|" + dish;
+if (ck in gPlaceMem) return gPlaceMem[ck];
+const lsKey = "dib_gp_v1_" + ck;
+try {
+const c = JSON.parse(localStorage.getItem(lsKey) || "null");
+if (c && c.t && Date.now() - c.t < 7 * 24 * 3600 * 1e3) {
+gPlaceMem[ck] = c.p;
+return c.p;
+}
+} catch (e) {}
+let out = null;
+const ctl = new AbortController;
+const to = setTimeout(() => ctl.abort(), 8e3);
+try {
+const body = {
+textQuery: dish + " in " + city,
+pageSize: 5
+};
+if (geo && geo.lon != null && geo.lat != null) body.locationBias = {
+circle: {
+center: {
+latitude: geo.lat,
+longitude: geo.lon
+},
+radius: 15e3
+}
+};
+const r = await fetch("https://places.googleapis.com/v1/places:searchText", {
+method: "POST",
+signal: ctl.signal,
+headers: {
+"Content-Type": "application/json",
+"X-Goog-Api-Key": GOOGLE_PLACES_KEY,
+"X-Goog-FieldMask": "places.displayName,places.rating,places.userRatingCount,places.formattedAddress,places.googleMapsUri"
+},
+body: JSON.stringify(body)
+});
+if (!r.ok) throw new Error("google places " + r.status);
+const d = await r.json();
+const best = gPickBest(d.places);
+if (best) out = {
+name: best.displayName.text,
+area: gAreaOf(best.formattedAddress, city),
+rating: best.rating || null,
+uri: best.googleMapsUri || ""
+};
+} finally {
+clearTimeout(to);
+}
+gPlaceMem[ck] = out;
+try {
+localStorage.setItem(lsKey, JSON.stringify({
+t: Date.now(),
+p: out
+}));
+} catch (e) {}
+return out;
+}
+
+async function upgradePlacesGoogle(res) {
+if (!GOOGLE_PLACES_KEY || googleOff || !res || !res.city) return 0;
+const anchors = Array.from(document.querySelectorAll("#profileRecs .r-place"));
+if (!anchors.length) return 0;
+let geo = null;
+try {
+geo = await geoCity(res.city);
+} catch (e) {}
+let used = 0, upgraded = 0;
+const seen = new Set;
+for (const a of anchors) {
+if (used >= G_DISH_CAP || googleOff) break;
+const dish = a.dataset.dish || "";
+if (!dish || seen.has(dish) || a.dataset.places) continue;
+seen.add(dish);
+used++;
+let p = null;
+try {
+p = await googleDishPlace(res.city, dish, geo);
+} catch (e) {
+googleOff = true;
+break;
+}
+if (p) {
+a.textContent = `📍 Try it at ${p.name}${p.area ? " · " + p.area : ""}${p.rating ? " · ★" + p.rating.toFixed(1) : ""} →`;
+a.href = p.uri || "https://www.google.com/maps/search/" + encodeURIComponent(p.name + " " + res.city);
+a.dataset.places = "google";
+upgraded++;
+}
+}
+return upgraded;
 }
 
 (() => {

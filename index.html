@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=36">
+<link rel="stylesheet" href="styles.css?v=37">
 </head>
 <body>
 
@@ -247,22 +247,57 @@
   <section id="view-results" class="view" hidden>
     <div class="card center reveal">
       <div class="big-emoji">🎉</div>
-      <h2>Meet your taste profile</h2>
-      <p class="lede" id="profileSummary"></p>
-      <p class="loves-line" id="lovesLine" hidden></p>
-      <div class="traits" id="profileTraits"></div>
+      <h2>Your results are ready</h2>
+      <p class="lede">Two ways to dive in — your palate, or the plates.</p>
+      <div class="pick-stack">
+        <button class="pick-btn" id="pickProfileBtn" type="button">
+          <span class="pick-emoji">👤</span>
+          <span class="pick-text"><strong>My taste profile</strong><small>Your meters, flavour axes and what shaped your palate</small></span>
+          <span class="pick-arrow">→</span>
+        </button>
+        <button class="pick-btn" id="pickDishesBtn" type="button">
+          <span class="pick-emoji">🍽️</span>
+          <span class="pick-text"><strong>Dishes recommended</strong><small>20 dishes picked for your palate — and where to try them</small></span>
+          <span class="pick-arrow">→</span>
+        </button>
+      </div>
+      <p class="fineprint" id="sheetNote"></p>
+      <div class="stack">
+        <button class="btn ghost" id="retakeBtn" type="button">Retake the questions</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-profile" class="view" hidden>
+    <div class="card reveal">
+      <button class="back-btn" id="profileBackBtn" type="button">← Back</button>
+      <div class="center">
+        <h2>Meet your taste profile</h2>
+        <p class="lede" id="profileSummary"></p>
+        <p class="loves-line" id="lovesLine" hidden></p>
+        <div class="traits" id="profileTraits"></div>
+      </div>
       <div class="meters" id="profileMeters"></div>
       <p class="fineprint" id="profileNote"></p>
       <div id="profileAxes"></div>
       <div id="profileAffinities"></div>
       <div id="profileAversions"></div>
+      <div class="stack">
+        <button class="btn primary big" id="profileToDishesBtn" type="button">🍽️ See my dishes</button>
+        <button class="btn ghost" id="csvBtn" type="button">⬇️ Download my results (CSV)</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-dishes" class="view" hidden>
+    <div class="card reveal">
+      <button class="back-btn" id="dishesBackBtn" type="button">← Back</button>
       <h3 class="rec-title" id="recTitle">Your personalized picks, Handpicked based on what you love 🌍</h3>
+      <div class="course-nav" id="courseNav" hidden></div>
       <div class="recs" id="profileRecs"></div>
       <button class="btn ghost more-recs" id="moreRecsBtn" type="button" hidden>🎲 Show me different flavours</button>
-      <p class="fineprint" id="sheetNote"></p>
       <div class="stack">
-        <button class="btn ghost" id="csvBtn" type="button">⬇️ Download my results (CSV)</button>
-        <button class="btn primary big" id="retakeBtn" type="button">Retake the questions</button>
+        <button class="btn primary big" id="dishesToProfileBtn" type="button">👤 See my taste profile</button>
       </div>
     </div>
   </section>
@@ -278,6 +313,6 @@
 <script src="recs2.js?v=2"></script>
 <script src="recs3.js?v=2"></script>
 <script src="recs4.js?v=1"></script>
-<script src="app.js?v=61"></script>
+<script src="app.js?v=62"></script>
 </body>
 </html>

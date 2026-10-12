@@ -2886,14 +2886,29 @@ return out;
 
 async function cityPool(city) {
 if (poolMemCache[city]) return poolMemCache[city];
+try {
+const hit = JSON.parse(localStorage.getItem("dib_pool_v1_" + city) || "null");
+if (hit && hit.t && Date.now() - hit.t < 864e5 && Array.isArray(hit.pool) && hit.pool.length) {
+poolMemCache[city] = hit.pool;
+return hit.pool;
+}
+} catch (e) {}
 const g = await geoCity(city);
 const cats = "catering.restaurant,catering.cafe,catering.fast_food";
-let d = await fetchJsonTimeout(`https://api.geoapify.com/v2/places?categories=${cats}&filter=place:${g.placeId}&limit=500&apiKey=${GEOAPIFY_KEY}`, 8e3);
-let feats = d && d.features || [];
+const page = async off => {
+const d = await fetchJsonTimeout(`https://api.geoapify.com/v2/places?categories=${cats}&filter=place:${g.placeId}&limit=500&offset=${off}&apiKey=${GEOAPIFY_KEY}`, 8e3);
+return d && d.features || [];
+};
+let feats = await page(0);
+if (feats.length >= 500) {
+const more = await Promise.all([ page(500), page(1e3) ]);
+feats = feats.concat(more[0], more[1]);
+}
 if (!feats.length) {
-d = await fetchJsonTimeout(`https://api.geoapify.com/v2/places?categories=${cats}&filter=circle:${g.lon},${g.lat},12000&limit=500&apiKey=${GEOAPIFY_KEY}`, 8e3);
+const d = await fetchJsonTimeout(`https://api.geoapify.com/v2/places?categories=${cats}&filter=circle:${g.lon},${g.lat},12000&limit=500&apiKey=${GEOAPIFY_KEY}`, 8e3);
 feats = d && d.features || [];
 }
+const seenPlace = new Set;
 const pool = feats.map(f => {
 const p = f.properties || {}, raw = p.datasource && p.datasource.raw || {};
 const areaRaw = (p.address_line2 || "").split(",")[0].trim();
@@ -2905,8 +2920,20 @@ cats: (p.categories || []).join(" ").toLowerCase(),
 website: raw.website || p.website || "",
 distKm: typeof p.lat === "number" && typeof p.lon === "number" ? Math.hypot((p.lon - g.lon) * 85, (p.lat - g.lat) * 111) : 0
 };
-}).filter(x => x.name);
+}).filter(x => {
+if (!x.name) return false;
+const k = x.name + "|" + x.area;
+if (seenPlace.has(k)) return false;
+seenPlace.add(k);
+return true;
+});
 poolMemCache[city] = pool;
+try {
+localStorage.setItem("dib_pool_v1_" + city, JSON.stringify({
+t: Date.now(),
+pool: pool
+}));
+} catch (e) {}
 return pool;
 }
 

@@ -385,8 +385,12 @@ footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 18
 .slider-ico svg { width: 18px; height: 18px; }
 .se-ico svg { width: 19px; height: 19px; }
 .rec-title2 { font-family: 'Fraunces', serif; font-size: 1.05rem; margin: 18px 0 8px; text-align: left; }
-.course-h { margin-top: 24px; }
-.course-h:first-child { margin-top: 6px; }
+.course-h { margin-top: 32px; font-size: 1.6rem; font-weight: 700; color: #3B1470; letter-spacing: .01em; }
+.course-h:first-child { margin-top: 10px; }
+.course-h::after { content: ""; display: block; width: 54px; height: 4px; border-radius: 3px; margin-top: 6px; background: linear-gradient(90deg, #F59E0B, #7C3AED); }
+.axes-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 4px; }
+.axis-chip { font: inherit; font-size: .92rem; font-weight: 600; color: #4C1D95; background: #F1EAFE; border: 1.5px solid #D9C8FB; border-radius: 999px; padding: 7px 13px; cursor: default; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.meters-toggle { display: block; margin: 10px auto 2px; background: none; border: none; color: #7C3AED; font: inherit; font-size: .9rem; font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .trait.no { background: #FDECEC; color: #8C2B2B; border-color: #F0C4C4; }
 .neg-note { font-size: .85rem; color: var(--muted); margin: 6px 0 0; text-align: left; }
 .more-recs { display: block; margin: 14px auto 2px; }

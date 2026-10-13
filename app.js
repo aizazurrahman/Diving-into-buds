@@ -2196,7 +2196,10 @@ Panama: "latinamerica",
 "Costa Rica": "latinamerica",
 Cuba: "latinamerica",
 "Dominican Republic": "latinamerica",
-"Puerto Rico": "latinamerica"
+"Puerto Rico": "latinamerica",
+Australia: "oceania",
+"New Zealand": "oceania",
+Fiji: "oceania"
 };
 
 function destRegionOf(city) {

@@ -440,6 +440,8 @@ function show(view) {
 [ "view-landing", "view-start", "view-fund", "view-home", "view-loves", "view-quiz", "view-compiling", "view-results", "view-profile", "view-dishes" ].forEach(v => {
 $(v).hidden = v !== view;
 });
+const sec = $(view);
+if (sec && sec.querySelectorAll) sec.querySelectorAll(".reveal").forEach(el => el.classList.add("inview"));
 const u = currentUser();
 $("userbox").hidden = !u;
 $("userEmail").textContent = u || "";
@@ -3299,7 +3301,7 @@ en.target.classList.add("inview");
 io.unobserve(en.target);
 }
 }), {
-threshold: .1
+threshold: 0
 });
 document.querySelectorAll(".reveal").forEach(el => io.observe(el));
 })();

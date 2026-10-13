@@ -501,7 +501,7 @@ footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 18
 .pick-arrow { font-size: 1.3rem; color: #7C3AED; }
 @media (prefers-reduced-motion: reduce) { .pick-btn { transition: none; } .pick-btn:hover { transform: none; } }
 .back-btn { background: none; border: none; color: var(--accent-dark); font: inherit; font-weight: 600; font-size: .95rem; cursor: pointer; padding: 4px 2px; margin-bottom: 10px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-.course-nav { position: sticky; top: 10px; z-index: 40; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; padding: 8px; margin: 14px 0 4px; border-radius: 999px; background: rgba(255,255,255,.88); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border: 1px solid var(--line); box-shadow: 0 10px 26px rgba(76,29,149,.16); }
+.course-nav { position: sticky; top: 10px; z-index: 40; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; padding: 8px; margin: 14px 0 4px; border-radius: 999px; background: rgba(255,255,255,.94); border: 1px solid var(--line); box-shadow: 0 10px 26px rgba(76,29,149,.16); }
 .course-nav button { font: inherit; font-size: .9rem; font-weight: 600; color: var(--accent-dark); background: var(--accent-soft); border: 1px solid var(--line); border-radius: 999px; padding: 7px 13px; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: background .15s ease; }
 .course-nav button:hover { background: #DFCFFB; }
 

@@ -545,5 +545,117 @@ RECS.push(
   "home"
  ],
  "why": "Grated cassava baked with coconut — dense, sweet and golden-topped."
+},
+{
+ "dish": "Duruka in lolo",
+ "yt": "https://www.youtube.com/watch?v=Rji7BSlVM2g",
+ "from": "Suva · Oceania",
+ "region": "oceania",
+ "country": "Fiji",
+ "diet": "vegan",
+ "emoji": "🌿",
+ "course": "main",
+ "match": [
+  "creamy",
+  "home",
+  "classic"
+ ],
+ "why": "Fiji's cane-flower spears simmered in coconut cream — delicate, sweet, and found nowhere else."
+},
+{
+ "dish": "Fijian pumpkin curry",
+ "yt": "https://www.youtube.com/watch?v=qPCuTXTrYUY",
+ "from": "Suva · Oceania",
+ "region": "oceania",
+ "country": "Fiji",
+ "diet": "vegan",
+ "emoji": "🍛",
+ "course": "main",
+ "match": [
+  "spice",
+  "home",
+  "comfort"
+ ],
+ "why": "Indo-Fijian home curry — pumpkin softened into toasted curry spices, eaten with roti."
+},
+{
+ "dish": "Bhaji greens",
+ "yt": "https://www.youtube.com/watch?v=BNZch7aNhLM",
+ "from": "Fiji · Oceania",
+ "region": "oceania",
+ "country": "Fiji",
+ "diet": "vegan",
+ "emoji": "🥬",
+ "course": "appetizer",
+ "match": [
+  "healthy",
+  "home",
+  "classic"
+ ],
+ "why": "Island greens wilted the Indo-Fijian way — the everyday starter beside dal and roti."
+},
+{
+ "dish": "Sago pudding",
+ "yt": "https://www.youtube.com/watch?v=hxUeLyt6HCA",
+ "from": "Fiji · Oceania",
+ "region": "oceania",
+ "country": "Fiji",
+ "diet": "vegan",
+ "emoji": "🍮",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "creamy",
+  "classic"
+ ],
+ "why": "Sago pearls set in coconut cream with palm-sugar syrup — the Pacific pantry pudding."
+},
+{
+ "dish": "Kūmara and chickpea burger",
+ "yt": "https://www.youtube.com/watch?v=g4ELa2XXtok",
+ "from": "New Zealand · Oceania",
+ "region": "oceania",
+ "country": "New Zealand",
+ "diet": "vegan",
+ "emoji": "🍔",
+ "course": "main",
+ "match": [
+  "comfort",
+  "healthy",
+  "classic"
+ ],
+ "why": "Kūmara and chickpea patties with garam masala — a Kiwi vegan staple from the Vegan Society of Aotearoa's own recipe book."
+},
+{
+ "dish": "Sautéed fiddleheads",
+ "yt": "https://www.youtube.com/watch?v=qKT_FEiVn3g",
+ "from": "New Brunswick · Canada",
+ "region": "unitedstates",
+ "country": "Canada",
+ "diet": "vegan",
+ "emoji": "🌿",
+ "course": "appetizer",
+ "match": [
+  "fresh",
+  "healthy",
+  "adventure"
+ ],
+ "why": "Young ostrich-fern coils, thoroughly cooked and sautéed in olive oil with garlic — Atlantic Canada's spring delicacy."
+},
+{
+ "dish": "Maple taffy",
+ "yt": "https://www.youtube.com/watch?v=V7bmSLOubsM",
+ "from": "Québec · Canada",
+ "region": "unitedstates",
+ "country": "Canada",
+ "diet": "vegan",
+ "emoji": "🍁",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "classic",
+  "adventure"
+ ],
+ "why": "Tire d'érable — boiling maple syrup poured over clean snow and rolled onto a stick at the sugar shack."
 }
 );

@@ -1322,13 +1322,15 @@ const cd = commDataById.get(id);
 st.lovesData[id] = {
 n: entry ? entry.name : "Dish",
 i: cd.i || [],
-f: cd.f || []
+f: cd.f || [],
+c: entry ? entry.course || "" : ""
 };
 } else {
 st.lovesData[id] = {
 n: entry ? entry.name : "Dish",
 i: id < 0 ? (st.lovesData[id] || {}).i || [] : [],
-f: id < 0 ? (st.lovesData[id] || {}).f || [] : []
+f: id < 0 ? (st.lovesData[id] || {}).f || [] : [],
+c: entry ? entry.course || "" : ""
 };
 }
 saveState();
@@ -1340,7 +1342,8 @@ if (d) {
 st.lovesData[id] = {
 n: entry ? entry.name : "Dish",
 i: d.i || [],
-f: d.f || []
+f: d.f || [],
+c: entry ? entry.course || "" : ""
 };
 saveState();
 }
@@ -2350,6 +2353,19 @@ Object.entries(sig).forEach(([a, v]) => {
 const c = v * 1.5;
 if (c > 0) axisPos[a] = (axisPos[a] || 0) + c; else axisNeg[a] = (axisNeg[a] || 0) - c;
 });
+const LOVE_COURSE = {
+Dessert: "dessert",
+Drink: "drink",
+Appetizer: "appetizer",
+Starter: "appetizer",
+Snack: "appetizer",
+Salad: "appetizer",
+Side: "appetizer",
+Main: "main",
+Breakfast: "main",
+Soup: "main"
+};
+const dom = Object.entries(sig).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => k);
 pickRefs.push({
 text: d.n,
 qid: "loves",
@@ -2358,7 +2374,9 @@ mult: 1,
 rank1: false,
 love: true,
 axes: sig,
-tags: (d.f || []).slice()
+tags: (d.f || []).slice(),
+course: LOVE_COURSE[d.c] || null,
+dom: dom
 });
 });
 const axes = AXES.map(ax => {
@@ -2595,11 +2613,30 @@ return reasons.sort((a, b) => b.score - a.score);
 };
 let reasons = buildReasons(.5, .5);
 const chosen = [], usedRefs = new Set;
+const courseCompat = (lc, dc) => !lc || !dc || lc === dc || (lc === "dessert" || lc === "drink") && (dc === "dessert" || dc === "drink");
+const refStrict = (rsn, p, loveUsed) => {
+if (!p.love) return true;
+if (loveUsed >= 1) return false;
+if (!courseCompat(p.course, r.course)) return false;
+if (rsn.key.startsWith("ax:") && !(p.dom || []).includes(rsn.key.slice(3))) return false;
+if (rsn.key === "tag:crisp" && !(p.dom || []).includes("crunch")) return false;
+return true;
+};
 const takeFrom = list => {
 for (const rsn of list) {
 if (chosen.length >= 3) break;
 if (chosen.some(c => c.key === rsn.key)) continue;
-const c = rsn.cands.find(x => !usedRefs.has(x.p.text) && (whyRefUse[x.p.text] || 0) < 2) || rsn.cands.find(x => !usedRefs.has(x.p.text)) || (chosen.length < 2 ? rsn.cands[0] : null);
+const loveUsed = chosen.filter(c => c.ref.love).length;
+const ok = (x, stage) => {
+const p = x.p;
+if (usedRefs.has(p.text)) return false;
+if (stage === 0) return refStrict(rsn, p, loveUsed) && (whyRefUse[p.text] || 0) < 2;
+if (stage === 1) return refStrict(rsn, p, loveUsed);
+if (chosen.length >= 2) return false;
+if (stage === 2) return !p.love || loveUsed < 1;
+return true;
+};
+const c = rsn.cands.find(x => ok(x, 0)) || rsn.cands.find(x => ok(x, 1)) || rsn.cands.find(x => ok(x, 2)) || rsn.cands.find(x => ok(x, 3)) || (chosen.length < 2 ? rsn.cands[0] : null);
 if (!c) continue;
 usedRefs.add(c.p.text);
 whyRefUse[c.p.text] = (whyRefUse[c.p.text] || 0) + 1;
@@ -2726,7 +2763,7 @@ completedAt: (new Date).toISOString()
 }
 
 function recCardsHtml(list, res) {
-return list.map(r => `<div class="rec"><span class="r-emoji">${(RECS.find(x => x.dish === r.dish) || {}).emoji || "🍽️"}</span>\n     <div><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong><p>${r.why}</p>${r.whyYou ? `<p class="r-axes">${r.whyYou}</p>` : r.axes && r.axes.length ? `<p class="r-axes">Matches your: ${r.axes.join(" · ")}</p>` : ""}${r.yt ? `<a class="r-find" rel="noopener" href="${r.yt}"><svg class="yt-logo" viewBox="0 0 28 20" aria-hidden="true"><path fill="#FF0000" d="M27.4 3.1c-.3-1.2-1.3-2.2-2.5-2.5C22.7 0 14 0 14 0S5.3 0 3.1.6C1.9.9.9 1.9.6 3.1.1 5.2 0 8.9 0 10s0 4.8.6 6.9c.3 1.2 1.3 2.2 2.5 2.5C5.3 20 14 20 14 20s8.7 0 10.9-.6c1.2-.3 2.2-1.3 2.5-2.5.5-2.1.6-6.9.6-6.9s0-4.8-.6-6.9z"/><path fill="#fff" d="M11.2 14.3V5.7l7.4 4.3z"/></svg>Watch it being made →</a> ` : ""}</div>${res.city ? `<a class="place-btn generic r-place" data-dish="${r.dish}" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.dish + " near " + res.city)}">📍 ${res.city.split(",")[0]}<small>Find this dish</small></a>` : ""}</div>`).join("");
+return list.map(r => `<div class="rec"><div class="r-head"><span class="r-emoji">${(RECS.find(x => x.dish === r.dish) || {}).emoji || "🍽️"}</span><div class="r-title"><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong></div></div><p class="r-sum">${r.why}</p>${r.whyYou ? `<p class="r-axes">${r.whyYou}</p>` : r.axes && r.axes.length ? `<p class="r-axes">Matches your: ${r.axes.join(" · ")}</p>` : ""}${r.yt || res.city ? `<div class="r-foot">${r.yt ? `<a class="r-find" rel="noopener" href="${r.yt}"><svg class="yt-logo" viewBox="0 0 28 20" aria-hidden="true"><path fill="#FF0000" d="M27.4 3.1c-.3-1.2-1.3-2.2-2.5-2.5C22.7 0 14 0 14 0S5.3 0 3.1.6C1.9.9.9 1.9.6 3.1.1 5.2 0 8.9 0 10s0 4.8.6 6.9c.3 1.2 1.3 2.2 2.5 2.5C5.3 20 14 20 14 20s8.7 0 10.9-.6c1.2-.3 2.2-1.3 2.5-2.5.5-2.1.6-6.9.6-6.9s0-4.8-.6-6.9z"/><path fill="#fff" d="M11.2 14.3V5.7l7.4 4.3z"/></svg>Watch it being made →</a>` : ""}${res.city ? `<a class="place-btn generic r-place" data-dish="${r.dish}" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.dish + " near " + res.city)}">📍 ${res.city.split(",")[0]}<small>Find this dish</small></a>` : ""}</div>` : ""}</div>`).join("");
 }
 
 let lastResult = null, recsAltShown = false;

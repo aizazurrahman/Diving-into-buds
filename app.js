@@ -1037,7 +1037,7 @@ return hits.slice(0, 24).map(h => h.e);
 
 function paintLoveResults(list) {
 lovesLastQuery = list;
-let html = list.slice(0, 3).map(e => {
+let html = list.slice(0, 3).sort((a, b) => a.name.localeCompare(b.name)).map(e => {
 const picked = (st.loves || []).includes(e.id);
 return `<button type="button" class="opt${picked ? " sel" : ""}" data-pick="${e.id}">${e.name}<span class="dish-sub">${[ e.origin, e.course ].filter(Boolean).join(" · ")}</span></button>`;
 }).join("");

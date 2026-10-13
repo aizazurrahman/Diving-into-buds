@@ -1671,7 +1671,7 @@ RECS.push(
  "from": "Fiji · Oceania",
  "region": "oceania",
  "country": "Fiji",
- "diet": "veg",
+ "diet": "vegan",
  "emoji": "🍮",
  "course": "dessert",
  "match": [
@@ -1684,7 +1684,7 @@ RECS.push(
 {
  "dish": "Tourtière",
  "yt": "https://www.youtube.com/watch?v=A96hbwobKKs",
- "from": "Québec · United States",
+ "from": "Québec · Canada",
  "region": "unitedstates",
  "country": "Canada",
  "diet": "meat:pork",
@@ -1700,7 +1700,7 @@ RECS.push(
 {
  "dish": "Montreal smoked meat",
  "yt": "https://www.youtube.com/watch?v=ZI_NIEJhcWs",
- "from": "Montreal · United States",
+ "from": "Montreal · Canada",
  "region": "unitedstates",
  "country": "Canada",
  "diet": "meat:beef",
@@ -1716,7 +1716,7 @@ RECS.push(
 {
  "dish": "Split pea soup",
  "yt": "https://www.youtube.com/watch?v=u5nwSNsd3UE",
- "from": "Québec · United States",
+ "from": "Québec · Canada",
  "region": "unitedstates",
  "country": "Canada",
  "diet": "meat:pork",
@@ -1732,7 +1732,7 @@ RECS.push(
 {
  "dish": "Butter tarts",
  "yt": "https://www.youtube.com/watch?v=DfOhFSp6BsA",
- "from": "Ontario · United States",
+ "from": "Ontario · Canada",
  "region": "unitedstates",
  "country": "Canada",
  "diet": "veg",
@@ -1748,7 +1748,7 @@ RECS.push(
 {
  "dish": "BeaverTails",
  "yt": "https://www.youtube.com/watch?v=uOALaFvH7X4",
- "from": "Ottawa · United States",
+ "from": "Ottawa · Canada",
  "region": "unitedstates",
  "country": "Canada",
  "diet": "veg",
@@ -1764,7 +1764,7 @@ RECS.push(
 {
  "dish": "Caesar",
  "yt": "https://www.youtube.com/watch?v=IGlWE4AFQ5Q",
- "from": "Calgary · United States",
+ "from": "Calgary · Canada",
  "region": "unitedstates",
  "country": "Canada",
  "diet": "meat:seafood",

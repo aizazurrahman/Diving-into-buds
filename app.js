@@ -2847,6 +2847,7 @@ paintCourseNav(res.recs);
 const recTitleEl = $("recTitle");
 if (recTitleEl) recTitleEl.textContent = res.mode === "travel" && res.city ? `What to eat in ${res.city.split(",")[0]} 🌍` : "Your personalized picks, Handpicked based on what you love 🌍";
 upgradeAllPlaces(res);
+enhanceReasonsAI(res);
 const mrb = $("moreRecsBtn");
 if (mrb) {
 mrb.hidden = !(st.altRecs || []).length;
@@ -2878,6 +2879,84 @@ saveState();
 } catch (e) {
 console.warn("Sheets save failed:", e);
 }
+}
+
+function aiReasonsPayload(res, altList) {
+const picks = [];
+const detail = [ ...res.detail || [] ].sort((a, b) => (b.weight || 0) - (a.weight || 0));
+for (const d of detail) for (const p of d.picks || []) {
+if (p && !picks.includes(p)) picks.push(p);
+if (picks.length >= 14) break;
+}
+const loveNames = (Array.isArray(st.loves) ? st.loves : []).map(id => (st.lovesData || {})[id]).filter(d => d && d.n).map(d => d.n);
+return {
+profile: {
+diet: res.diet || "",
+roots: [ res.roots, res.roots2 ].filter(Boolean),
+context: res.mode === "travel" && res.city ? `Travelling to ${res.city}; these recommendations are for that trip.` : `Exploring new flavours from home in ${res.city || "their city"}.`,
+axes: (res.axes || []).slice(0, 6).map(a => `${a.name}: ${a.lean === "hi" ? a.hi : a.lean === "lo" ? a.lo : "balanced"}`),
+tags: (res.topTags || []).map(t => String(TAG_LABELS[t] || t).replace(/^\S+\s/, "")).slice(0, 8),
+loves: loveNames.slice(0, 15),
+picks: picks
+},
+dishes: [ ...res.recs || [], ...altList || [] ].map(r => ({
+n: r.dish,
+from: r.from,
+course: r.course,
+sum: r.why || "",
+tpl: r.whyYou || ""
+}))
+};
+}
+
+function applyAiReasons(lists, reasons) {
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+let i = 0, applied = 0;
+for (const list of lists) {
+for (const r of list) {
+const cand = reasons[i++];
+if (typeof cand !== "string") continue;
+const t = cand.trim().replace(/\s+/g, " ");
+if (t.length < 12 || t.length > 340 || /https?:|www\.|```/.test(t)) continue;
+r.whyYou = esc(t);
+applied++;
+}
+}
+return applied;
+}
+
+let aiReasonsOff = false, aiReasonsBusy = false;
+
+async function enhanceReasonsAI(res) {
+if (aiReasonsOff || aiReasonsBusy) return;
+if (!sb || !sb.functions || typeof sb.functions.invoke !== "function") return;
+if (!res || res.aiV || !Array.isArray(res.recs) || !res.recs.length) return;
+if (!currentUser()) return;
+aiReasonsBusy = true;
+try {
+const alt = Array.isArray(st.altRecs) ? st.altRecs : [];
+const payload = aiReasonsPayload(res, alt);
+const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error("ai timeout")), 25e3));
+const {data: data, error: error} = await Promise.race([ sb.functions.invoke("ai-reasons", {
+body: payload
+}), timeout ]);
+if (error || !data || !Array.isArray(data.reasons)) throw new Error("ai reasons unavailable");
+const applied = applyAiReasons([ res.recs, alt ], data.reasons);
+if (!applied) {
+aiReasonsOff = true;
+return;
+}
+res.aiV = 1;
+const shownList = recsAltShown ? st.altRecs || [] : res.recs;
+$("profileRecs").innerHTML = recSectionsHtml(shownList, res);
+paintCourseNav(shownList);
+upgradeAllPlaces(res);
+saveState();
+upsertNow();
+} catch (e) {
+aiReasonsOff = true;
+}
+aiReasonsBusy = false;
 }
 
 const GEOAPIFY_KEY = "79a958030a5b49e191bdf89215ce9710";

@@ -102,7 +102,8 @@ finished: false,
 result: null,
 sheetSent: false,
 loves: null,
-lovesData: {}
+lovesData: {},
+feedback: {}
 };
 }
 
@@ -363,6 +364,7 @@ if (Array.isArray(st.loves) && st.loves.length) {
 answersPayload.__loves = st.loves;
 answersPayload.__lovesData = st.lovesData || {};
 }
+if (st.feedback && Object.keys(st.feedback).length) answersPayload.__feedback = st.feedback;
 const base = {
 user_id: sessionUser.id,
 answers: answersPayload,
@@ -410,6 +412,7 @@ st.answers = Object.keys(cloudAnswers).length ? cloudAnswers : local.builtFor &&
 st.skipped = rawAnswers.__skipped || local.skipped || {};
 st.loves = Array.isArray(rawAnswers.__loves) ? rawAnswers.__loves : local.loves !== undefined ? local.loves : [];
 st.lovesData = rawAnswers.__lovesData || local.lovesData || {};
+st.feedback = rawAnswers.__feedback || local.feedback || {};
 st.finished = !!row.finished;
 st.result = result;
 st.sheetSent = !!result;
@@ -2477,7 +2480,10 @@ const vetoedByAversion = dish => {
 const dw = dish.toLowerCase().replace(/[^a-z ]/g, " ").split(/\s+/).filter(Boolean).map(stemW);
 return aversions.some(av => aversionKeys(av).some(k => dw.some(w => w === k || k.length >= 4 && w.startsWith(k))));
 };
-const scored = RECS.filter(r => s.builtFor.mode === "travel" || !ownRoots.includes(r.region)).filter(r => optVisible(r, s.builtFor.diet, meats)).filter(r => !r.raw || rawOk).filter(r => !r.alc || alcOk).filter(r => !r.egg || s.builtFor.diet !== "vegetarian" || eggOk).filter(r => !vetoedByAversion(r.dish)).map(r => ({
+const scored = RECS.filter(r => s.builtFor.mode === "travel" || !ownRoots.includes(r.region)).filter(r => optVisible(r, s.builtFor.diet, meats)).filter(r => !r.raw || rawOk).filter(r => !r.alc || alcOk).filter(r => !r.egg || s.builtFor.diet !== "vegetarian" || eggOk).filter(r => !vetoedByAversion(r.dish)).filter(r => {
+const fv = (s.feedback || {})[r.dish];
+return fv !== "no" && fv !== "love";
+}).map(r => ({
 r: r,
 score: dishScoreV2(r),
 matched: r.match.filter(t => (tagCount[t] || 0) > 0).length,
@@ -2762,7 +2768,11 @@ completedAt: (new Date).toISOString()
 }
 
 function recCardsHtml(list, res) {
-return list.map(r => `<div class="rec"><div class="r-head"><span class="r-emoji">${(RECS.find(x => x.dish === r.dish) || {}).emoji || "🍽️"}</span><div class="r-title"><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong></div></div><p class="r-sum">${r.why}</p>${r.whyYou ? `<p class="r-axes">${r.whyYou}</p>` : r.axes && r.axes.length ? `<p class="r-axes">Matches your: ${r.axes.join(" · ")}</p>` : ""}${r.yt || res.city ? `<div class="r-foot">${r.yt ? `<a class="r-find" rel="noopener" href="${r.yt}"><svg class="yt-logo" viewBox="0 0 28 20" aria-hidden="true"><path fill="#FF0000" d="M27.4 3.1c-.3-1.2-1.3-2.2-2.5-2.5C22.7 0 14 0 14 0S5.3 0 3.1.6C1.9.9.9 1.9.6 3.1.1 5.2 0 8.9 0 10s0 4.8.6 6.9c.3 1.2 1.3 2.2 2.5 2.5C5.3 20 14 20 14 20s8.7 0 10.9-.6c1.2-.3 2.2-1.3 2.5-2.5.5-2.1.6-6.9.6-6.9s0-4.8-.6-6.9z"/><path fill="#fff" d="M11.2 14.3V5.7l7.4 4.3z"/></svg>Watch it being made →</a>` : ""}${res.city ? `<a class="place-btn generic r-place" data-dish="${r.dish}" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.dish + " near " + res.city)}">📍 ${res.city.split(",")[0]}<small>Find this dish</small></a>` : ""}</div>` : ""}</div>`).join("");
+const fb = typeof st !== "undefined" && st && st.feedback || {};
+return list.map(r => {
+const fv = fb[r.dish] || "";
+return `<div class="rec"><div class="r-head"><span class="r-emoji">${(RECS.find(x => x.dish === r.dish) || {}).emoji || "🍽️"}</span><div class="r-title"><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong></div></div><p class="r-sum">${r.why}</p>${r.whyYou ? `<p class="r-axes">${r.whyYou}</p>` : r.axes && r.axes.length ? `<p class="r-axes">Matches your: ${r.axes.join(" · ")}</p>` : ""}<div class="r-verdict" data-dish="${r.dish}"><button type="button" class="fb-btn${fv === "try" ? " on" : ""}" data-v="try">👍 Would try</button><button type="button" class="fb-btn${fv === "no" ? " on" : ""}" data-v="no">👎 Not for me</button><button type="button" class="fb-btn${fv === "love" ? " on" : ""}" data-v="love">❤️ Already love it</button></div>${r.yt || res.city ? `<div class="r-foot">${r.yt ? `<a class="r-find" rel="noopener" href="${r.yt}"><svg class="yt-logo" viewBox="0 0 28 20" aria-hidden="true"><path fill="#FF0000" d="M27.4 3.1c-.3-1.2-1.3-2.2-2.5-2.5C22.7 0 14 0 14 0S5.3 0 3.1.6C1.9.9.9 1.9.6 3.1.1 5.2 0 8.9 0 10s0 4.8.6 6.9c.3 1.2 1.3 2.2 2.5 2.5C5.3 20 14 20 14 20s8.7 0 10.9-.6c1.2-.3 2.2-1.3 2.5-2.5.5-2.1.6-6.9.6-6.9s0-4.8-.6-6.9z"/><path fill="#fff" d="M11.2 14.3V5.7l7.4 4.3z"/></svg>Watch it being made →</a>` : ""}${res.city ? `<a class="place-btn generic r-place" data-dish="${r.dish}" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.dish + " near " + res.city)}">📍 ${res.city.split(",")[0]}<small>Find this dish</small></a>` : ""}</div>` : ""}</div>`;
+}).join("");
 }
 
 let lastResult = null, recsAltShown = false;
@@ -2880,6 +2890,57 @@ saveState();
 console.warn("Sheets save failed:", e);
 }
 }
+
+let feedbackOff = false;
+
+function setVerdict(dish, v) {
+if (!dish || !v || !st) return;
+st.feedback = st.feedback || {};
+if (st.feedback[dish] === v) delete st.feedback[dish]; else st.feedback[dish] = v;
+const now = st.feedback[dish] || null;
+if ((now === "no" || now === "love") && Array.isArray(st.altRecs)) {
+st.altRecs = st.altRecs.filter(r => r.dish !== dish);
+}
+if (lastResult && $("profileRecs")) {
+const list = recsAltShown ? st.altRecs || [] : lastResult.recs || [];
+$("profileRecs").innerHTML = recSectionsHtml(list, lastResult);
+paintCourseNav(list);
+upgradeAllPlaces(lastResult);
+const mrb = $("moreRecsBtn");
+if (mrb) mrb.hidden = !(st.altRecs || []).length;
+}
+saveState();
+syncFeedbackRow(dish, now);
+}
+
+async function syncFeedbackRow(dish, verdict) {
+if (feedbackOff || !sb || !currentUser()) return;
+try {
+if (verdict) {
+const {error: error} = await sb.from("feedback").upsert({
+user_id: currentUser().id,
+dish_key: dish,
+verdict: verdict,
+updated_at: (new Date).toISOString()
+}, {
+onConflict: "user_id,dish_key"
+});
+if (error) throw error;
+} else {
+const {error: error} = await sb.from("feedback").delete().eq("user_id", currentUser().id).eq("dish_key", dish);
+if (error) throw error;
+}
+} catch (e) {
+feedbackOff = true;
+}
+}
+
+document.addEventListener("click", e => {
+const b = e.target && e.target.closest ? e.target.closest(".fb-btn") : null;
+if (!b) return;
+const wrap = b.closest(".r-verdict");
+if (wrap) setVerdict(wrap.dataset.dish, b.dataset.v);
+});
 
 function aiReasonsPayload(res, altList) {
 const picks = [];

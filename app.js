@@ -122,6 +122,7 @@ return a.o.map(i => QBANK_BY_ID[qid].options[i].diet.replace("meat:", ""));
 function optVisible(opt, diet, meats) {
 const d = opt.diet;
 if (opt.alt && (diet === "everything" || diet === "halal")) return false;
+if (opt.noveg && (diet === "vegetarian" || diet === "vegan")) return false;
 if (diet === "vegan") return d === "vegan";
 if (diet === "vegetarian") return d === "vegan" || d === "veg";
 if (d === "alcohol") return diet === "everything";
@@ -217,6 +218,7 @@ const rotate = (arr, n) => arr.length ? [ ...arr.slice(n % arr.length), ...arr.s
 const salad = [ "pal-25", "pal-26" ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
 const fishFam = [ "glo-fish", ...QBANK.filter(c => c.gate && c.gate.q === "glo-fish").map(c => c.id) ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
 const alcQ = diet === "everything" ? [ "glo-alc" ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q)) : [];
+const beefQ = diet === "everything" || diet === "halal" ? [ "glo-beef" ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q)) : [];
 const zip3 = (a, b, c) => {
 const out = [];
 for (let i = 0; i < Math.max(a.length, b.length, c.length); i++) {
@@ -226,8 +228,8 @@ if (c[i]) out.push(c[i]);
 }
 return out;
 };
-const worldFill = zip3(rotate(byDeck("palate").filter(q => !salad.includes(q)), rot * 3), rotate(byDeck("bridge"), rot * 2), rotate(byDeck("global").filter(q => !fishFam.includes(q) && !alcQ.includes(q)), rot * 5));
-const worldPick = [ ...salad, ...fishFam, ...alcQ, ...worldFill ].slice(0, 8);
+const worldFill = zip3(rotate(byDeck("bridge"), rot * 2), rotate(byDeck("palate").filter(q => !salad.includes(q)), rot * 3), rotate(byDeck("global").filter(q => !fishFam.includes(q) && !alcQ.includes(q) && !beefQ.includes(q)), rot * 5));
+const worldPick = [ ...salad, ...fishFam, ...alcQ, ...beefQ, ...worldFill ].slice(0, 8);
 const composed = [ ...regional, ...worldPick ];
 const seen = new Set;
 const order = composed.filter(q => !seen.has(q.id) && seen.add(q.id));
@@ -239,13 +241,13 @@ seen.add(q.id);
 }
 }
 const gStart = regional.length;
-const withKids = [ ...order.slice(0, gStart) ];
+const withKids = [ ...order ];
 const inOrder = new Set(order.map(q => q.id));
 for (const q of order.slice(gStart)) {
-withKids.push(q);
+let insertAt = withKids.indexOf(q.id) + 1;
 for (const kid of QBANK.filter(c => c.gate && c.gate.q === q.id)) {
-if (!inOrder.has(kid.id) && valid.includes(kid)) {
-withKids.push(kid);
+if (!inOrder.has(kid.id) && valid.includes(kid) && withKids.length < DEFAULT_TOTAL) {
+withKids.splice(insertAt++, 0, kid);
 inOrder.add(kid.id);
 }
 }
@@ -1865,6 +1867,9 @@ aromatics: -.4
 tangy: {
 funk: .3
 },
+fermented: {
+funk: .8
+},
 creamy: {
 oil: .9
 },
@@ -2081,6 +2086,11 @@ latinamerica: {
 herbs: .3,
 crunch: .2,
 aromatics: .3
+},
+oceania: {
+oil: .4,
+crunch: .3,
+soup: .2
 }
 };
 

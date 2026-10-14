@@ -2811,6 +2811,10 @@ const res = st.result || computeResult(st);
 st.result = res;
 if (!res.city && st.builtFor && st.builtFor.city) res.city = st.builtFor.city;
 if (!res.mode && st.builtFor && st.builtFor.mode) res.mode = st.builtFor.mode;
+if (st.finished && !(st.altRecs && st.altRecs.length)) {
+computeResult(st);
+st.altRecs = altRecsCache;
+}
 const strip = s2 => s2.replace(/^\S+\s/, "");
 const labels = res.topTags.map(t => TAG_LABELS[t]).filter(Boolean);
 $("profileSummary").textContent = labels.length >= 2 ? `In one line: ${strip(labels[0])} meets ${strip(labels[1]).toLowerCase()}. Here's the full picture:` : "Here's what your answers say about your palate:";

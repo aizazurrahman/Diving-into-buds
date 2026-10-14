@@ -657,5 +657,101 @@ RECS.push(
   "adventure"
  ],
  "why": "Tire d'érable — boiling maple syrup poured over clean snow and rolled onto a stick at the sugar shack."
+},
+{
+ "dish": "Fijian dhal soup",
+ "yt": "https://www.youtube.com/watch?v=d5wkL-iDOQE",
+ "from": "Suva · Oceania",
+ "region": "oceania",
+ "country": "Fiji",
+ "diet": "vegan",
+ "emoji": "🍲",
+ "course": "main",
+ "match": [
+  "soup",
+  "spice",
+  "home"
+ ],
+ "why": "Split-pea dhal simmered with turmeric, cumin and chilli — Fiji's everyday main, ladled over rice or scooped up with roti."
+},
+{
+ "dish": "Aloo baigan",
+ "yt": "https://www.youtube.com/watch?v=96y3e9YZuX4",
+ "from": "Suva · Oceania",
+ "region": "oceania",
+ "country": "Fiji",
+ "diet": "vegan",
+ "emoji": "🍆",
+ "course": "main",
+ "match": [
+  "spice",
+  "home",
+  "comfort"
+ ],
+ "why": "Eggplant and potato curry in a spiced tomato-onion masala — a Fiji wedding staple, plant-only as it is traditionally made."
+},
+{
+ "dish": "Fijian chickpea curry",
+ "yt": "https://www.youtube.com/watch?v=oEObxUULppU",
+ "from": "Suva · Oceania",
+ "region": "oceania",
+ "country": "Fiji",
+ "diet": "vegan",
+ "emoji": "🍛",
+ "course": "main",
+ "match": [
+  "spice",
+  "home",
+  "comfort"
+ ],
+ "why": "Chickpeas simmered in a garam-masala curry base — hearty Indo-Fijian home cooking, scooped up with roti or rice."
+},
+{
+ "dish": "Gulgula",
+ "yt": "https://www.youtube.com/watch?v=vGRtH0RjRdM",
+ "from": "Suva · Oceania",
+ "region": "oceania",
+ "country": "Fiji",
+ "diet": "vegan",
+ "emoji": "🍌",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "crisp",
+  "classic"
+ ],
+ "why": "Banana fritters, crisp-edged and soft inside — Fiji's beloved sweet, fried fresh for markets and tea time."
+},
+{
+ "dish": "Purini",
+ "yt": "https://www.youtube.com/watch?v=VqPnh07HVJA",
+ "from": "Suva · Oceania",
+ "region": "oceania",
+ "country": "Fiji",
+ "diet": "vegan",
+ "emoji": "🥥",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "creamy",
+  "classic"
+ ],
+ "why": "Steamed coconut pudding sweetened with burnt sugar — a Fijian celebration sweet with a deep caramel note."
+},
+{
+ "dish": "Topoi",
+ "yt": "https://www.youtube.com/watch?v=mceD8ymFGcE",
+ "from": "Suva · Oceania",
+ "region": "oceania",
+ "country": "Fiji",
+ "diet": "vegan",
+ "emoji": "🍮",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "creamy",
+  "home"
+ ],
+ "why": "Soft flour dumplings poached in sweetened coconut milk — a gentle Fijian dessert, served warm."
 }
 );

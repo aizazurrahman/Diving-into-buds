@@ -3042,6 +3042,15 @@ return applied;
 
 let aiReasonsOff = false, aiReasonsBusy = false;
 
+async function aiInvokeReasons(payload) {
+const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('ai timeout')), 25e3));
+const {data: data, error: error} = await Promise.race([ sb.functions.invoke('ai-reasons', {
+body: payload
+}), timeout ]);
+if (error || !data || !Array.isArray(data.reasons)) throw new Error('ai reasons unavailable');
+return data.reasons;
+}
+
 async function enhanceReasonsAI(res) {
 if (aiReasonsOff || aiReasonsBusy) return;
 if (!sb || !sb.functions || typeof sb.functions.invoke !== 'function') return;
@@ -3050,17 +3059,32 @@ if (!currentUser()) return;
 aiReasonsBusy = true;
 try {
 const alt = Array.isArray(st.altRecs) ? st.altRecs : [];
-const payload = aiReasonsPayload(res, alt);
-const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('ai timeout')), 25e3));
-const {data: data, error: error} = await Promise.race([ sb.functions.invoke('ai-reasons', {
-body: payload
-}), timeout ]);
-if (error || !data || !Array.isArray(data.reasons)) throw new Error('ai reasons unavailable');
-const applied = applyAiReasons([ res.recs, alt ], data.reasons, aiAnchorSet(res));
-if (!applied) {
-aiReasonsOff = true;
-return;
+const anchors = aiAnchorSet(res);
+const full = aiReasonsPayload(res, alt);
+const batches = [ {
+list: res.recs,
+dishes: full.dishes.slice(0, res.recs.length)
+} ];
+if (alt.length) batches.push({
+list: alt,
+dishes: full.dishes.slice(res.recs.length)
+});
+let anyApplied = 0;
+for (const b of batches) {
+if (!b.dishes.length) continue;
+let reasons;
+try {
+reasons = await aiInvokeReasons({
+profile: full.profile,
+dishes: b.dishes
+});
+} catch (e) {
+if (!anyApplied) aiReasonsOff = true;
+break;
 }
+const applied = applyAiReasons([ b.list ], reasons, anchors);
+if (applied) {
+anyApplied += applied;
 res.aiV = 1;
 const shownList = recsAltShown ? st.altRecs || [] : res.recs;
 $('profileRecs').innerHTML = recSectionsHtml(shownList, res);
@@ -3068,6 +3092,9 @@ paintCourseNav(shownList);
 upgradeAllPlaces(res);
 saveState();
 upsertNow();
+}
+}
+if (!anyApplied) aiReasonsOff = true;
 } catch (e) {
 aiReasonsOff = true;
 }

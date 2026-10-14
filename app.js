@@ -2986,12 +2986,14 @@ tpl: r.whyYou || ''
 
 const AI_STOP = new Set('a an the and or of to in on at by for with without your you yours their they them this that it its is are was were be been as from into over under more most less very really just not no all any some every each other another same only also than then when what which who how why pick picks picked chose chosen choice loves loved dish dishes food foods meal meals eat eats eating'.split(' '));
 
+const AI_FLAVOUR = new Set('crisp crunchy crispy creamy smoky smoked spicy sweet savoury savory tangy fresh golden tender rich bold hot mild soft smooth fried grilled roasted baked steamed boiled warm cold sour bitter salty buttery cheesy juicy flaky fluffy hearty light bright classic street style proper properly slow fast quick easy simple'.split(' '));
+
 function aiNorm(s) {
 return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 function aiTokens(s, min) {
-return aiNorm(s).split(' ').filter(w => w.length >= min && !AI_STOP.has(w));
+return aiNorm(s).split(' ').filter(w => w.length >= min && !AI_STOP.has(w) && !AI_FLAVOUR.has(w));
 }
 
 function aiAnchorSet(res) {
@@ -3008,7 +3010,6 @@ for (const d of detail) for (const p of d.picks || []) {
 if (p && !picks.includes(p)) picks.push(p);
 }
 for (const p of picks) for (const w of aiTokens(p, 5)) set.add(w);
-for (const a of res.axes || []) for (const w of aiTokens(`${a.name || ''} ${a.hi || ''} ${a.lo || ''}`, 5)) set.add(w);
 return {
 set: set,
 names: names

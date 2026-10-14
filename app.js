@@ -1,10 +1,10 @@
-const SUPABASE_URL = "https://lhygxgwyprkhhkuaozuk.supabase.co";
+const SUPABASE_URL = 'https://lhygxgwyprkhhkuaozuk.supabase.co';
 
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeWd4Z3d5cHJraGhrdWFvenVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExNjU3MjcsImV4cCI6MjEwNjc0MTcyN30.upttjjbTEyv4JZTR8NpM94TAsgtV7PznYEeR_ZeRvn8";
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoeWd4Z3d5cHJraGhrdWFvenVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExNjU3MjcsImV4cCI6MjEwNjc0MTcyN30.upttjjbTEyv4JZTR8NpM94TAsgtV7PznYEeR_ZeRvn8';
 
-const SHEETS_ENDPOINT = "https://script.google.com/macros/s/AKfycbwX1iyUOYO8r1rTEKXjStql1hFOvCzw2O9UcvpoJ3-BO65QJcHgtRVFTxK4yluzgd-0/exec";
+const SHEETS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwX1iyUOYO8r1rTEKXjStql1hFOvCzw2O9UcvpoJ3-BO65QJcHgtRVFTxK4yluzgd-0/exec';
 
-const sb = window.supabase && SUPABASE_URL && !SUPABASE_ANON_KEY.includes("PASTE_") ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+const sb = window.supabase && SUPABASE_URL && !SUPABASE_ANON_KEY.includes('PASTE_') ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 const $ = id => document.getElementById(id);
 
@@ -30,34 +30,34 @@ const DEFAULT_TOTAL = 20;
 const runTotal = () => DEFAULT_TOTAL;
 
 const WEIGHT_WORDS = {
-1: "Almost a tie",
-2: "Leaning this way",
-3: "Pretty sure",
-4: "Strong pick",
-5: "No contest"
+1: 'Almost a tie',
+2: 'Leaning this way',
+3: 'Pretty sure',
+4: 'Strong pick',
+5: 'No contest'
 };
 
 const DIET_LABELS = {
-everything: "Everything",
-vegetarian: "Vegetarian",
-vegan: "Vegan",
-halal: "Everything Halal"
+everything: 'Everything',
+vegetarian: 'Vegetarian',
+vegan: 'Vegan',
+halal: 'Everything Halal'
 };
 
 const ROOT_LABELS = {
-hyderabad: "Hyderabad, India",
-southasia: "South Asia",
-eastasia: "East/Southeast Asia",
-middleeast: "Middle-Eastern",
-unitedstates: "United States",
-europe: "Europe",
-africa: "Africa",
-latinamerica: "Latin America & The Caribbean"
+hyderabad: 'Hyderabad, India',
+southasia: 'South Asia',
+eastasia: 'East/Southeast Asia',
+middleeast: 'Middle-Eastern',
+unitedstates: 'United States',
+europe: 'Europe',
+africa: 'Africa',
+latinamerica: 'Latin America & The Caribbean'
 };
 
 const LEGACY_ROOTS = {
-asia: "eastasia",
-americas: "unitedstates"
+asia: 'eastasia',
+americas: 'unitedstates'
 };
 
 function normRootsValue(v) {
@@ -65,18 +65,18 @@ return LEGACY_ROOTS[v] || v;
 }
 
 function rootsLabelOf(o) {
-return [ o && o.roots, o && o.roots2 ].filter(Boolean).map(r => ROOT_LABELS[r] || r).join(" + ");
+return [ o && o.roots, o && o.roots2 ].filter(Boolean).map(r => ROOT_LABELS[r] || r).join(' + ');
 }
 
 const ROOT_EMOJI = {
-hyderabad: "🏰",
-southasia: "🍛",
-eastasia: "🥢",
-middleeast: "🧆",
-unitedstates: "🍔",
-europe: "🥐",
-africa: "🌍",
-latinamerica: "🌮"
+hyderabad: '🏰',
+southasia: '🍛',
+eastasia: '🥢',
+middleeast: '🧆',
+unitedstates: '🍔',
+europe: '🥐',
+africa: '🌍',
+latinamerica: '🌮'
 };
 
 let sessionUser = null;
@@ -85,7 +85,7 @@ let st = null;
 
 const currentUser = () => sessionUser ? sessionUser.email : null;
 
-const stateKey = email => "dib_v4_" + email;
+const stateKey = email => 'dib_v4_' + email;
 
 function blankState() {
 return {
@@ -112,30 +112,30 @@ return Object.keys(s.answers).filter(k => QBANK_BY_ID[k]).length;
 }
 
 function chosenMeats(s) {
-const qid = s.answers["op-meats"] ? "op-meats" : s.answers["op-meats-halal"] ? "op-meats-halal" : null;
+const qid = s.answers['op-meats'] ? 'op-meats' : s.answers['op-meats-halal'] ? 'op-meats-halal' : null;
 if (!qid) return null;
 const a = s.answers[qid];
 if (!a || !Array.isArray(a.o) || !a.o.length) return null;
-return a.o.map(i => QBANK_BY_ID[qid].options[i].diet.replace("meat:", ""));
+return a.o.map(i => QBANK_BY_ID[qid].options[i].diet.replace('meat:', ''));
 }
 
 function optVisible(opt, diet, meats) {
 const d = opt.diet;
-if (opt.alt && (diet === "everything" || diet === "halal")) return false;
-if (opt.noveg && (diet === "vegetarian" || diet === "vegan")) return false;
-if (diet === "vegan") return d === "vegan";
-if (diet === "vegetarian") return d === "vegan" || d === "veg";
-if (d === "alcohol") return diet === "everything";
-if (d === "meat:pork") return diet === "everything" && (!meats || meats.includes("pork"));
-if (d === "meat:fish") return !meats || meats.includes("fish") || meats.includes("seafood");
-if (d === "meat:seafood") return !meats || meats.includes("seafood");
-if (d.startsWith("meat:")) return !meats || meats.includes(d.slice(5));
+if (opt.alt && (diet === 'everything' || diet === 'halal')) return false;
+if (opt.noveg && (diet === 'vegetarian' || diet === 'vegan')) return false;
+if (diet === 'vegan') return d === 'vegan';
+if (diet === 'vegetarian') return d === 'vegan' || d === 'veg';
+if (d === 'alcohol') return diet === 'everything';
+if (d === 'meat:pork') return diet === 'everything' && (!meats || meats.includes('pork'));
+if (d === 'meat:fish') return !meats || meats.includes('fish') || meats.includes('seafood');
+if (d === 'meat:seafood') return !meats || meats.includes('seafood');
+if (d.startsWith('meat:')) return !meats || meats.includes(d.slice(5));
 return true;
 }
 
 function visibleOpts(q, s) {
 const diet = s.builtFor.diet;
-const meats = q.id === "op-meats" || q.id === "op-meats-halal" ? null : chosenMeats(s);
+const meats = q.id === 'op-meats' || q.id === 'op-meats-halal' ? null : chosenMeats(s);
 const out = [];
 q.options.forEach((o, i) => {
 if (optVisible(o, diet, meats)) out.push({
@@ -154,7 +154,7 @@ if (!pa) return true;
 const pq = QBANK_BY_ID[q.gate.q];
 if (!pq) return true;
 const pickedIdx = pa.r ? [ pa.o[0] ] : Array.isArray(pa.o) ? pa.o : [ pa.o ];
-const labels = pickedIdx.map(i => (pq.options[i] || {}).t || "");
+const labels = pickedIdx.map(i => (pq.options[i] || {}).t || '');
 if (q.gate.has && !labels.some(t => t.includes(q.gate.has))) return false;
 if (q.gate.hasAny && !labels.some(t => q.gate.hasAny.some(h => t.includes(h)))) return false;
 if (q.gate.lacks && labels.some(t => t.includes(q.gate.lacks))) return false;
@@ -174,26 +174,26 @@ const F = s.builtFor, diet = F.diet;
 const valid = QBANK.filter(q => q.diets.includes(diet) && q.options.filter(o => optVisible(o, diet, null)).length >= 2);
 const byDeck = d => valid.filter(q => q.deck === d);
 const chainDeckOf = r => ({
-hyderabad: "hydro",
-eastasia: "asiachain",
-unitedstates: "usachain",
-europe: "eurchain",
-southasia: "souchain",
-middleeast: "midchain",
-africa: "africhain",
-latinamerica: "latchain"
-}[r] || "hydro");
+hyderabad: 'hydro',
+eastasia: 'asiachain',
+unitedstates: 'usachain',
+europe: 'eurchain',
+southasia: 'souchain',
+middleeast: 'midchain',
+africa: 'africhain',
+latinamerica: 'latchain'
+}[r] || 'hydro');
 const chainDeck = chainDeckOf(F.roots);
 const rootsList = [ F.roots, F.roots2 ].filter(Boolean);
-const dietOpener = byDeck("opener").filter(q => q.id.startsWith("op-meats") || q.id.startsWith("op-protein")).slice(0, 1);
-const heatSweet = [ "op-spice", "op-temp", "op-sweet" ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
-const eggQ = diet === "vegetarian" ? [ "op-eggs" ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q)) : [];
+const dietOpener = byDeck('opener').filter(q => q.id.startsWith('op-meats') || q.id.startsWith('op-protein')).slice(0, 1);
+const heatSweet = [ 'op-spice', 'op-temp', 'op-sweet' ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
+const eggQ = diet === 'vegetarian' ? [ 'op-eggs' ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q)) : [];
 let regional;
 if (rootsList.length === 2) {
 const nogos = rootsList.flatMap(r => byDeck(r).filter(q => q.hate).slice(0, 1));
 const core = r => {
 const cd = byDeck(chainDeckOf(r));
-return [ ...cd.filter(q => !q.gate), ...cd.filter(q => q.gate && q.id.includes("-k-")) ];
+return [ ...cd.filter(q => !q.gate), ...cd.filter(q => q.gate && q.id.includes('-k-')) ];
 };
 const zip = (a, b) => {
 const out = [];
@@ -215,10 +215,10 @@ regional = [ ...dietOpener, ...rootsNogo, ...heatSweet, ...eggQ, ...chains, ...r
 }
 const rot = Object.keys(ROOT_LABELS).indexOf(F.roots);
 const rotate = (arr, n) => arr.length ? [ ...arr.slice(n % arr.length), ...arr.slice(0, n % arr.length) ] : arr;
-const salad = [ "pal-25", "pal-26" ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
-const fishFam = [ "glo-fish", ...QBANK.filter(c => c.gate && c.gate.q === "glo-fish").map(c => c.id) ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
-const alcQ = diet === "everything" ? [ "glo-alc" ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q)) : [];
-const beefQ = diet === "everything" || diet === "halal" ? [ "glo-beef" ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q)) : [];
+const salad = [ 'pal-25', 'pal-26' ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
+const fishFam = [ 'glo-fish', ...QBANK.filter(c => c.gate && c.gate.q === 'glo-fish').map(c => c.id) ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
+const alcQ = diet === 'everything' ? [ 'glo-alc' ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q)) : [];
+const beefQ = diet === 'everything' || diet === 'halal' ? [ 'glo-beef' ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q)) : [];
 const zip3 = (a, b, c) => {
 const out = [];
 for (let i = 0; i < Math.max(a.length, b.length, c.length); i++) {
@@ -228,7 +228,7 @@ if (c[i]) out.push(c[i]);
 }
 return out;
 };
-const worldFill = zip3(rotate(byDeck("bridge"), rot * 2), rotate(byDeck("palate").filter(q => !salad.includes(q)), rot * 3), rotate(byDeck("global").filter(q => !fishFam.includes(q) && !alcQ.includes(q) && !beefQ.includes(q)), rot * 5));
+const worldFill = zip3(rotate(byDeck('bridge'), rot * 2), rotate(byDeck('palate').filter(q => !salad.includes(q)), rot * 3), rotate(byDeck('global').filter(q => !fishFam.includes(q) && !alcQ.includes(q) && !beefQ.includes(q)), rot * 5));
 const worldPick = [ ...salad, ...fishFam, ...alcQ, ...beefQ, ...worldFill ].slice(0, 8);
 const composed = [ ...regional, ...worldPick ];
 const seen = new Set;
@@ -261,10 +261,10 @@ s.reserve = [ ...ownFirst, ...restReserve ].map(q => q.id);
 s.pos = 0;
 }
 
-const GLOBAL_DECKS = new Set([ "palate", "bridge", "global" ]);
+const GLOBAL_DECKS = new Set([ 'palate', 'bridge', 'global' ]);
 
 function deckFamily(q) {
-return GLOBAL_DECKS.has(q.deck) ? "global" : "regional";
+return GLOBAL_DECKS.has(q.deck) ? 'global' : 'regional';
 }
 
 function replacementFor(s, skippedQ) {
@@ -325,11 +325,11 @@ insertAt++;
 }
 }
 s.reserve = pool.filter(id => !used.has(id) && !s.order.includes(id));
-if (!s.answers["op-spice"] && !s.answers["op-temp"] && !(s.skipped && (s.skipped["op-spice"] || s.skipped["op-temp"]))) {
-const si = s.order.indexOf("op-spice"), ti = s.order.indexOf("op-temp");
+if (!s.answers['op-spice'] && !s.answers['op-temp'] && !(s.skipped && (s.skipped['op-spice'] || s.skipped['op-temp']))) {
+const si = s.order.indexOf('op-spice'), ti = s.order.indexOf('op-temp');
 if (si >= 0 && ti >= 0 && ti !== si + 1) {
 s.order.splice(ti, 1);
-s.order.splice(si + 1, 0, "op-temp");
+s.order.splice(si + 1, 0, 'op-temp');
 }
 }
 }
@@ -379,17 +379,17 @@ const full = {
 fundamentals: st.builtFor,
 result: st.result
 };
-let {error: error} = await sb.from("progress").upsert(full);
+let {error: error} = await sb.from('progress').upsert(full);
 if (error) {
-({error: error} = await sb.from("progress").upsert(base));
-if (error) console.warn("Progress sync failed (will retry):", error.message);
+({error: error} = await sb.from('progress').upsert(base));
+if (error) console.warn('Progress sync failed (will retry):', error.message);
 }
 }
 
 async function hydrate() {
 const email = sessionUser.email;
 const local = store.get(stateKey(email), blankState());
-const {data: rows, error: error} = await sb.from("progress").select("answers, current_q, finished, fundamentals, result").eq("user_id", sessionUser.id).limit(1);
+const {data: rows, error: error} = await sb.from('progress').select('answers, current_q, finished, fundamentals, result').eq('user_id', sessionUser.id).limit(1);
 if (error || !rows || !rows[0]) {
 st = local;
 return;
@@ -442,69 +442,69 @@ if (!st.lovesData) st.lovesData = {};
 }
 
 function show(view) {
-[ "view-landing", "view-start", "view-fund", "view-home", "view-loves", "view-quiz", "view-compiling", "view-results", "view-profile", "view-dishes" ].forEach(v => {
+[ 'view-landing', 'view-start', 'view-fund', 'view-home', 'view-loves', 'view-quiz', 'view-compiling', 'view-results', 'view-profile', 'view-dishes' ].forEach(v => {
 $(v).hidden = v !== view;
 });
 const sec = $(view);
-if (sec && sec.querySelectorAll) sec.querySelectorAll(".reveal").forEach(el => el.classList.add("inview"));
+if (sec && sec.querySelectorAll) sec.querySelectorAll('.reveal').forEach(el => el.classList.add('inview'));
 const u = currentUser();
-$("userbox").hidden = !u;
-$("userEmail").textContent = u || "";
+$('userbox').hidden = !u;
+$('userEmail').textContent = u || '';
 window.scrollTo({
 top: 0,
-behavior: "smooth"
+behavior: 'smooth'
 });
 }
 
-let authMode = "login";
+let authMode = 'login';
 
 function setMode(mode) {
 authMode = mode;
-$("tabLogin").classList.toggle("active", mode === "login");
-$("tabSignup").classList.toggle("active", mode === "signup");
-$("authSubmit").textContent = mode === "login" ? "Log in" : "Create my account";
-$("authPassword").autocomplete = mode === "login" ? "current-password" : "new-password";
-$("authError").hidden = true;
+$('tabLogin').classList.toggle('active', mode === 'login');
+$('tabSignup').classList.toggle('active', mode === 'signup');
+$('authSubmit').textContent = mode === 'login' ? 'Log in' : 'Create my account';
+$('authPassword').autocomplete = mode === 'login' ? 'current-password' : 'new-password';
+$('authError').hidden = true;
 }
 
-$("tabLogin").onclick = () => setMode("login");
+$('tabLogin').onclick = () => setMode('login');
 
-$("tabSignup").onclick = () => setMode("signup");
+$('tabSignup').onclick = () => setMode('signup');
 
 function authFail(msg) {
-const e = $("authError");
+const e = $('authError');
 e.textContent = msg;
 e.hidden = false;
 }
 
 function friendlyAuthError(error) {
-const m = error && error.message || "Something went wrong.";
-if (/invalid login credentials/i.test(m)) return "Wrong email or password — try again.";
-if (/already registered/i.test(m)) return "An account with this email already exists — try logging in.";
-if (/password should be at least/i.test(m)) return "Password needs at least 6 characters.";
-if (/unable to validate email/i.test(m)) return "That email doesn't look right — try again?";
+const m = error && error.message || 'Something went wrong.';
+if (/invalid login credentials/i.test(m)) return 'Wrong email or password — try again.';
+if (/already registered/i.test(m)) return 'An account with this email already exists — try logging in.';
+if (/password should be at least/i.test(m)) return 'Password needs at least 6 characters.';
+if (/unable to validate email/i.test(m)) return 'That email doesn\'t look right — try again?';
 return m;
 }
 
-$("authForm").addEventListener("submit", async ev => {
+$('authForm').addEventListener('submit', async ev => {
 ev.preventDefault();
-if (!sb) return authFail("Couldn't reach the account service — check your connection and reload the page.");
-const email = $("authEmail").value.trim().toLowerCase();
-const pw = $("authPassword").value;
-if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return authFail("That email doesn't look right — try again?");
-if (pw.length < 6) return authFail("Password needs at least 6 characters.");
-const btn = $("authSubmit");
+if (!sb) return authFail('Couldn\'t reach the account service — check your connection and reload the page.');
+const email = $('authEmail').value.trim().toLowerCase();
+const pw = $('authPassword').value;
+if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return authFail('That email doesn\'t look right — try again?');
+if (pw.length < 6) return authFail('Password needs at least 6 characters.');
+const btn = $('authSubmit');
 btn.disabled = true;
 const original = btn.textContent;
-btn.textContent = "One moment…";
+btn.textContent = 'One moment…';
 try {
-if (authMode === "signup") {
+if (authMode === 'signup') {
 const {data: data, error: error} = await sb.auth.signUp({
 email: email,
 password: pw
 });
 if (error) return authFail(friendlyAuthError(error));
-if (!data.session) return authFail("Account created — check your email to confirm it, then log in.");
+if (!data.session) return authFail('Account created — check your email to confirm it, then log in.');
 sessionUser = {
 id: data.user.id,
 email: data.user.email
@@ -528,32 +528,32 @@ btn.textContent = original;
 }
 });
 
-$("logoutBtn").onclick = async () => {
+$('logoutBtn').onclick = async () => {
 if (sb) await sb.auth.signOut();
 sessionUser = null;
 st = null;
-setMode("login");
-show("view-landing");
+setMode('login');
+show('view-landing');
 };
 
 function routeAfterLogin() {
 if (st && st.fundamentals && st.fundamentals.mode) {
-store.set("dib_mode", st.fundamentals.mode);
+store.set('dib_mode', st.fundamentals.mode);
 pickMode = st.fundamentals.mode;
 }
 if (st && st.builtFor && st.builtFor.city) {
 renderHome();
-show("view-home");
+show('view-home');
 } else {
 initFundPicks();
-show("view-fund");
+show('view-fund');
 }
 }
 
-let pickDiet = null, pickRoots = null, pickRoots2 = null, pickCity = "", pickMode = "explore";
+let pickDiet = null, pickRoots = null, pickRoots2 = null, pickCity = '', pickMode = 'explore';
 
 function savePending() {
-store.set("dib_pending_fund", {
+store.set('dib_pending_fund', {
 diet: pickDiet,
 roots: pickRoots,
 roots2: pickRoots2,
@@ -563,92 +563,92 @@ mode: pickMode
 }
 
 function initFundPicks() {
-const saved = st && st.fundamentals || store.get("dib_pending_fund", null);
+const saved = st && st.fundamentals || store.get('dib_pending_fund', null);
 pickDiet = saved ? saved.diet : null;
 pickRoots = saved ? normRootsValue(saved.roots) : null;
 pickRoots2 = saved && saved.roots2 ? normRootsValue(saved.roots2) : null;
 if (pickRoots2 === pickRoots) pickRoots2 = null;
-pickCity = saved && saved.city ? canonicalCity(saved.city) : "";
-const mStore = store.get("dib_mode", "");
-pickMode = mStore === "travel" || mStore === "explore" ? mStore : saved && saved.mode === "travel" ? "travel" : "explore";
-$("cityInput").value = pickCity;
-$("cityInput").classList.remove("invalid");
+pickCity = saved && saved.city ? canonicalCity(saved.city) : '';
+const mStore = store.get('dib_mode', '');
+pickMode = mStore === 'travel' || mStore === 'explore' ? mStore : saved && saved.mode === 'travel' ? 'travel' : 'explore';
+$('cityInput').value = pickCity;
+$('cityInput').classList.remove('invalid');
 paintFundPicks();
 }
 
 function paintFundPicks() {
-document.querySelectorAll("#dietGrid .fund-opt").forEach(b => {
+document.querySelectorAll('#dietGrid .fund-opt').forEach(b => {
 const on = b.dataset.diet === pickDiet;
-b.classList.toggle("picked", on);
-b.setAttribute("aria-checked", on ? "true" : "false");
+b.classList.toggle('picked', on);
+b.setAttribute('aria-checked', on ? 'true' : 'false');
 });
-document.querySelectorAll("#rootsGrid .fund-opt").forEach(b => {
+document.querySelectorAll('#rootsGrid .fund-opt').forEach(b => {
 const on = b.dataset.roots === pickRoots, on2 = b.dataset.roots === pickRoots2;
-b.classList.toggle("picked", on);
-b.classList.toggle("picked2", on2);
-b.setAttribute("aria-checked", on || on2 ? "true" : "false");
+b.classList.toggle('picked', on);
+b.classList.toggle('picked2', on2);
+b.setAttribute('aria-checked', on || on2 ? 'true' : 'false');
 });
-$("buildBtn").disabled = !(pickDiet && pickRoots && pickCity);
-$("buildBtn").textContent = st && st.builtFor ? "Rebuild my questions →" : "Build my questions →";
-const trav = pickMode === "travel";
-[ [ "modeTravel", trav ], [ "modeExplore", !trav ] ].forEach(([id, on]) => {
+$('buildBtn').disabled = !(pickDiet && pickRoots && pickCity);
+$('buildBtn').textContent = st && st.builtFor ? 'Rebuild my questions →' : 'Build my questions →';
+const trav = pickMode === 'travel';
+[ [ 'modeTravel', trav ], [ 'modeExplore', !trav ] ].forEach(([id, on]) => {
 const b = $(id);
 if (b) {
-b.classList.toggle("picked", on);
-b.setAttribute("aria-pressed", on ? "true" : "false");
+b.classList.toggle('picked', on);
+b.setAttribute('aria-pressed', on ? 'true' : 'false');
 }
 });
-[ [ "fundModeTravel", trav ], [ "fundModeExplore", !trav ] ].forEach(([id, on]) => {
+[ [ 'fundModeTravel', trav ], [ 'fundModeExplore', !trav ] ].forEach(([id, on]) => {
 const b = $(id);
 if (b) {
-b.classList.toggle("on", on);
-b.setAttribute("aria-pressed", on ? "true" : "false");
+b.classList.toggle('on', on);
+b.setAttribute('aria-pressed', on ? 'true' : 'false');
 }
 });
-const cq = $("cityQuestion");
-if (cq) cq.textContent = trav ? "Which city are you travelling to?" : "Which city do you live in?";
+const cq = $('cityQuestion');
+if (cq) cq.textContent = trav ? 'Which city are you travelling to?' : 'Which city do you live in?';
 }
 
 function setPickMode(m) {
-pickMode = m === "travel" ? "travel" : "explore";
-store.set("dib_mode", pickMode);
+pickMode = m === 'travel' ? 'travel' : 'explore';
+store.set('dib_mode', pickMode);
 savePending();
 paintFundPicks();
 }
 
-[ [ "modeTravel", "travel" ], [ "modeExplore", "explore" ] ].forEach(([id, m]) => {
+[ [ 'modeTravel', 'travel' ], [ 'modeExplore', 'explore' ] ].forEach(([id, m]) => {
 const b = $(id);
 if (!b) return;
 b.onclick = () => {
 setPickMode(m);
 if (sessionUser) {
 initFundPicks();
-show("view-fund");
+show('view-fund');
 } else {
-show("view-start");
+show('view-start');
 setTimeout(() => {
-const ac = document.querySelector(".auth-card");
+const ac = document.querySelector('.auth-card');
 if (ac) ac.scrollIntoView({
-behavior: "smooth",
-block: "center"
+behavior: 'smooth',
+block: 'center'
 });
 }, 380);
 }
 };
 });
 
-[ [ "fundModeTravel", "travel" ], [ "fundModeExplore", "explore" ] ].forEach(([id, m]) => {
+[ [ 'fundModeTravel', 'travel' ], [ 'fundModeExplore', 'explore' ] ].forEach(([id, m]) => {
 const b = $(id);
 if (b) b.onclick = () => setPickMode(m);
 });
 
-document.querySelectorAll("#dietGrid .fund-opt").forEach(b => b.onclick = () => {
+document.querySelectorAll('#dietGrid .fund-opt').forEach(b => b.onclick = () => {
 pickDiet = b.dataset.diet;
 savePending();
 paintFundPicks();
 });
 
-document.querySelectorAll("#rootsGrid .fund-opt").forEach(b => b.onclick = () => {
+document.querySelectorAll('#rootsGrid .fund-opt').forEach(b => b.onclick = () => {
 const r = b.dataset.roots;
 if (r === pickRoots) {
 pickRoots = pickRoots2;
@@ -660,117 +660,117 @@ paintFundPicks();
 
 const FUND_INFO = {
 diet: {
-everything: "Everything — no restrictions at all. The first question asks which meats you eat, so your questions stay relevant: pick chicken-only and mutton biryani quietly leaves the set.",
-vegetarian: "Vegetarian — no meat and no seafood in any option, ever. Dairy and eggs still appear (paneer, curd rice, egg dishes), so this is not the vegan set.",
-vegan: "Vegan — fully plant-based: no meat, seafood, dairy, eggs or honey in any option. Your questions swap in plant dishes that stand on their own.",
-halal: "Everything Halal — the full spread, halal-style: no pork and no alcohol anywhere in your questions. You still pick your meats first, just like Everything."
+everything: 'Everything — no restrictions at all. The first question asks which meats you eat, so your questions stay relevant: pick chicken-only and mutton biryani quietly leaves the set.',
+vegetarian: 'Vegetarian — no meat and no seafood in any option, ever. Dairy and eggs still appear (paneer, curd rice, egg dishes), so this is not the vegan set.',
+vegan: 'Vegan — fully plant-based: no meat, seafood, dairy, eggs or honey in any option. Your questions swap in plant dishes that stand on their own.',
+halal: 'Everything Halal — the full spread, halal-style: no pork and no alcohol anywhere in your questions. You still pick your meats first, just like Everything.'
 },
 roots: {
-hyderabad: "Hyderabad, India — Deccan home turf: dum biryani, haleem, Irani café culture. Written for people who grew up on it — or wish they had.",
-southasia: "South Asia — the wider subcontinent beyond Hyderabad: Punjabi dhabas, Bengali fish courses, Sri Lankan hoppers, Karachi karahis, Nepali dal bhat.",
-eastasia: "East/Southeast Asia — ramen and sushi to laksa, pho, rendang and dumplings. If your comfort zone runs on rice, noodles and broth, start here.",
-middleeast: "Middle-Eastern — mezze spreads, kebabs, saffron rice and slow stews from the Levant, the Gulf, Persia, Turkey and Egypt.",
-unitedstates: "United States — low-and-slow BBQ, diners, burgers, gumbo and plate lunches: smoke, comfort and big plates.",
-europe: "Europe — paella to pierogi, schnitzel to souvlaki: the old continent's classics, from Mediterranean olive-oil country to Nordic preserves.",
-africa: "Africa — jollof and suya to injera, tagines and the braai: one continent, a thousand tables, endless fire.",
-latinamerica: "Latin America & The Caribbean — tacos, ceviche, arepas, feijoada and jerk: corn, lime and smoke run deep here."
+hyderabad: 'Hyderabad, India — Deccan home turf: dum biryani, haleem, Irani café culture. Written for people who grew up on it — or wish they had.',
+southasia: 'South Asia — the wider subcontinent beyond Hyderabad: Punjabi dhabas, Bengali fish courses, Sri Lankan hoppers, Karachi karahis, Nepali dal bhat.',
+eastasia: 'East/Southeast Asia — ramen and sushi to laksa, pho, rendang and dumplings. If your comfort zone runs on rice, noodles and broth, start here.',
+middleeast: 'Middle-Eastern — mezze spreads, kebabs, saffron rice and slow stews from the Levant, the Gulf, Persia, Turkey and Egypt.',
+unitedstates: 'United States — low-and-slow BBQ, diners, burgers, gumbo and plate lunches: smoke, comfort and big plates.',
+europe: 'Europe — paella to pierogi, schnitzel to souvlaki: the old continent\'s classics, from Mediterranean olive-oil country to Nordic preserves.',
+africa: 'Africa — jollof and suya to injera, tagines and the braai: one continent, a thousand tables, endless fire.',
+latinamerica: 'Latin America & The Caribbean — tacos, ceviche, arepas, feijoada and jerk: corn, lime and smoke run deep here.'
 }
 };
 
 const FUND_DEFAULTS = {
-diet: "Your diet filters every option in all your questions — you will never be offered something you don't eat. Tap the ⓘ on any option to learn more.",
-roots: "Why these roots? They cover the world's great food families — each has a full deck of questions written for it, plus bridges to everywhere else (every set mixes your roots with global questions). Pick the one closest to your palate. Tap the ⓘ on any option to learn more."
+diet: 'Your diet filters every option in all your questions — you will never be offered something you don\'t eat. Tap the ⓘ on any option to learn more.',
+roots: 'Why these roots? They cover the world\'s great food families — each has a full deck of questions written for it, plus bridges to everywhere else (every set mixes your roots with global questions). Pick the one closest to your palate. Tap the ⓘ on any option to learn more.'
 };
 
 function showFundInfo(kind, text, mode) {
-const box = $(kind + "Info"), btn = $(kind + "InfoBtn");
+const box = $(kind + 'Info'), btn = $(kind + 'InfoBtn');
 if (!box) return;
 box.dataset.mode = mode;
 box.textContent = text;
 box.hidden = false;
-if (btn) btn.classList.add("open");
-box.classList.remove("flash");
+if (btn) btn.classList.add('open');
+box.classList.remove('flash');
 void box.offsetWidth;
-box.classList.add("flash");
+box.classList.add('flash');
 }
 
 function toggleFundInfo(kind) {
-const box = $(kind + "Info"), btn = $(kind + "InfoBtn");
+const box = $(kind + 'Info'), btn = $(kind + 'InfoBtn');
 if (!box) return;
-if (!box.hidden && box.dataset.mode === "default") {
+if (!box.hidden && box.dataset.mode === 'default') {
 box.hidden = true;
-if (btn) btn.classList.remove("open");
+if (btn) btn.classList.remove('open');
 return;
 }
-showFundInfo(kind, FUND_DEFAULTS[kind] || "", "default");
+showFundInfo(kind, FUND_DEFAULTS[kind] || '', 'default');
 }
 
-document.querySelectorAll(".fi").forEach(el => {
-el.addEventListener("click", e => {
+document.querySelectorAll('.fi').forEach(el => {
+el.addEventListener('click', e => {
 e.stopPropagation();
 e.preventDefault();
-showFundInfo(el.dataset.fi, (FUND_INFO[el.dataset.fi] || {})[el.dataset.key] || "", "option");
+showFundInfo(el.dataset.fi, (FUND_INFO[el.dataset.fi] || {})[el.dataset.key] || '', 'option');
 });
 });
 
-$("dietInfoBtn").addEventListener("click", () => toggleFundInfo("diet"));
+$('dietInfoBtn').addEventListener('click', () => toggleFundInfo('diet'));
 
-$("rootsInfoBtn").addEventListener("click", () => toggleFundInfo("roots"));
+$('rootsInfoBtn').addEventListener('click', () => toggleFundInfo('roots'));
 
-const CITIES = [ "Hyderabad, India", "Bengaluru, India", "Mumbai, India", "Delhi, India", "Chennai, India", "Kolkata, India", "Pune, India", "Ahmedabad, India", "Jaipur, India", "Lucknow, India", "Kochi, India", "Panaji, India", "Indore, India", "Bhopal, India", "Chandigarh, India", "Coimbatore, India", "Nagpur, India", "Surat, India", "Vadodara, India", "Visakhapatnam, India", "Patna, India", "Guwahati, India", "Thiruvananthapuram, India", "Mysuru, India", "Madurai, India", "Varanasi, India", "Agra, India", "Kanpur, India", "Ranchi, India", "Bhubaneswar, India", "Dehradun, India", "Amritsar, India", "Ludhiana, India", "Udaipur, India", "Jodhpur, India", "Karachi, Pakistan", "Lahore, Pakistan", "Islamabad, Pakistan", "Hyderabad, Pakistan", "Faisalabad, Pakistan", "Rawalpindi, Pakistan", "Multan, Pakistan", "Peshawar, Pakistan", "Dhaka, Bangladesh", "Chattogram, Bangladesh", "Khulna, Bangladesh", "Sylhet, Bangladesh", "Colombo, Sri Lanka", "Kandy, Sri Lanka", "Kathmandu, Nepal", "Pokhara, Nepal", "Dubai, United Arab Emirates", "Abu Dhabi, United Arab Emirates", "Sharjah, United Arab Emirates", "Riyadh, Saudi Arabia", "Jeddah, Saudi Arabia", "Mecca, Saudi Arabia", "Medina, Saudi Arabia", "Dammam, Saudi Arabia", "Doha, Qatar", "Kuwait City, Kuwait", "Muscat, Oman", "Manama, Bahrain", "London, United Kingdom", "Manchester, United Kingdom", "Birmingham, United Kingdom", "Leeds, United Kingdom", "Glasgow, United Kingdom", "Edinburgh, United Kingdom", "Liverpool, United Kingdom", "Bristol, United Kingdom", "Sheffield, United Kingdom", "Cardiff, United Kingdom", "Belfast, United Kingdom", "Newcastle, United Kingdom", "Leicester, United Kingdom", "Nottingham, United Kingdom", "Oxford, United Kingdom", "Cambridge, United Kingdom", "Brighton, United Kingdom", "York, United Kingdom", "Dublin, Ireland", "Cork, Ireland", "Galway, Ireland", "New York, United States", "Los Angeles, United States", "Chicago, United States", "Houston, United States", "Phoenix, United States", "Philadelphia, United States", "San Antonio, United States", "San Diego, United States", "Dallas, United States", "Austin, United States", "San Jose, United States", "Columbus, United States", "Charlotte, United States", "San Francisco, United States", "Seattle, United States", "Denver, United States", "Washington DC, United States", "Boston, United States", "Nashville, United States", "Portland, United States", "Las Vegas, United States", "Miami, United States", "Atlanta, United States", "Minneapolis, United States", "Tampa, United States", "Sacramento, United States", "Orlando, United States", "Detroit, United States", "Honolulu, United States", "Milwaukee, United States", "Baltimore, United States", "Salt Lake City, United States", "New Orleans, United States", "Oklahoma City, United States", "Memphis, United States", "Louisville, United States", "Raleigh, United States", "Toronto, Canada", "Vancouver, Canada", "Montreal, Canada", "Calgary, Canada", "Ottawa, Canada", "Edmonton, Canada", "Winnipeg, Canada", "Quebec City, Canada", "Halifax, Canada", "Victoria, Canada", "Mexico City, Mexico", "Guadalajara, Mexico", "Monterrey, Mexico", "Puebla, Mexico", "Tijuana, Mexico", "Cancún, Mexico", "Mérida, Mexico", "São Paulo, Brazil", "Rio de Janeiro, Brazil", "Brasília, Brazil", "Salvador, Brazil", "Fortaleza, Brazil", "Belo Horizonte, Brazil", "Manaus, Brazil", "Curitiba, Brazil", "Recife, Brazil", "Porto Alegre, Brazil", "Buenos Aires, Argentina", "Santiago, Chile", "Lima, Peru", "Bogotá, Colombia", "Medellín, Colombia", "Quito, Ecuador", "Montevideo, Uruguay", "Asunción, Paraguay", "La Paz, Bolivia", "Caracas, Venezuela", "Panama City, Panama", "San José, Costa Rica", "Havana, Cuba", "Santo Domingo, Dominican Republic", "San Juan, Puerto Rico", "Paris, France", "Lyon, France", "Marseille, France", "Nice, France", "Bordeaux, France", "Toulouse, France", "Berlin, Germany", "Munich, Germany", "Hamburg, Germany", "Frankfurt, Germany", "Cologne, Germany", "Stuttgart, Germany", "Düsseldorf, Germany", "Madrid, Spain", "Barcelona, Spain", "Valencia, Spain", "Seville, Spain", "Bilbao, Spain", "Rome, Italy", "Milan, Italy", "Naples, Italy", "Turin, Italy", "Florence, Italy", "Venice, Italy", "Bologna, Italy", "Amsterdam, Netherlands", "Rotterdam, Netherlands", "Utrecht, Netherlands", "The Hague, Netherlands", "Brussels, Belgium", "Antwerp, Belgium", "Ghent, Belgium", "Vienna, Austria", "Salzburg, Austria", "Graz, Austria", "Zurich, Switzerland", "Geneva, Switzerland", "Basel, Switzerland", "Bern, Switzerland", "Lisbon, Portugal", "Porto, Portugal", "Athens, Greece", "Thessaloniki, Greece", "Stockholm, Sweden", "Gothenburg, Sweden", "Malmö, Sweden", "Oslo, Norway", "Bergen, Norway", "Copenhagen, Denmark", "Aarhus, Denmark", "Helsinki, Finland", "Tampere, Finland", "Reykjavik, Iceland", "Warsaw, Poland", "Kraków, Poland", "Gdańsk, Poland", "Poznań, Poland", "Prague, Czechia", "Brno, Czechia", "Budapest, Hungary", "Bucharest, Romania", "Sofia, Bulgaria", "Zagreb, Croatia", "Belgrade, Serbia", "Ljubljana, Slovenia", "Bratislava, Slovakia", "Vilnius, Lithuania", "Riga, Latvia", "Tallinn, Estonia", "Kyiv, Ukraine", "Istanbul, Türkiye", "Ankara, Türkiye", "Izmir, Türkiye", "Cairo, Egypt", "Alexandria, Egypt", "Lagos, Nigeria", "Abuja, Nigeria", "Nairobi, Kenya", "Accra, Ghana", "Johannesburg, South Africa", "Cape Town, South Africa", "Durban, South Africa", "Addis Ababa, Ethiopia", "Dar es Salaam, Tanzania", "Luanda, Angola", "Maputo, Mozambique", "Casablanca, Morocco", "Marrakech, Morocco", "Tunis, Tunisia", "Algiers, Algeria", "Tel Aviv, Israel", "Jerusalem, Israel", "Beirut, Lebanon", "Amman, Jordan", "Tehran, Iran", "Baghdad, Iraq", "Kabul, Afghanistan", "Beijing, China", "Shanghai, China", "Guangzhou, China", "Shenzhen, China", "Chengdu, China", "Xi'an, China", "Wuhan, China", "Hangzhou, China", "Nanjing, China", "Chongqing, China", "Hong Kong", "Taipei, Taiwan", "Tokyo, Japan", "Osaka, Japan", "Kyoto, Japan", "Nagoya, Japan", "Fukuoka, Japan", "Sapporo, Japan", "Seoul, South Korea", "Busan, South Korea", "Incheon, South Korea", "Bangkok, Thailand", "Chiang Mai, Thailand", "Phuket, Thailand", "Hanoi, Vietnam", "Ho Chi Minh City, Vietnam", "Da Nang, Vietnam", "Kuala Lumpur, Malaysia", "Penang, Malaysia", "Johor Bahru, Malaysia", "Singapore", "Jakarta, Indonesia", "Surabaya, Indonesia", "Bandung, Indonesia", "Denpasar, Indonesia", "Manila, Philippines", "Cebu, Philippines", "Davao, Philippines", "Yangon, Myanmar", "Phnom Penh, Cambodia", "Vientiane, Laos", "Ulaanbaatar, Mongolia", "Almaty, Kazakhstan", "Tashkent, Uzbekistan", "Baku, Azerbaijan", "Tbilisi, Georgia", "Yerevan, Armenia", "Sydney, Australia", "Melbourne, Australia", "Brisbane, Australia", "Perth, Australia", "Adelaide, Australia", "Canberra, Australia", "Gold Coast, Australia", "Hobart, Australia", "Darwin, Australia", "Auckland, New Zealand", "Wellington, New Zealand", "Christchurch, New Zealand", "Hamilton, New Zealand", "Suva, Fiji" ];
+const CITIES = [ 'Hyderabad, India', 'Bengaluru, India', 'Mumbai, India', 'Delhi, India', 'Chennai, India', 'Kolkata, India', 'Pune, India', 'Ahmedabad, India', 'Jaipur, India', 'Lucknow, India', 'Kochi, India', 'Panaji, India', 'Indore, India', 'Bhopal, India', 'Chandigarh, India', 'Coimbatore, India', 'Nagpur, India', 'Surat, India', 'Vadodara, India', 'Visakhapatnam, India', 'Patna, India', 'Guwahati, India', 'Thiruvananthapuram, India', 'Mysuru, India', 'Madurai, India', 'Varanasi, India', 'Agra, India', 'Kanpur, India', 'Ranchi, India', 'Bhubaneswar, India', 'Dehradun, India', 'Amritsar, India', 'Ludhiana, India', 'Udaipur, India', 'Jodhpur, India', 'Karachi, Pakistan', 'Lahore, Pakistan', 'Islamabad, Pakistan', 'Hyderabad, Pakistan', 'Faisalabad, Pakistan', 'Rawalpindi, Pakistan', 'Multan, Pakistan', 'Peshawar, Pakistan', 'Dhaka, Bangladesh', 'Chattogram, Bangladesh', 'Khulna, Bangladesh', 'Sylhet, Bangladesh', 'Colombo, Sri Lanka', 'Kandy, Sri Lanka', 'Kathmandu, Nepal', 'Pokhara, Nepal', 'Dubai, United Arab Emirates', 'Abu Dhabi, United Arab Emirates', 'Sharjah, United Arab Emirates', 'Riyadh, Saudi Arabia', 'Jeddah, Saudi Arabia', 'Mecca, Saudi Arabia', 'Medina, Saudi Arabia', 'Dammam, Saudi Arabia', 'Doha, Qatar', 'Kuwait City, Kuwait', 'Muscat, Oman', 'Manama, Bahrain', 'London, United Kingdom', 'Manchester, United Kingdom', 'Birmingham, United Kingdom', 'Leeds, United Kingdom', 'Glasgow, United Kingdom', 'Edinburgh, United Kingdom', 'Liverpool, United Kingdom', 'Bristol, United Kingdom', 'Sheffield, United Kingdom', 'Cardiff, United Kingdom', 'Belfast, United Kingdom', 'Newcastle, United Kingdom', 'Leicester, United Kingdom', 'Nottingham, United Kingdom', 'Oxford, United Kingdom', 'Cambridge, United Kingdom', 'Brighton, United Kingdom', 'York, United Kingdom', 'Dublin, Ireland', 'Cork, Ireland', 'Galway, Ireland', 'New York, United States', 'Los Angeles, United States', 'Chicago, United States', 'Houston, United States', 'Phoenix, United States', 'Philadelphia, United States', 'San Antonio, United States', 'San Diego, United States', 'Dallas, United States', 'Austin, United States', 'San Jose, United States', 'Columbus, United States', 'Charlotte, United States', 'San Francisco, United States', 'Seattle, United States', 'Denver, United States', 'Washington DC, United States', 'Boston, United States', 'Nashville, United States', 'Portland, United States', 'Las Vegas, United States', 'Miami, United States', 'Atlanta, United States', 'Minneapolis, United States', 'Tampa, United States', 'Sacramento, United States', 'Orlando, United States', 'Detroit, United States', 'Honolulu, United States', 'Milwaukee, United States', 'Baltimore, United States', 'Salt Lake City, United States', 'New Orleans, United States', 'Oklahoma City, United States', 'Memphis, United States', 'Louisville, United States', 'Raleigh, United States', 'Toronto, Canada', 'Vancouver, Canada', 'Montreal, Canada', 'Calgary, Canada', 'Ottawa, Canada', 'Edmonton, Canada', 'Winnipeg, Canada', 'Quebec City, Canada', 'Halifax, Canada', 'Victoria, Canada', 'Mexico City, Mexico', 'Guadalajara, Mexico', 'Monterrey, Mexico', 'Puebla, Mexico', 'Tijuana, Mexico', 'Cancún, Mexico', 'Mérida, Mexico', 'São Paulo, Brazil', 'Rio de Janeiro, Brazil', 'Brasília, Brazil', 'Salvador, Brazil', 'Fortaleza, Brazil', 'Belo Horizonte, Brazil', 'Manaus, Brazil', 'Curitiba, Brazil', 'Recife, Brazil', 'Porto Alegre, Brazil', 'Buenos Aires, Argentina', 'Santiago, Chile', 'Lima, Peru', 'Bogotá, Colombia', 'Medellín, Colombia', 'Quito, Ecuador', 'Montevideo, Uruguay', 'Asunción, Paraguay', 'La Paz, Bolivia', 'Caracas, Venezuela', 'Panama City, Panama', 'San José, Costa Rica', 'Havana, Cuba', 'Santo Domingo, Dominican Republic', 'San Juan, Puerto Rico', 'Paris, France', 'Lyon, France', 'Marseille, France', 'Nice, France', 'Bordeaux, France', 'Toulouse, France', 'Berlin, Germany', 'Munich, Germany', 'Hamburg, Germany', 'Frankfurt, Germany', 'Cologne, Germany', 'Stuttgart, Germany', 'Düsseldorf, Germany', 'Madrid, Spain', 'Barcelona, Spain', 'Valencia, Spain', 'Seville, Spain', 'Bilbao, Spain', 'Rome, Italy', 'Milan, Italy', 'Naples, Italy', 'Turin, Italy', 'Florence, Italy', 'Venice, Italy', 'Bologna, Italy', 'Amsterdam, Netherlands', 'Rotterdam, Netherlands', 'Utrecht, Netherlands', 'The Hague, Netherlands', 'Brussels, Belgium', 'Antwerp, Belgium', 'Ghent, Belgium', 'Vienna, Austria', 'Salzburg, Austria', 'Graz, Austria', 'Zurich, Switzerland', 'Geneva, Switzerland', 'Basel, Switzerland', 'Bern, Switzerland', 'Lisbon, Portugal', 'Porto, Portugal', 'Athens, Greece', 'Thessaloniki, Greece', 'Stockholm, Sweden', 'Gothenburg, Sweden', 'Malmö, Sweden', 'Oslo, Norway', 'Bergen, Norway', 'Copenhagen, Denmark', 'Aarhus, Denmark', 'Helsinki, Finland', 'Tampere, Finland', 'Reykjavik, Iceland', 'Warsaw, Poland', 'Kraków, Poland', 'Gdańsk, Poland', 'Poznań, Poland', 'Prague, Czechia', 'Brno, Czechia', 'Budapest, Hungary', 'Bucharest, Romania', 'Sofia, Bulgaria', 'Zagreb, Croatia', 'Belgrade, Serbia', 'Ljubljana, Slovenia', 'Bratislava, Slovakia', 'Vilnius, Lithuania', 'Riga, Latvia', 'Tallinn, Estonia', 'Kyiv, Ukraine', 'Istanbul, Türkiye', 'Ankara, Türkiye', 'Izmir, Türkiye', 'Cairo, Egypt', 'Alexandria, Egypt', 'Lagos, Nigeria', 'Abuja, Nigeria', 'Nairobi, Kenya', 'Accra, Ghana', 'Johannesburg, South Africa', 'Cape Town, South Africa', 'Durban, South Africa', 'Addis Ababa, Ethiopia', 'Dar es Salaam, Tanzania', 'Luanda, Angola', 'Maputo, Mozambique', 'Casablanca, Morocco', 'Marrakech, Morocco', 'Tunis, Tunisia', 'Algiers, Algeria', 'Tel Aviv, Israel', 'Jerusalem, Israel', 'Beirut, Lebanon', 'Amman, Jordan', 'Tehran, Iran', 'Baghdad, Iraq', 'Kabul, Afghanistan', 'Beijing, China', 'Shanghai, China', 'Guangzhou, China', 'Shenzhen, China', 'Chengdu, China', 'Xi\'an, China', 'Wuhan, China', 'Hangzhou, China', 'Nanjing, China', 'Chongqing, China', 'Hong Kong', 'Taipei, Taiwan', 'Tokyo, Japan', 'Osaka, Japan', 'Kyoto, Japan', 'Nagoya, Japan', 'Fukuoka, Japan', 'Sapporo, Japan', 'Seoul, South Korea', 'Busan, South Korea', 'Incheon, South Korea', 'Bangkok, Thailand', 'Chiang Mai, Thailand', 'Phuket, Thailand', 'Hanoi, Vietnam', 'Ho Chi Minh City, Vietnam', 'Da Nang, Vietnam', 'Kuala Lumpur, Malaysia', 'Penang, Malaysia', 'Johor Bahru, Malaysia', 'Singapore', 'Jakarta, Indonesia', 'Surabaya, Indonesia', 'Bandung, Indonesia', 'Denpasar, Indonesia', 'Manila, Philippines', 'Cebu, Philippines', 'Davao, Philippines', 'Yangon, Myanmar', 'Phnom Penh, Cambodia', 'Vientiane, Laos', 'Ulaanbaatar, Mongolia', 'Almaty, Kazakhstan', 'Tashkent, Uzbekistan', 'Baku, Azerbaijan', 'Tbilisi, Georgia', 'Yerevan, Armenia', 'Sydney, Australia', 'Melbourne, Australia', 'Brisbane, Australia', 'Perth, Australia', 'Adelaide, Australia', 'Canberra, Australia', 'Gold Coast, Australia', 'Hobart, Australia', 'Darwin, Australia', 'Auckland, New Zealand', 'Wellington, New Zealand', 'Christchurch, New Zealand', 'Hamilton, New Zealand', 'Suva, Fiji' ];
 
 function canonicalCity(v) {
-const t = (v || "").trim().toLowerCase();
-if (!t) return "";
-return CITIES.find(c => c.toLowerCase() === t) || CITIES.find(c => c.split(",")[0].trim().toLowerCase() === t) || "";
+const t = (v || '').trim().toLowerCase();
+if (!t) return '';
+return CITIES.find(c => c.toLowerCase() === t) || CITIES.find(c => c.split(',')[0].trim().toLowerCase() === t) || '';
 }
 
 let cityMatches = [], cityActive = -1;
 
 function closeCityMenu() {
-$("cityMenu").hidden = true;
-$("cityInput").setAttribute("aria-expanded", "false");
+$('cityMenu').hidden = true;
+$('cityInput').setAttribute('aria-expanded', 'false');
 cityActive = -1;
 }
 
 function pickCityValue(c) {
 pickCity = c;
-$("cityInput").value = c;
-$("cityInput").classList.remove("invalid");
+$('cityInput').value = c;
+$('cityInput').classList.remove('invalid');
 closeCityMenu();
 savePending();
 paintFundPicks();
 }
 
 function paintCityMenu() {
-const menu = $("cityMenu");
+const menu = $('cityMenu');
 if (!cityMatches.length) {
 menu.innerHTML = `<div class="city-none">No matching city in the list yet — try a nearby major city.</div>`;
 } else {
 menu.innerHTML = cityMatches.map((c, i) => {
-const cut = c.indexOf(",");
-return `<button type="button" class="city-item${i === cityActive ? " active" : ""}" data-city="${c}" role="option">${c.slice(0, cut)}<span class="cc">${c.slice(cut)}</span></button>`;
-}).join("");
-menu.querySelectorAll(".city-item").forEach(b => b.addEventListener("mousedown", e => {
+const cut = c.indexOf(',');
+return `<button type="button" class="city-item${i === cityActive ? ' active' : ''}" data-city="${c}" role="option">${c.slice(0, cut)}<span class="cc">${c.slice(cut)}</span></button>`;
+}).join('');
+menu.querySelectorAll('.city-item').forEach(b => b.addEventListener('mousedown', e => {
 e.preventDefault();
 pickCityValue(b.dataset.city);
 }));
 }
 menu.hidden = false;
-$("cityInput").setAttribute("aria-expanded", "true");
+$('cityInput').setAttribute('aria-expanded', 'true');
 }
 
-$("cityInput").addEventListener("input", e => {
+$('cityInput').addEventListener('input', e => {
 const v = e.target.value, t = v.trim().toLowerCase();
 pickCity = canonicalCity(v);
-e.target.classList.toggle("invalid", !!t && !pickCity);
+e.target.classList.toggle('invalid', !!t && !pickCity);
 if (!t) {
 closeCityMenu();
 savePending();
 paintFundPicks();
 return;
 }
-const starts = CITIES.filter(c => c.split(",")[0].trim().toLowerCase().startsWith(t));
+const starts = CITIES.filter(c => c.split(',')[0].trim().toLowerCase().startsWith(t));
 const incl = CITIES.filter(c => !starts.includes(c) && c.toLowerCase().includes(t));
 cityMatches = [ ...starts, ...incl ].slice(0, 8);
 cityActive = cityMatches.length ? 0 : -1;
@@ -779,27 +779,27 @@ savePending();
 paintFundPicks();
 });
 
-$("cityInput").addEventListener("keydown", e => {
-if ($("cityMenu").hidden) return;
-if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+$('cityInput').addEventListener('keydown', e => {
+if ($('cityMenu').hidden) return;
+if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
 e.preventDefault();
 if (!cityMatches.length) return;
-cityActive = (cityActive + (e.key === "ArrowDown" ? 1 : -1) + cityMatches.length) % cityMatches.length;
+cityActive = (cityActive + (e.key === 'ArrowDown' ? 1 : -1) + cityMatches.length) % cityMatches.length;
 paintCityMenu();
-} else if (e.key === "Enter") {
+} else if (e.key === 'Enter') {
 if (cityActive >= 0 && cityMatches[cityActive]) {
 e.preventDefault();
 pickCityValue(cityMatches[cityActive]);
 }
-} else if (e.key === "Escape") closeCityMenu();
+} else if (e.key === 'Escape') closeCityMenu();
 });
 
-$("cityInput").addEventListener("blur", () => {
+$('cityInput').addEventListener('blur', () => {
 setTimeout(() => {
-const canon = canonicalCity($("cityInput").value);
+const canon = canonicalCity($('cityInput').value);
 if (canon) pickCityValue(canon); else {
-pickCity = "";
-$("cityInput").classList.toggle("invalid", !!$("cityInput").value.trim());
+pickCity = '';
+$('cityInput').classList.toggle('invalid', !!$('cityInput').value.trim());
 paintFundPicks();
 }
 closeCityMenu();
@@ -808,7 +808,7 @@ closeCityMenu();
 
 let fundArmAt = 0;
 
-$("buildBtn").onclick = () => {
+$('buildBtn').onclick = () => {
 const city = pickCity;
 if (!pickDiet || !pickRoots || !city) return;
 const F = {
@@ -829,17 +829,17 @@ st.pos = 0;
 enterQuiz();
 } else {
 renderHome();
-show("view-home");
+show('view-home');
 }
 return;
 }
 if ((prev || st.finished) && answeredCount(st) > 0 && Date.now() - fundArmAt > 4e3) {
 fundArmAt = Date.now();
-const b = $("buildBtn");
+const b = $('buildBtn');
 const oldLabel = b.textContent;
-b.textContent = "⚠️ New settings clear your current answers — tap again to continue";
+b.textContent = '⚠️ New settings clear your current answers — tap again to continue';
 setTimeout(() => {
-if (b.textContent.startsWith("⚠️")) b.textContent = oldLabel;
+if (b.textContent.startsWith('⚠️')) b.textContent = oldLabel;
 }, 4e3);
 return;
 }
@@ -859,51 +859,51 @@ st.pos = 0;
 enterQuiz();
 };
 
-$("fundExitBtn").onclick = () => {
+$('fundExitBtn').onclick = () => {
 if (st && st.builtFor) {
 renderHome();
-show("view-home");
+show('view-home');
 } else {
 renderHome();
-show("view-home");
+show('view-home');
 }
 };
 
 function renderHome() {
 if (!st) return;
 const n = answeredCount(st);
-const restart = $("restartBtn"), change = $("changeFundBtn");
-$("fundSummary").textContent = st.builtFor ? `Your fundamentals: ${DIET_LABELS[st.builtFor.diet]} · ${ROOT_EMOJI[st.builtFor.roots]} ${rootsLabelOf(st.builtFor)} roots${st.builtFor.city ? st.builtFor.mode === "travel" ? ` · ✈️ Travelling to ${st.builtFor.city}` : ` · 📍 ${st.builtFor.city}` : ""}` : "";
+const restart = $('restartBtn'), change = $('changeFundBtn');
+$('fundSummary').textContent = st.builtFor ? `Your fundamentals: ${DIET_LABELS[st.builtFor.diet]} · ${ROOT_EMOJI[st.builtFor.roots]} ${rootsLabelOf(st.builtFor)} roots${st.builtFor.city ? st.builtFor.mode === 'travel' ? ` · ✈️ Travelling to ${st.builtFor.city}` : ` · 📍 ${st.builtFor.city}` : ''}` : '';
 restart.hidden = !(n > 0 || st.finished);
 change.hidden = !st.builtFor;
 if (!st.builtFor) {
-$("homeTitle").textContent = "One quick step first 🧭";
-$("homeText").textContent = "Pick your diet, your roots and the city you live in — and we'll build your questions around them.";
-$("primaryAction").textContent = "Pick my fundamentals →";
+$('homeTitle').textContent = 'One quick step first 🧭';
+$('homeText').textContent = 'Pick your diet, your roots and the city you live in — and we\'ll build your questions around them.';
+$('primaryAction').textContent = 'Pick my fundamentals →';
 } else if (st.finished) {
-$("homeTitle").textContent = "Your taste profile is ready 🎉";
-$("homeText").textContent = st.result && st.result.partial ? `You ended early after ${n} answers, so this profile is based on limited information. Come see what your taste buds had to say — or retake the questions for the complete picture.` : "You've answered all your questions. Come see what your taste buds had to say — and which world flavours to meet next.";
-$("primaryAction").textContent = "See my taste profile";
+$('homeTitle').textContent = 'Your taste profile is ready 🎉';
+$('homeText').textContent = st.result && st.result.partial ? `You ended early after ${n} answers, so this profile is based on limited information. Come see what your taste buds had to say — or retake the questions for the complete picture.` : 'You\'ve answered all your questions. Come see what your taste buds had to say — and which world flavours to meet next.';
+$('primaryAction').textContent = 'See my taste profile';
 } else if (n > 0) {
-$("homeTitle").textContent = "Welcome back 👋";
-$("homeText").textContent = `You've answered ${n} questions — everything, slider weights included, is saved to your account. Pick up right where you left off, on any device.`;
-$("primaryAction").textContent = `Continue — question ${n + 1}`;
+$('homeTitle').textContent = 'Welcome back 👋';
+$('homeText').textContent = `You've answered ${n} questions — everything, slider weights included, is saved to your account. Pick up right where you left off, on any device.`;
+$('primaryAction').textContent = `Continue — question ${n + 1}`;
 } else {
-$("homeTitle").textContent = "Ready to dive in?";
-$("homeText").textContent = `Your questions are built around ${rootsLabelOf(st.builtFor)} roots and a ${DIET_LABELS[st.builtFor.diet]} diet. About 10 minutes — save & exit anytime.`;
-$("primaryAction").textContent = "Start the questions";
+$('homeTitle').textContent = 'Ready to dive in?';
+$('homeText').textContent = `Your questions are built around ${rootsLabelOf(st.builtFor)} roots and a ${DIET_LABELS[st.builtFor.diet]} diet. About 10 minutes — save & exit anytime.`;
+$('primaryAction').textContent = 'Start the questions';
 }
 }
 
-$("primaryAction").onclick = () => {
+$('primaryAction').onclick = () => {
 if (!st.builtFor) {
 initFundPicks();
-show("view-fund");
+show('view-fund');
 return;
 }
 if (st.finished) {
 renderResults();
-show("view-results");
+show('view-results');
 return;
 }
 const t = findNext(0);
@@ -912,9 +912,9 @@ saveState();
 enterQuiz();
 };
 
-$("changeFundBtn").onclick = () => {
+$('changeFundBtn').onclick = () => {
 initFundPicks();
-show("view-fund");
+show('view-fund');
 };
 
 let restartArmAt = 0;
@@ -925,9 +925,9 @@ if (Date.now() - restartArmAt > 4e3) {
 restartArmAt = Date.now();
 if (btn) {
 const oldLabel = btn.textContent;
-btn.textContent = "Tap again to confirm — answers will be cleared";
+btn.textContent = 'Tap again to confirm — answers will be cleared';
 setTimeout(() => {
-if (btn.textContent.startsWith("Tap again to confirm")) btn.textContent = oldLabel;
+if (btn.textContent.startsWith('Tap again to confirm')) btn.textContent = oldLabel;
 }, 4e3);
 }
 return;
@@ -947,16 +947,16 @@ st.lovesData = {};
 buildOrder(st);
 saveState();
 renderHome();
-show("view-home");
+show('view-home');
 }
 
-$("restartBtn").onclick = doRestart;
+$('restartBtn').onclick = doRestart;
 
-$("quizRestartBtn").onclick = doRestart;
+$('quizRestartBtn').onclick = doRestart;
 
 const LOVES_MIN = 5, LOVES_MAX = 15;
 
-let dishIndexPromise = null, dishMetaPromise = null, lovesWired = false, lovesLoadFailed = false, lovesLastQuery = null, lovesQueryRaw = "";
+let dishIndexPromise = null, dishMetaPromise = null, lovesWired = false, lovesLoadFailed = false, lovesLastQuery = null, lovesQueryRaw = '';
 
 const dishShardPromises = {};
 
@@ -966,21 +966,21 @@ const dishById = new Map;
 
 function loadScriptOnce(src) {
 return new Promise((resolve, reject) => {
-const el = document.createElement("script");
+const el = document.createElement('script');
 el.src = src;
 el.onload = () => resolve();
-el.onerror = () => reject(new Error("load " + src));
+el.onerror = () => reject(new Error('load ' + src));
 document.head.appendChild(el);
 });
 }
 
 function ensureDishMeta() {
 if (window.DISH_META) return Promise.resolve();
-if (!dishMetaPromise) dishMetaPromise = loadScriptOnce("dishes-meta.js?v=3");
+if (!dishMetaPromise) dishMetaPromise = loadScriptOnce('dishes-meta.js?v=3');
 return dishMetaPromise;
 }
 
-const normDishText = s => (s || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+const normDishText = s => (s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 
 function ensureDishIndex() {
 if (DISH_LIST) return Promise.resolve();
@@ -991,16 +991,16 @@ length: window.DISH_META.idxShards
 DISH_LIST = [];
 let id = 0;
 for (let n = 0; n < window.DISH_META.idxShards; n++) {
-for (const line of (window["DISH_IDX_" + n] || "").split("\n")) {
+for (const line of (window['DISH_IDX_' + n] || '').split('\n')) {
 if (!line) continue;
-const [name, oc, cc] = line.split("\t");
+const [name, oc, cc] = line.split('\t');
 const e = {
 name: name,
-origin: window.DISH_META.origins[+oc] || "",
-course: window.DISH_META.courses[+cc] || "",
+origin: window.DISH_META.origins[+oc] || '',
+course: window.DISH_META.courses[+cc] || '',
 id: id++,
 nn: normDishText(name),
-no: ""
+no: ''
 };
 e.no = normDishText(e.origin);
 DISH_LIST.push(e);
@@ -1015,7 +1015,7 @@ return dishIndexPromise;
 function ensureDishData(id) {
 const M = window.DISH_META;
 if (!M || id >= M.tagHead) return Promise.resolve(null);
-const n = Math.floor(id / M.tagBlock), key = "DISH_TAGS_" + n;
+const n = Math.floor(id / M.tagBlock), key = 'DISH_TAGS_' + n;
 if (window[key]) return Promise.resolve(window[key][id] || null);
 if (!dishShardPromises[n]) dishShardPromises[n] = loadScriptOnce(`dishes-tags-${n}.js?v=3`);
 return dishShardPromises[n].then(() => (window[key] || {})[id] || null).catch(() => null);
@@ -1024,12 +1024,12 @@ return dishShardPromises[n].then(() => (window[key] || {})[id] || null).catch(()
 function searchDishes(query) {
 const q = normDishText(query);
 if (!q || !DISH_LIST) return [];
-const toks = q.split(" ");
+const toks = q.split(' ');
 const hits = [];
 for (const e of DISH_LIST) {
 if (!toks.every(t => e.nn.includes(t) || e.no.includes(t))) continue;
 let rank = 2;
-if (e.nn === q) rank = -1; else if (e.nn.startsWith(q)) rank = 0; else if (e.nn.split(" ").some(w => w.startsWith(toks[0]))) rank = 1;
+if (e.nn === q) rank = -1; else if (e.nn.startsWith(q)) rank = 0; else if (e.nn.split(' ').some(w => w.startsWith(toks[0]))) rank = 1;
 hits.push({
 rank: rank,
 e: e
@@ -1044,31 +1044,31 @@ function paintLoveResults(list) {
 lovesLastQuery = list;
 let html = list.slice(0, 3).sort((a, b) => a.name.localeCompare(b.name)).map(e => {
 const picked = (st.loves || []).includes(e.id);
-return `<button type="button" class="opt${picked ? " sel" : ""}" data-pick="${e.id}">${e.name}<span class="dish-sub">${[ e.origin, e.course ].filter(Boolean).join(" · ")}</span></button>`;
-}).join("");
-const q = normDishText(lovesQueryRaw || "");
+return `<button type="button" class="opt${picked ? ' sel' : ''}" data-pick="${e.id}">${e.name}<span class="dish-sub">${[ e.origin, e.course ].filter(Boolean).join(' · ')}</span></button>`;
+}).join('');
+const q = normDishText(lovesQueryRaw || '');
 if (q.length >= 3 && !list.some(e => e.nn === q) && (st.loves || []).length < LOVES_MAX && !(st.loves || []).includes(customDishId(lovesQueryRaw))) {
-const shown = (lovesQueryRaw || "").trim().replace(/\s+/g, " ");
+const shown = (lovesQueryRaw || '').trim().replace(/\s+/g, ' ');
 html += `<button type="button" class="opt opt-custom" data-custom="1">＋ Add “${shown}”<span class="dish-sub">Not in our list yet — add yours; we'll look it up online, and share it so others can find it too</span></button>`;
 }
-$("lovesResults").innerHTML = html;
+$('lovesResults').innerHTML = html;
 }
 
 function clearLovesSearch() {
-const inp = $("lovesInput");
+const inp = $('lovesInput');
 if (inp) {
-inp.value = "";
+inp.value = '';
 inp.focus();
 }
-lovesQueryRaw = "";
+lovesQueryRaw = '';
 lovesCommunityHits = [];
 paintLoveResults([]);
 }
 
-const NAME_FLAVOR_RULES = [ [ /biryani|briyani/, [ "rice", "biryani", "spice" ] ], [ /pulao|pilaf|pilau|rice|risotto|paella|jollof|fried rice/, [ "rice" ] ], [ /noodle|ramen|pasta|spaghetti|udon|soba|pho|mee |laksa|chow mein|pad thai/, [ "noodle" ] ], [ /soup|stew|broth|shorba|rasam|curry/, [ "soup" ] ], [ /salad|slaw/, [ "fresh", "healthy" ] ], [ /grill|bbq|barbecue|tandoori|kebab|kabab|skewer|suya|robata/, [ "smoky" ] ], [ /fried|crispy|tempura|pakora|bajji|samosa|spring roll/, [ "crisp" ] ], [ /cake|pie|pudding|halwa|laddu|ladoo|barfi|burfi|gulab jamun|rasmalai|rasgulla|kheer|payasam|falooda|kulfi|ice cream|brownie|cookie|biscuit|tiramisu|cheesecake|mousse|jelabi|jalebi|imarti|baklava|kunafa|halva|mysore pak|sandesh|peda/, [ "sweet" ] ], [ /chicken|murgh/, [ "meat" ] ], [ /beef|mutton|lamb|gosht|pork|ham|bacon|sausage|steak|veal|duck|turkey|keema|qeema|mince/, [ "meat" ] ], [ /fish|machli|salmon|tuna|cod|sea bass|pomfret|hilsa|rohu|surmai/, [ "seafood" ] ], [ /prawn|shrimp|jhinga|crab|lobster|squid|oyster|mussel|scallop|seafood/, [ "seafood" ] ], [ /egg|anda|omelette|omelet/, [ "egg" ] ], [ /paneer|tofu/, [ "veg" ] ], [ /dal|daal|lentil|sambar|sambhar/, [ "veg", "soup" ] ], [ /sabzi|bhaji|poriyal|thoran|avial|curry leaves/, [ "veg" ] ], [ /tea|chai/, [ "chai" ] ], [ /coffee|espresso|cappuccino|latte/, [ "coffee" ] ], [ /spicy|chilli|chili|mirchi|peri peri|harissa|sichuan|szechuan/, [ "spice" ] ], [ /pickle|achar|kimchi|sauerkraut/, [ "fermented" ] ], [ /yoghurt|yogurt|curd|raita/, [ "tangy", "creamy" ] ], [ /cream|makhani|malai|alfredo|carbonara/, [ "creamy" ] ], [ /tikka masala|butter chicken/, [ "creamy", "spice" ] ], [ /street|chaat|taco|burger|pizza|wrap|roll\b/, [ "street" ] ], [ /home ?style|traditional|classic/, [ "classic" ] ] ];
+const NAME_FLAVOR_RULES = [ [ /biryani|briyani/, [ 'rice', 'biryani', 'spice' ] ], [ /pulao|pilaf|pilau|rice|risotto|paella|jollof|fried rice/, [ 'rice' ] ], [ /noodle|ramen|pasta|spaghetti|udon|soba|pho|mee |laksa|chow mein|pad thai/, [ 'noodle' ] ], [ /soup|stew|broth|shorba|rasam|curry/, [ 'soup' ] ], [ /salad|slaw/, [ 'fresh', 'healthy' ] ], [ /grill|bbq|barbecue|tandoori|kebab|kabab|skewer|suya|robata/, [ 'smoky' ] ], [ /fried|crispy|tempura|pakora|bajji|samosa|spring roll/, [ 'crisp' ] ], [ /cake|pie|pudding|halwa|laddu|ladoo|barfi|burfi|gulab jamun|rasmalai|rasgulla|kheer|payasam|falooda|kulfi|ice cream|brownie|cookie|biscuit|tiramisu|cheesecake|mousse|jelabi|jalebi|imarti|baklava|kunafa|halva|mysore pak|sandesh|peda/, [ 'sweet' ] ], [ /chicken|murgh/, [ 'meat' ] ], [ /beef|mutton|lamb|gosht|pork|ham|bacon|sausage|steak|veal|duck|turkey|keema|qeema|mince/, [ 'meat' ] ], [ /fish|machli|salmon|tuna|cod|sea bass|pomfret|hilsa|rohu|surmai/, [ 'seafood' ] ], [ /prawn|shrimp|jhinga|crab|lobster|squid|oyster|mussel|scallop|seafood/, [ 'seafood' ] ], [ /egg|anda|omelette|omelet/, [ 'egg' ] ], [ /paneer|tofu/, [ 'veg' ] ], [ /dal|daal|lentil|sambar|sambhar/, [ 'veg', 'soup' ] ], [ /sabzi|bhaji|poriyal|thoran|avial|curry leaves/, [ 'veg' ] ], [ /tea|chai/, [ 'chai' ] ], [ /coffee|espresso|cappuccino|latte/, [ 'coffee' ] ], [ /spicy|chilli|chili|mirchi|peri peri|harissa|sichuan|szechuan/, [ 'spice' ] ], [ /pickle|achar|kimchi|sauerkraut/, [ 'fermented' ] ], [ /yoghurt|yogurt|curd|raita/, [ 'tangy', 'creamy' ] ], [ /cream|makhani|malai|alfredo|carbonara/, [ 'creamy' ] ], [ /tikka masala|butter chicken/, [ 'creamy', 'spice' ] ], [ /street|chaat|taco|burger|pizza|wrap|roll\b/, [ 'street' ] ], [ /home ?style|traditional|classic/, [ 'classic' ] ] ];
 
 function deriveNameFlavors(name) {
-const n = " " + normDishText(name) + " ";
+const n = ' ' + normDishText(name) + ' ';
 const out = [];
 NAME_FLAVOR_RULES.forEach(([re, tags]) => {
 if (re.test(n)) tags.forEach(t => {
@@ -1086,17 +1086,17 @@ return -(h + 1);
 }
 
 function addCustomDish() {
-const name = (lovesQueryRaw || "").trim().replace(/\s+/g, " ");
+const name = (lovesQueryRaw || '').trim().replace(/\s+/g, ' ');
 if (name.length < 3) return;
 const id = customDishId(name);
 const pretty = name.replace(/\b\w/g, c => c.toUpperCase());
 dishById.set(id, {
 id: id,
 name: pretty,
-origin: "Added by you",
-course: "",
+origin: 'Added by you',
+course: '',
 nn: normDishText(name),
-no: ""
+no: ''
 });
 st.lovesData = st.lovesData || {};
 st.lovesData[id] = {
@@ -1109,24 +1109,24 @@ clearLovesSearch();
 enrichAndSubmitCustom(id, pretty);
 }
 
-const ING_FLAVOR_KEYS = [ [ [ "chilli", "chili", "jalapeno", "habanero", "cayenne", "paprika", "gochujang", "harissa", "sriracha", "hot sauce", "pepper flakes" ], [ "spice" ] ], [ [ "chipotle", "smoked paprika" ], [ "smoky" ] ], [ [ "cream", "cheese", "butter", "milk", "yoghurt", "yogurt", "paneer", "mozzarella", "parmesan", "ghee", "coconut milk" ], [ "creamy" ] ], [ [ "lemon", "lime", "vinegar", "tamarind", "tomato", "sumac", "orange" ], [ "tangy" ] ], [ [ "kimchi", "sauerkraut", "miso", "soy sauce", "fish sauce", "pickle", "pickled" ], [ "fermented" ] ], [ [ "sugar", "honey", "jaggery", "caramel", "chocolate" ], [ "sweet" ] ], [ [ "chicken", "beef", "lamb", "mutton", "pork", "veal", "duck", "turkey", "mince", "keema", "sausage", "bacon", "ham", "meat" ], [ "meat" ] ], [ [ "fish", "prawn", "shrimp", "crab", "lobster", "squid", "mussel", "oyster", "scallop", "salmon", "tuna", "cod", "anchovy" ], [ "seafood" ] ], [ [ "rice", "basmati" ], [ "rice" ] ], [ [ "noodle", "pasta", "spaghetti", "ramen", "udon", "soba", "vermicelli" ], [ "noodle" ] ], [ [ "lentil", "chickpea", "tofu", "potato", "cauliflower", "spinach", "okra", "aubergine", "eggplant", "mushroom", "cabbage", "carrot", "beans" ], [ "veg" ] ], [ [ "coriander", "cilantro", "mint", "basil", "parsley", "dill", "lettuce", "cucumber" ], [ "fresh" ] ], [ [ "tea" ], [ "chai" ] ], [ [ "coffee", "espresso" ], [ "coffee" ] ], [ [ "breadcrumbs", "batter" ], [ "crisp" ] ] ];
+const ING_FLAVOR_KEYS = [ [ [ 'chilli', 'chili', 'jalapeno', 'habanero', 'cayenne', 'paprika', 'gochujang', 'harissa', 'sriracha', 'hot sauce', 'pepper flakes' ], [ 'spice' ] ], [ [ 'chipotle', 'smoked paprika' ], [ 'smoky' ] ], [ [ 'cream', 'cheese', 'butter', 'milk', 'yoghurt', 'yogurt', 'paneer', 'mozzarella', 'parmesan', 'ghee', 'coconut milk' ], [ 'creamy' ] ], [ [ 'lemon', 'lime', 'vinegar', 'tamarind', 'tomato', 'sumac', 'orange' ], [ 'tangy' ] ], [ [ 'kimchi', 'sauerkraut', 'miso', 'soy sauce', 'fish sauce', 'pickle', 'pickled' ], [ 'fermented' ] ], [ [ 'sugar', 'honey', 'jaggery', 'caramel', 'chocolate' ], [ 'sweet' ] ], [ [ 'chicken', 'beef', 'lamb', 'mutton', 'pork', 'veal', 'duck', 'turkey', 'mince', 'keema', 'sausage', 'bacon', 'ham', 'meat' ], [ 'meat' ] ], [ [ 'fish', 'prawn', 'shrimp', 'crab', 'lobster', 'squid', 'mussel', 'oyster', 'scallop', 'salmon', 'tuna', 'cod', 'anchovy' ], [ 'seafood' ] ], [ [ 'rice', 'basmati' ], [ 'rice' ] ], [ [ 'noodle', 'pasta', 'spaghetti', 'ramen', 'udon', 'soba', 'vermicelli' ], [ 'noodle' ] ], [ [ 'lentil', 'chickpea', 'tofu', 'potato', 'cauliflower', 'spinach', 'okra', 'aubergine', 'eggplant', 'mushroom', 'cabbage', 'carrot', 'beans' ], [ 'veg' ] ], [ [ 'coriander', 'cilantro', 'mint', 'basil', 'parsley', 'dill', 'lettuce', 'cucumber' ], [ 'fresh' ] ], [ [ 'tea' ], [ 'chai' ] ], [ [ 'coffee', 'espresso' ], [ 'coffee' ] ], [ [ 'breadcrumbs', 'batter' ], [ 'crisp' ] ] ];
 
 function flavorsFromIngredients(ings) {
-const text = " " + (ings || []).join(" ").toLowerCase() + " ";
+const text = ' ' + (ings || []).join(' ').toLowerCase() + ' ';
 const out = [];
 ING_FLAVOR_KEYS.forEach(([keys, tags]) => {
-if (keys.some(k => new RegExp("\\b" + k.replace(/ /g, "\\s") + "(e?s)?\\b").test(text))) tags.forEach(t => {
+if (keys.some(k => new RegExp('\\b' + k.replace(/ /g, '\\s') + '(e?s)?\\b').test(text))) tags.forEach(t => {
 if (!out.includes(t)) out.push(t);
 });
 });
 return out.slice(0, 8);
 }
 
-const ING_LEXICON = [ "chicken", "beef", "lamb", "mutton", "pork", "duck", "meat", "fish", "prawn", "shrimp", "crab", "lobster", "squid", "mussel", "oyster", "salmon", "tuna", "egg", "rice", "noodle", "pasta", "potato", "sweet potato", "onion", "garlic", "ginger", "tomato", "chilli", "chili", "pepper", "cumin", "turmeric", "coriander", "cardamom", "cinnamon", "clove", "mustard", "fenugreek", "mint", "basil", "parsley", "cilantro", "lemon", "lime", "tamarind", "coconut", "milk", "cream", "butter", "ghee", "cheese", "yoghurt", "yogurt", "paneer", "tofu", "lentil", "chickpea", "bean", "pea", "spinach", "okra", "aubergine", "eggplant", "cauliflower", "cabbage", "carrot", "mushroom", "corn", "flour", "bread", "sugar", "honey", "olive oil", "sesame", "peanut", "cashew", "almond", "walnut", "vinegar", "soy sauce", "fish sauce", "miso", "kimchi", "sausage", "bacon", "ham" ];
+const ING_LEXICON = [ 'chicken', 'beef', 'lamb', 'mutton', 'pork', 'duck', 'meat', 'fish', 'prawn', 'shrimp', 'crab', 'lobster', 'squid', 'mussel', 'oyster', 'salmon', 'tuna', 'egg', 'rice', 'noodle', 'pasta', 'potato', 'sweet potato', 'onion', 'garlic', 'ginger', 'tomato', 'chilli', 'chili', 'pepper', 'cumin', 'turmeric', 'coriander', 'cardamom', 'cinnamon', 'clove', 'mustard', 'fenugreek', 'mint', 'basil', 'parsley', 'cilantro', 'lemon', 'lime', 'tamarind', 'coconut', 'milk', 'cream', 'butter', 'ghee', 'cheese', 'yoghurt', 'yogurt', 'paneer', 'tofu', 'lentil', 'chickpea', 'bean', 'pea', 'spinach', 'okra', 'aubergine', 'eggplant', 'cauliflower', 'cabbage', 'carrot', 'mushroom', 'corn', 'flour', 'bread', 'sugar', 'honey', 'olive oil', 'sesame', 'peanut', 'cashew', 'almond', 'walnut', 'vinegar', 'soy sauce', 'fish sauce', 'miso', 'kimchi', 'sausage', 'bacon', 'ham' ];
 
 function ingredientsFromText(text) {
-const t = " " + (text || "").toLowerCase() + " ";
-return ING_LEXICON.filter(w => new RegExp("(^|[^a-z])" + w.replace(/ /g, "\\s") + "s?([^a-z]|$)").test(t));
+const t = ' ' + (text || '').toLowerCase() + ' ';
+return ING_LEXICON.filter(w => new RegExp('(^|[^a-z])' + w.replace(/ /g, '\\s') + 's?([^a-z]|$)').test(t));
 }
 
 function mealToDish(meal, wantNorm) {
@@ -1135,7 +1135,7 @@ const nn = normDishText(meal.strMeal);
 if (!nn || wantNorm && nn !== wantNorm && !nn.includes(wantNorm) && !wantNorm.includes(nn)) return null;
 const ings = [];
 for (let i = 1; i <= 20; i++) {
-const v = (meal["strIngredient" + i] || "").trim();
+const v = (meal['strIngredient' + i] || '').trim();
 if (v) ings.push(v);
 }
 if (ings.length < 2) return null;
@@ -1143,10 +1143,10 @@ const f = flavorsFromIngredients(ings);
 if (!f.length) return null;
 return {
 name: meal.strMeal,
-origin: (meal.strArea || "").trim(),
+origin: (meal.strArea || '').trim(),
 i: ings.slice(0, 10),
 f: f,
-source: "themealdb"
+source: 'themealdb'
 };
 }
 
@@ -1158,10 +1158,10 @@ const f = flavorsFromIngredients(ings);
 if (!f.length) return null;
 return {
 name: name,
-origin: "",
+origin: '',
 i: ings.slice(0, 10),
 f: f,
-source: "wikipedia"
+source: 'wikipedia'
 };
 }
 
@@ -1172,9 +1172,9 @@ norm: normDishText(name),
 origin: data && data.origin || null,
 ingredients: data && data.i || [],
 flavors: data && data.f || [],
-source: data && data.source || "name",
-confidence: sourced ? "sourced" : "name",
-status: sourced ? "live" : "pending",
+source: data && data.source || 'name',
+confidence: sourced ? 'sourced' : 'name',
+status: sourced ? 'live' : 'pending',
 submitted_by: uid
 };
 }
@@ -1201,17 +1201,17 @@ clearTimeout(t);
 
 async function enrichDishOnline(name) {
 const q = encodeURIComponent(name);
-const mj = await fetchJsonTimeout("https://www.themealdb.com/api/json/v1/1/search.php?s=" + q);
+const mj = await fetchJsonTimeout('https://www.themealdb.com/api/json/v1/1/search.php?s=' + q);
 const fromMeal = mealToDish(mj && mj.meals && mj.meals[0], normDishText(name));
 if (fromMeal) return fromMeal;
-const wj = await fetchJsonTimeout("https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&format=json&origin=*&redirects=1&titles=" + q);
+const wj = await fetchJsonTimeout('https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&format=json&origin=*&redirects=1&titles=' + q);
 const pages = wj && wj.query && wj.query.pages;
 const page = pages && Object.values(pages)[0];
 if (page && page.extract) {
 const d = wikiToDish(page.extract, name);
 if (d) return d;
 }
-const fj = await fetchJsonTimeout("https://en.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=1&format=json&origin=*&redirects=1&titles=" + q);
+const fj = await fetchJsonTimeout('https://en.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=1&format=json&origin=*&redirects=1&titles=' + q);
 const fpages = fj && fj.query && fj.query.pages;
 const fpage = fpages && Object.values(fpages)[0];
 if (fpage && fpage.extract) return wikiToDish(fpage.extract, name);
@@ -1237,15 +1237,15 @@ saveState();
 submitCommunityDish(pretty, data || {
 i: [],
 f: (st.lovesData[id] || {}).f || [],
-source: "name"
+source: 'name'
 }, !!data);
 }
 
 async function submitCommunityDish(pretty, data, sourced) {
 if (!sb || !st.user || communityOff) return;
 try {
-const {error: error} = await sb.from("community_dishes").insert(communityRowFor(pretty, data, sourced, st.user.id));
-if (error && !/duplicate|23505|unique/i.test(error.message || "")) communityOff = true;
+const {error: error} = await sb.from('community_dishes').insert(communityRowFor(pretty, data, sourced, st.user.id));
+if (error && !/duplicate|23505|unique/i.test(error.message || '')) communityOff = true;
 } catch (e) {
 communityOff = true;
 }
@@ -1259,28 +1259,28 @@ communityTimer = setTimeout(runCommunitySearch, 300);
 }
 
 async function runCommunitySearch() {
-const q = normDishText(lovesQueryRaw || "");
+const q = normDishText(lovesQueryRaw || '');
 lovesCommunityHits = [];
 if (!sb || communityOff || q.length < 3) return;
 const local = searchDishes(lovesQueryRaw);
 if (local.some(e => e.nn === q)) return;
 const seq = ++communitySeq;
 try {
-const {data: data, error: error} = await sb.from("community_dishes").select("name,norm,origin,ingredients,flavors").eq("status", "live").ilike("norm", "%" + q + "%").limit(8);
+const {data: data, error: error} = await sb.from('community_dishes').select('name,norm,origin,ingredients,flavors').eq('status', 'live').ilike('norm', '%' + q + '%').limit(8);
 if (error) {
 communityOff = true;
 return;
 }
-if (seq !== communitySeq || normDishText(lovesQueryRaw || "") !== q) return;
+if (seq !== communitySeq || normDishText(lovesQueryRaw || '') !== q) return;
 lovesCommunityHits = (data || []).filter(r => !local.some(e => e.nn === r.norm)).map(r => {
 const id = customDishId(r.name);
 dishById.set(id, {
 id: id,
 name: r.name,
-origin: r.origin || "Added by the community",
-course: "",
+origin: r.origin || 'Added by the community',
+course: '',
 nn: r.norm,
-no: "",
+no: '',
 comm: true
 });
 commDataById.set(id, {
@@ -1300,17 +1300,17 @@ communityOff = true;
 
 function paintLoves() {
 const loves = st.loves || [];
-$("lovesCount").textContent = loves.length < LOVES_MIN ? `${loves.length} of ${LOVES_MIN} to get started` : `${loves.length} picked · up to ${LOVES_MAX} if you like`;
-$("lovesDots").innerHTML = Array.from({
+$('lovesCount').textContent = loves.length < LOVES_MIN ? `${loves.length} of ${LOVES_MIN} to get started` : `${loves.length} picked · up to ${LOVES_MAX} if you like`;
+$('lovesDots').innerHTML = Array.from({
 length: LOVES_MIN
-}, (_, i) => `<span class="dot${i < loves.length ? " on" : ""}"></span>`).join("");
-$("lovesNext").disabled = !(loves.length >= LOVES_MIN || lovesLoadFailed && loves.length === 0);
-$("lovesHint").textContent = lovesLoadFailed ? "The dish list couldn't load — tap Continue to go straight to the questions." : loves.length >= LOVES_MAX ? "That's your 15 — tap a picked dish to swap it out." : loves.length >= LOVES_MIN ? "Lovely list. Add more, or continue when you're ready." : loves.length === 0 ? "" : `${LOVES_MIN - loves.length} more to get started — that's all we need.`;
-$("lovesPicked").innerHTML = loves.map(id => {
+}, (_, i) => `<span class="dot${i < loves.length ? ' on' : ''}"></span>`).join('');
+$('lovesNext').disabled = !(loves.length >= LOVES_MIN || lovesLoadFailed && loves.length === 0);
+$('lovesHint').textContent = lovesLoadFailed ? 'The dish list couldn\'t load — tap Continue to go straight to the questions.' : loves.length >= LOVES_MAX ? 'That\'s your 15 — tap a picked dish to swap it out.' : loves.length >= LOVES_MIN ? 'Lovely list. Add more, or continue when you\'re ready.' : loves.length === 0 ? '' : `${LOVES_MIN - loves.length} more to get started — that's all we need.`;
+$('lovesPicked').innerHTML = loves.map(id => {
 const d = (st.lovesData || {})[id];
-const name = d ? d.n : (dishById.get(id) || {}).name || "Dish";
+const name = d ? d.n : (dishById.get(id) || {}).name || 'Dish';
 return `<button type="button" class="opt sel" data-love="${id}">${name}<span class="love-x" aria-hidden="true">✕</span></button>`;
-}).join("");
+}).join('');
 }
 
 async function addLove(id) {
@@ -1325,17 +1325,17 @@ st.lovesData = st.lovesData || {};
 if (id < 0 && commDataById.has(id)) {
 const cd = commDataById.get(id);
 st.lovesData[id] = {
-n: entry ? entry.name : "Dish",
+n: entry ? entry.name : 'Dish',
 i: cd.i || [],
 f: cd.f || [],
-c: entry ? entry.course || "" : ""
+c: entry ? entry.course || '' : ''
 };
 } else {
 st.lovesData[id] = {
-n: entry ? entry.name : "Dish",
+n: entry ? entry.name : 'Dish',
 i: id < 0 ? (st.lovesData[id] || {}).i || [] : [],
 f: id < 0 ? (st.lovesData[id] || {}).f || [] : [],
-c: entry ? entry.course || "" : ""
+c: entry ? entry.course || '' : ''
 };
 }
 saveState();
@@ -1345,10 +1345,10 @@ if (id < 0) return;
 const d = await ensureDishData(id);
 if (d) {
 st.lovesData[id] = {
-n: entry ? entry.name : "Dish",
+n: entry ? entry.name : 'Dish',
 i: d.i || [],
 f: d.f || [],
-c: entry ? entry.course || "" : ""
+c: entry ? entry.course || '' : ''
 };
 saveState();
 }
@@ -1364,8 +1364,8 @@ if (lovesLastQuery) paintLoveResults(lovesLastQuery);
 
 function renderLoves() {
 if (!Array.isArray(st.loves)) st.loves = [];
-$("lovesInput").value = "";
-lovesQueryRaw = "";
+$('lovesInput').value = '';
+lovesQueryRaw = '';
 paintLoveResults([]);
 paintLoves();
 ensureDishMeta().then(() => ensureDishIndex()).then(() => {
@@ -1376,7 +1376,7 @@ paintLoves();
 });
 if (lovesWired) return;
 lovesWired = true;
-$("lovesInput").addEventListener("input", e => {
+$('lovesInput').addEventListener('input', e => {
 lovesQueryRaw = e.target.value;
 const q = e.target.value.trim();
 if (!DISH_LIST) return;
@@ -1388,13 +1388,13 @@ return;
 paintLoveResults(searchDishes(q));
 scheduleCommunitySearch();
 });
-$("lovesResults").addEventListener("click", e => {
-const c = e.target.closest("[data-custom]");
+$('lovesResults').addEventListener('click', e => {
+const c = e.target.closest('[data-custom]');
 if (c) {
 addCustomDish();
 return;
 }
-const b = e.target.closest("[data-pick]");
+const b = e.target.closest('[data-pick]');
 if (!b) return;
 const id = +b.dataset.pick;
 if ((st.loves || []).includes(id)) removeLove(id); else {
@@ -1402,30 +1402,30 @@ addLove(id);
 clearLovesSearch();
 }
 });
-$("lovesPicked").addEventListener("click", e => {
-const b = e.target.closest("[data-love]");
+$('lovesPicked').addEventListener('click', e => {
+const b = e.target.closest('[data-love]');
 if (!b) return;
 removeLove(+b.dataset.love);
 });
-$("lovesNext").onclick = () => {
+$('lovesNext').onclick = () => {
 if (lovesLoadFailed && (!st.loves || st.loves.length === 0)) st.loves = [];
 if (!Array.isArray(st.loves) || st.loves.length < LOVES_MIN && !lovesLoadFailed) return;
 saveState();
 const t = findNext(0);
 st.pos = t >= 0 ? t : 0;
 renderQuestion();
-show("view-quiz");
+show('view-quiz');
 };
 }
 
 function enterQuiz() {
 if (st.loves === null) {
 renderLoves();
-show("view-loves");
+show('view-loves');
 return;
 }
 renderQuestion();
-show("view-quiz");
+show('view-quiz');
 }
 
 let pendingW = 1;
@@ -1467,120 +1467,120 @@ const n = answeredCount(st);
 const upto = st.order.slice(0, st.order.indexOf(q.id) + 1);
 const skippedBefore = upto.filter(id => id !== q.id && st.skipped && st.skipped[id]).length;
 const posInRun = Math.min(upto.length - skippedBefore, runTotal(st));
-$("qCounter").textContent = `Question ${posInRun} of ${runTotal(st)}`;
-$("progressBar").style.width = n / runTotal(st) * 100 + "%";
-$("progressWrap").setAttribute("aria-valuenow", n);
-$("progressWrap").setAttribute("aria-valuemax", runTotal(st));
-$("qSection").textContent = DECK_LABELS[q.deck] || "";
-$("qSub").textContent = DECK_SUBS[q.deck] || "";
-$("qEmoji").textContent = q.emoji;
-const img = $("qImg");
+$('qCounter').textContent = `Question ${posInRun} of ${runTotal(st)}`;
+$('progressBar').style.width = n / runTotal(st) * 100 + '%';
+$('progressWrap').setAttribute('aria-valuenow', n);
+$('progressWrap').setAttribute('aria-valuemax', runTotal(st));
+$('qSection').textContent = DECK_LABELS[q.deck] || '';
+$('qSub').textContent = DECK_SUBS[q.deck] || '';
+$('qEmoji').textContent = q.emoji;
+const img = $('qImg');
 const url = imgUrlFor(q);
-img.style.display = url ? "" : "none";
+img.style.display = url ? '' : 'none';
 if (url) img.src = url;
 img.alt = q.q;
-$("qText").textContent = q.q;
-$("multiHint").hidden = !(q.multi || q.rank);
-$("multiHint").textContent = q.rank ? q.rank === 3 ? "🥇 Tap in order — your #1 first, then #2, then #3." : "🥇 Tap your #1 pick first — then your #2." : "✋ Pick all that apply — then hit Next.";
-$("qInfoBtn").hidden = false;
-$("qInfoBtn").classList.remove("open");
-$("qInfoPanel").hidden = true;
-$("qInfoPanel").textContent = [ q.info, "🎚️ The confidence slider: every pick carries a strength from 1 to 5. At 1 the other options nearly won; at 5 it's this pick, no debate. Your high-confidence picks count for more when your taste profile and recommendations are built — so slide up only when you really mean it, and leave it at 1 when you're torn." ].filter(Boolean).join(" ");
+$('qText').textContent = q.q;
+$('multiHint').hidden = !(q.multi || q.rank);
+$('multiHint').textContent = q.rank ? q.rank === 3 ? '🥇 Tap in order — your #1 first, then #2, then #3.' : '🥇 Tap your #1 pick first — then your #2.' : '✋ Pick all that apply — then hit Next.';
+$('qInfoBtn').hidden = false;
+$('qInfoBtn').classList.remove('open');
+$('qInfoPanel').hidden = true;
+$('qInfoPanel').textContent = [ q.info, '🎚️ The confidence slider: every pick carries a strength from 1 to 5. At 1 the other options nearly won; at 5 it\'s this pick, no debate. Your high-confidence picks count for more when your taste profile and recommendations are built — so slide up only when you really mean it, and leave it at 1 when you\'re torn.' ].filter(Boolean).join(' ');
 pendingSel = new Set(saved && Array.isArray(saved.o) ? saved.o : []);
 pendingRank = saved && saved.r ? [ ...saved.o ] : [];
-const box = $("qOptions");
-box.innerHTML = "";
+const box = $('qOptions');
+box.innerHTML = '';
 visibleOpts(q, st).forEach(({o: o, i: i}) => {
 const picked = q.rank ? pendingRank.includes(i) : q.multi ? pendingSel.has(i) : saved && saved.o === i;
-const b = document.createElement("button");
-b.type = "button";
-b.className = "opt" + (q.multi ? " multi" : "") + (q.rank ? " rank" : "") + (picked ? " picked" : "");
+const b = document.createElement('button');
+b.type = 'button';
+b.className = 'opt' + (q.multi ? ' multi' : '') + (q.rank ? ' rank' : '') + (picked ? ' picked' : '');
 b.textContent = o.t;
 if (q.rank && pendingRank.includes(i)) {
-const bd = document.createElement("span");
-bd.className = "rank-badge";
-bd.textContent = [ "1st", "2nd", "3rd" ][pendingRank.indexOf(i)] || "";
+const bd = document.createElement('span');
+bd.className = 'rank-badge';
+bd.textContent = [ '1st', '2nd', '3rd' ][pendingRank.indexOf(i)] || '';
 b.appendChild(bd);
 }
 b.dataset.oi = i;
-b.setAttribute("aria-pressed", picked ? "true" : "false");
+b.setAttribute('aria-pressed', picked ? 'true' : 'false');
 b.onclick = () => q.rank ? toggleRank(i) : q.multi ? toggleOption(i) : selectOption(i);
 box.appendChild(b);
 });
 pendingW = saved ? saved.w : 1;
-$("weightSlider").value = pendingW;
+$('weightSlider').value = pendingW;
 updateSliderLabel();
-const sliderHint = $("sliderHint");
-if (sliderHint) sliderHint.textContent = "1 = the others nearly won · 5 = no contest. Strong picks steer your profile most.";
+const sliderHint = $('sliderHint');
+if (sliderHint) sliderHint.textContent = '1 = the others nearly won · 5 = no contest. Strong picks steer your profile most.';
 const hasAnswer = q.rank ? pendingRank.length > 0 : q.multi ? pendingSel.size > 0 : !!saved;
-$("nextBtn").disabled = !hasAnswer;
-$("nextBtn").textContent = hasAnswer && n >= runTotal(st) - 1 && findNext(0) === -1 ? "Finish — see my profile 🎉" : "Next →";
+$('nextBtn').disabled = !hasAnswer;
+$('nextBtn').textContent = hasAnswer && n >= runTotal(st) - 1 && findNext(0) === -1 ? 'Finish — see my profile 🎉' : 'Next →';
 const seenIdx = st.seen ? st.seen.indexOf(q.id) : -1;
 const browsing = st.navAt >= 0 && seenIdx >= 0 && seenIdx < (st.seen || []).length - 1;
 if (browsing) {
-$("nextBtn").disabled = false;
-$("nextBtn").textContent = "Next →";
+$('nextBtn').disabled = false;
+$('nextBtn').textContent = 'Next →';
 }
-$("backBtn").style.visibility = seenIdx > 0 || st.pos > 0 ? "visible" : "hidden";
-const skipB = $("skipBtn");
-if (skipB) skipB.style.display = st.skipped && st.skipped[q.id] ? "none" : "";
-$("savedNote").textContent = n ? `✓ ${n} answer${n > 1 ? "s" : ""} saved` : "";
+$('backBtn').style.visibility = seenIdx > 0 || st.pos > 0 ? 'visible' : 'hidden';
+const skipB = $('skipBtn');
+if (skipB) skipB.style.display = st.skipped && st.skipped[q.id] ? 'none' : '';
+$('savedNote').textContent = n ? `✓ ${n} answer${n > 1 ? 's' : ''} saved` : '';
 paintEndBtn();
-const inner = $("qInner");
-inner.style.animation = "none";
+const inner = $('qInner');
+inner.style.animation = 'none';
 void inner.offsetWidth;
-inner.style.animation = "";
+inner.style.animation = '';
 const nextId = st.order[st.pos + 1];
 if (nextId && QBANK_BY_ID[nextId]) {
 const pre = new Image;
 pre.src = imgUrlFor(QBANK_BY_ID[nextId]);
 }
-$("qText").focus({
+$('qText').focus({
 preventScroll: true
 });
 }
 
 function updateSliderLabel() {
-$("sliderVal").textContent = `${pendingW} · ${WEIGHT_WORDS[pendingW]}`;
+$('sliderVal').textContent = `${pendingW} · ${WEIGHT_WORDS[pendingW]}`;
 }
 
 function paintEndBtn() {
 const showEnd = !!st && !st.finished && answeredCount(st) >= 5;
-$("endBtn").hidden = !showEnd;
-$("endInfoBtn").hidden = !showEnd;
-if (!showEnd) $("endInfoPanel").hidden = true;
+$('endBtn').hidden = !showEnd;
+$('endInfoBtn').hidden = !showEnd;
+if (!showEnd) $('endInfoPanel').hidden = true;
 }
 
 function refreshAfterAnswer() {
 const n = answeredCount(st);
-$("progressBar").style.width = n / runTotal(st) * 100 + "%";
-$("progressWrap").setAttribute("aria-valuenow", n);
-$("progressWrap").setAttribute("aria-valuemax", runTotal(st));
-$("savedNote").textContent = `✓ ${n} answer${n > 1 ? "s" : ""} saved`;
-$("nextBtn").disabled = false;
-$("nextBtn").textContent = n >= runTotal(st) - 1 && findNext(0) === -1 ? "Finish — see my profile 🎉" : "Next →";
+$('progressBar').style.width = n / runTotal(st) * 100 + '%';
+$('progressWrap').setAttribute('aria-valuenow', n);
+$('progressWrap').setAttribute('aria-valuemax', runTotal(st));
+$('savedNote').textContent = `✓ ${n} answer${n > 1 ? 's' : ''} saved`;
+$('nextBtn').disabled = false;
+$('nextBtn').textContent = n >= runTotal(st) - 1 && findNext(0) === -1 ? 'Finish — see my profile 🎉' : 'Next →';
 paintEndBtn();
 }
 
 function paintOptions() {
 const q = currentQ();
 const vis = visibleOpts(q, st);
-[ ...$("qOptions").children ].forEach(b => {
+[ ...$('qOptions').children ].forEach(b => {
 const entry = vis.find(v => v.i === Number(b.dataset.oi));
 if (!entry) return;
-let picked = false, badge = "";
+let picked = false, badge = '';
 if (q.rank) {
 const ix = pendingRank.indexOf(entry.i);
 picked = ix >= 0;
-badge = [ "1st", "2nd", "3rd" ][ix] || "";
+badge = [ '1st', '2nd', '3rd' ][ix] || '';
 } else if (q.multi) picked = pendingSel.has(entry.i); else picked = !!(st.answers[q.id] && st.answers[q.id].o === entry.i);
-b.classList.toggle("picked", picked);
-b.setAttribute("aria-pressed", picked ? "true" : "false");
-let bd = b.querySelector(".rank-badge");
+b.classList.toggle('picked', picked);
+b.setAttribute('aria-pressed', picked ? 'true' : 'false');
+let bd = b.querySelector('.rank-badge');
 if (badge) {
 if (!bd) {
-bd = document.createElement("span");
-bd.className = "rank-badge";
+bd = document.createElement('span');
+bd.className = 'rank-badge';
 b.appendChild(bd);
 }
 bd.textContent = badge;
@@ -1609,7 +1609,7 @@ w: pendingW
 afterAnswer(q, prev);
 paintOptions();
 refreshAfterAnswer();
-if (!st.answers[q.id]) $("nextBtn").disabled = true;
+if (!st.answers[q.id]) $('nextBtn').disabled = true;
 }
 
 function toggleOption(oi) {
@@ -1622,15 +1622,15 @@ w: pendingW
 }; else delete st.answers[q.id];
 afterAnswer(q, prev);
 paintOptions();
-$("nextBtn").disabled = pendingSel.size === 0;
+$('nextBtn').disabled = pendingSel.size === 0;
 refreshAfterAnswer();
-if (pendingSel.size === 0) $("nextBtn").disabled = true;
+if (pendingSel.size === 0) $('nextBtn').disabled = true;
 }
 
 function toggleRank(oi) {
 const q = currentQ();
 const ix = pendingRank.indexOf(oi);
-const maxR = typeof q.rank === "number" ? q.rank : 2;
+const maxR = typeof q.rank === 'number' ? q.rank : 2;
 if (ix >= 0) pendingRank.splice(ix, 1); else if (pendingRank.length < maxR) pendingRank.push(oi); else pendingRank[maxR - 1] = oi;
 if (pendingRank.length) st.answers[q.id] = {
 o: [ ...pendingRank ],
@@ -1640,12 +1640,12 @@ r: 1
 if (st.answers[q.id] && st.skipped) delete st.skipped[q.id];
 saveState();
 paintOptions();
-$("nextBtn").disabled = pendingRank.length === 0;
+$('nextBtn').disabled = pendingRank.length === 0;
 refreshAfterAnswer();
-if (pendingRank.length === 0) $("nextBtn").disabled = true;
+if (pendingRank.length === 0) $('nextBtn').disabled = true;
 }
 
-$("weightSlider").addEventListener("input", e => {
+$('weightSlider').addEventListener('input', e => {
 pendingW = parseInt(e.target.value, 10) || 1;
 updateSliderLabel();
 const q = currentQ();
@@ -1655,7 +1655,7 @@ saveState();
 }
 });
 
-$("nextBtn").onclick = () => {
+$('nextBtn').onclick = () => {
 const cur = currentQ();
 const ci = cur && st.seen ? st.seen.indexOf(cur.id) : -1;
 if (st.navAt >= 0 && ci >= 0 && ci < st.seen.length - 1) {
@@ -1680,7 +1680,7 @@ saveState();
 renderQuestion();
 };
 
-$("skipBtn").onclick = () => {
+$('skipBtn').onclick = () => {
 const q = currentQ();
 if (!q || st.finished) return;
 const prev = JSON.stringify(st.answers[q.id] || null);
@@ -1707,7 +1707,7 @@ saveState();
 renderQuestion();
 };
 
-$("backBtn").onclick = () => {
+$('backBtn').onclick = () => {
 const cur = currentQ();
 st.seen = st.seen || [];
 let ci = cur ? st.seen.indexOf(cur.id) : -1;
@@ -1722,59 +1722,59 @@ saveState();
 renderQuestion();
 };
 
-$("saveExitBtn").onclick = () => {
+$('saveExitBtn').onclick = () => {
 saveState();
 renderHome();
-show("view-home");
+show('view-home');
 };
 
-document.addEventListener("keydown", e => {
-if ($("view-quiz").hidden) return;
-if (/INPUT|TEXTAREA/.test(document.activeElement.tagName) && document.activeElement.id !== "weightSlider") return;
+document.addEventListener('keydown', e => {
+if ($('view-quiz').hidden) return;
+if (/INPUT|TEXTAREA/.test(document.activeElement.tagName) && document.activeElement.id !== 'weightSlider') return;
 const q = currentQ();
 if (!q) return;
 const vis = visibleOpts(q, st);
 const num = parseInt(e.key, 10);
-if (num >= 1 && num <= vis.length) (q.rank ? toggleRank : q.multi ? toggleOption : selectOption)(vis[num - 1].i); else if (e.key === "ArrowRight" && !$("nextBtn").disabled && document.activeElement.id !== "weightSlider") $("nextBtn").click(); else if (e.key === "ArrowLeft" && document.activeElement.id !== "weightSlider") $("backBtn").click();
+if (num >= 1 && num <= vis.length) (q.rank ? toggleRank : q.multi ? toggleOption : selectOption)(vis[num - 1].i); else if (e.key === 'ArrowRight' && !$('nextBtn').disabled && document.activeElement.id !== 'weightSlider') $('nextBtn').click(); else if (e.key === 'ArrowLeft' && document.activeElement.id !== 'weightSlider') $('backBtn').click();
 });
 
 const TAG_LABELS = {
-biryani: "🍛 Biryani devotee",
-deccan: "🌶️ Deccan at heart",
-spice: "🔥 Chilli chaser",
-mild: "😌 Easy-going palate",
-sweet: "🍮 Certified sweet tooth",
-street: "🧭 Street-food hunter",
-noodle: "🍜 Noodle loyalist",
-rice: "🍚 Rice is life",
-meat: "🍗 Full non-veg energy",
-veg: "🥦 Veggie-friendly",
-cafe: "🥐 Café-hopper",
-home: "🏠 Ghar ka khana fan",
-adventure: "🎲 Will try anything once",
-classic: "💛 Comfort-food classic",
-healthy: "🥗 Fresh & balanced",
-chai: "🫖 Chai over everything",
-coffee: "☕ Coffee-powered",
-asia: "🥢 Asia-curious palate",
-americas: "🌮 Americas explorer",
-europe: "🥐 European soul",
-smoky: "🔥 Smoke & char devotee",
-tangy: "🍋 Tang-chaser",
-creamy: "🥛 Creamy-comfort seeker",
-fresh: "🌿 Fresh & bright",
-soup: "🍲 Soup devotee"
+biryani: '🍛 Biryani devotee',
+deccan: '🌶️ Deccan at heart',
+spice: '🔥 Chilli chaser',
+mild: '😌 Easy-going palate',
+sweet: '🍮 Certified sweet tooth',
+street: '🧭 Street-food hunter',
+noodle: '🍜 Noodle loyalist',
+rice: '🍚 Rice is life',
+meat: '🍗 Full non-veg energy',
+veg: '🥦 Veggie-friendly',
+cafe: '🥐 Café-hopper',
+home: '🏠 Ghar ka khana fan',
+adventure: '🎲 Will try anything once',
+classic: '💛 Comfort-food classic',
+healthy: '🥗 Fresh & balanced',
+chai: '🫖 Chai over everything',
+coffee: '☕ Coffee-powered',
+asia: '🥢 Asia-curious palate',
+americas: '🌮 Americas explorer',
+europe: '🥐 European soul',
+smoky: '🔥 Smoke & char devotee',
+tangy: '🍋 Tang-chaser',
+creamy: '🥛 Creamy-comfort seeker',
+fresh: '🌿 Fresh & bright',
+soup: '🍲 Soup devotee'
 };
 
 function meterLabel(kind, pct) {
-if (kind === "spice") return pct >= 66 ? "Chilli chaser" : pct >= 33 ? "Warm & balanced" : "Gentle palate";
-if (kind === "sweet") return pct >= 66 ? "Serious sweet tooth" : pct >= 33 ? "Sweet in moderation" : "Savoury soul";
-if (kind === "smoky") return pct >= 66 ? "Smoke chaser" : pct >= 33 ? "Kissed by smoke" : "Smoke-free zone";
-if (kind === "tangy") return pct >= 66 ? "Tang hunter" : pct >= 33 ? "Bright & balanced" : "Low-acid soul";
-if (kind === "creamy") return pct >= 66 ? "Rich & indulgent" : pct >= 33 ? "Comfortably creamy" : "Light & lean";
-if (kind === "fresh") return pct >= 66 ? "Fresh-first palate" : pct >= 33 ? "Fresh accents" : "Cooked & cosy";
-if (kind === "classic") return pct >= 66 ? "Tradition keeper" : pct >= 33 ? "Classic-leaning" : "Novelty seeker";
-return pct >= 66 ? "Fearless taster" : pct >= 33 ? "Curious explorer" : "Creature of habit";
+if (kind === 'spice') return pct >= 66 ? 'Chilli chaser' : pct >= 33 ? 'Warm & balanced' : 'Gentle palate';
+if (kind === 'sweet') return pct >= 66 ? 'Serious sweet tooth' : pct >= 33 ? 'Sweet in moderation' : 'Savoury soul';
+if (kind === 'smoky') return pct >= 66 ? 'Smoke chaser' : pct >= 33 ? 'Kissed by smoke' : 'Smoke-free zone';
+if (kind === 'tangy') return pct >= 66 ? 'Tang hunter' : pct >= 33 ? 'Bright & balanced' : 'Low-acid soul';
+if (kind === 'creamy') return pct >= 66 ? 'Rich & indulgent' : pct >= 33 ? 'Comfortably creamy' : 'Light & lean';
+if (kind === 'fresh') return pct >= 66 ? 'Fresh-first palate' : pct >= 33 ? 'Fresh accents' : 'Cooked & cosy';
+if (kind === 'classic') return pct >= 66 ? 'Tradition keeper' : pct >= 33 ? 'Classic-leaning' : 'Novelty seeker';
+return pct >= 66 ? 'Fearless taster' : pct >= 33 ? 'Curious explorer' : 'Creature of habit';
 }
 
 let altRecsCache = [];
@@ -1782,77 +1782,77 @@ let altRecsCache = [];
 let whyDebugCache = {};
 
 const AXES = [ {
-id: "salt",
-emoji: "🧂",
-name: "Salt & Umami",
-hi: "Savoury seeker",
-lo: "Sodium minimalist"
+id: 'salt',
+emoji: '🧂',
+name: 'Salt & Umami',
+hi: 'Savoury seeker',
+lo: 'Sodium minimalist'
 }, {
-id: "aromatics",
-emoji: "🧅",
-name: "Aromatics & Garlic",
-hi: "Garlic lover",
-lo: "Mild & subtle"
+id: 'aromatics',
+emoji: '🧅',
+name: 'Aromatics & Garlic',
+hi: 'Garlic lover',
+lo: 'Mild & subtle'
 }, {
-id: "herbs",
-emoji: "🌿",
-name: "Herbs & Botanicals",
-hi: "Herbivore kick",
-lo: "Simple seasoning"
+id: 'herbs',
+emoji: '🌿',
+name: 'Herbs & Botanicals',
+hi: 'Herbivore kick',
+lo: 'Simple seasoning'
 }, {
-id: "earthy",
-emoji: "🌾",
-name: "Earthiness",
-hi: "Deep & earthy",
-lo: "Clean & crisp"
+id: 'earthy',
+emoji: '🌾',
+name: 'Earthiness',
+hi: 'Deep & earthy',
+lo: 'Clean & crisp'
 }, {
-id: "warmspice",
-emoji: "🫚",
-name: "Warm spices",
-hi: "Spice route enthusiast",
-lo: "Subtle warmth"
+id: 'warmspice',
+emoji: '🫚',
+name: 'Warm spices',
+hi: 'Spice route enthusiast',
+lo: 'Subtle warmth'
 }, {
-id: "crunch",
-emoji: "🥨",
-name: "Crunch & Crisp",
-hi: "Texture hunter",
-lo: "Soft & smooth"
+id: 'crunch',
+emoji: '🥨',
+name: 'Crunch & Crisp',
+hi: 'Texture hunter',
+lo: 'Soft & smooth'
 }, {
-id: "oil",
-emoji: "🫒",
-name: "Oil & Richness",
-hi: "Decadent & silky",
-lo: "Clean & dry"
+id: 'oil',
+emoji: '🫒',
+name: 'Oil & Richness',
+hi: 'Decadent & silky',
+lo: 'Clean & dry'
 }, {
-id: "funk",
-emoji: "🧀",
-name: "Fermentation & Funk",
-hi: "Flavor adventurer",
-lo: "Fresh & direct"
+id: 'funk',
+emoji: '🧀',
+name: 'Fermentation & Funk',
+hi: 'Flavor adventurer',
+lo: 'Fresh & direct'
 }, {
-id: "vegprotein",
-emoji: "🥦",
-name: "Veg-forward vs Protein",
-hi: "Plant-centric",
-lo: "Meat & hearty"
+id: 'vegprotein',
+emoji: '🥦',
+name: 'Veg-forward vs Protein',
+hi: 'Plant-centric',
+lo: 'Meat & hearty'
 }, {
-id: "soup",
-emoji: "🍲",
-name: "Soup & Broth",
-hi: "Sip & savour",
-lo: "Dry & crisp"
+id: 'soup',
+emoji: '🍲',
+name: 'Soup & Broth',
+hi: 'Sip & savour',
+lo: 'Dry & crisp'
 }, {
-id: "pairing",
-emoji: "🍷",
-name: "Pairing & Alcohol",
-hi: "Wine & dine",
-lo: "Mocktail mindset"
+id: 'pairing',
+emoji: '🍷',
+name: 'Pairing & Alcohol',
+hi: 'Wine & dine',
+lo: 'Mocktail mindset'
 }, {
-id: "portion",
-emoji: "🍽️",
-name: "Portion & Style",
-hi: "Feast & share",
-lo: "Light bites"
+id: 'portion',
+emoji: '🍽️',
+name: 'Portion & Style',
+hi: 'Feast & share',
+lo: 'Light bites'
 } ];
 
 const TAG_AXIS = {
@@ -1922,103 +1922,103 @@ portion: .15
 }
 };
 
-const AXIS_KEYWORDS = [ [ "garlic", "aromatics", 1 ], [ "onion", "aromatics", .5 ], [ "ginger", "aromatics", .4 ], [ "coriander|cilantro|mint|basil|dill|parsley|fenugreek|methi|curry leaves|herbs", "herbs", .9 ], [ "mushroom|truffle|beet|whole spices", "earthy", .7 ], [ "garam masala|masala|cinnamon|cardamom|clove|cumin|nutmeg|star anise", "warmspice", .8 ], [ "kimchi|pickl|ferment|aged|miso|soy sauce|fish sauce|blue cheese|parmesan", "funk", .8 ], [ "yogurt|curd|raita", "funk", .4 ], [ "crispy|crisp|crunch|crackling", "crunch", .8 ], [ "fried", "crunch", .5 ], [ "fried", "oil", .3 ], [ "ghee|buttery|butter|cream|fatty|tallow|schmaltz|dripping", "oil", .7 ], [ "soup|broth|shorba", "soup", .7 ], [ "stew", "soup", .4 ], [ "wine|beer|rum|bourbon", "pairing", 1 ], [ "salad", "earthy", -.3 ], [ "salad", "vegprotein", .3 ], [ "smoked|charred|tandoor|grilled", "earthy", .3 ], [ "umami|savoury|savory", "salt", .6 ] ];
+const AXIS_KEYWORDS = [ [ 'garlic', 'aromatics', 1 ], [ 'onion', 'aromatics', .5 ], [ 'ginger', 'aromatics', .4 ], [ 'coriander|cilantro|mint|basil|dill|parsley|fenugreek|methi|curry leaves|herbs', 'herbs', .9 ], [ 'mushroom|truffle|beet|whole spices', 'earthy', .7 ], [ 'garam masala|masala|cinnamon|cardamom|clove|cumin|nutmeg|star anise', 'warmspice', .8 ], [ 'kimchi|pickl|ferment|aged|miso|soy sauce|fish sauce|blue cheese|parmesan', 'funk', .8 ], [ 'yogurt|curd|raita', 'funk', .4 ], [ 'crispy|crisp|crunch|crackling', 'crunch', .8 ], [ 'fried', 'crunch', .5 ], [ 'fried', 'oil', .3 ], [ 'ghee|buttery|butter|cream|fatty|tallow|schmaltz|dripping', 'oil', .7 ], [ 'soup|broth|shorba', 'soup', .7 ], [ 'stew', 'soup', .4 ], [ 'wine|beer|rum|bourbon', 'pairing', 1 ], [ 'salad', 'earthy', -.3 ], [ 'salad', 'vegprotein', .3 ], [ 'smoked|charred|tandoor|grilled', 'earthy', .3 ], [ 'umami|savoury|savory', 'salt', .6 ] ];
 
 const AXIS_Q_BOOST = {
-"pal-01": {
+'pal-01': {
 soup: 2.5
 },
-"pal-08": {
+'pal-08': {
 herbs: 2.5
 },
-"pal-15": {
+'pal-15': {
 funk: 2.5
 },
-"bri-10": {
+'bri-10': {
 funk: 2.5
 },
-"pal-17": {
+'pal-17': {
 oil: 2.5
 },
-"glo-21": {
+'glo-21': {
 oil: 2.5
 },
-"pal-02": {
+'pal-02': {
 oil: 2
 },
-"pal-07": {
+'pal-07': {
 salt: 2.5
 },
-"glo-11": {
+'glo-11': {
 salt: 2.5
 },
-"pal-05": {
+'pal-05': {
 crunch: 2
 },
-"op-texture": {
+'op-texture': {
 crunch: 2
 },
-"glo-04": {
+'glo-04': {
 crunch: 1.5
 },
-"pal-19": {
+'pal-19': {
 warmspice: 2
 },
-"op-spice": {
+'op-spice': {
 warmspice: 1.5
 },
-"glo-meatrole": {
+'glo-meatrole': {
 vegprotein: 2.5
 },
-"glo-alc": {
+'glo-alc': {
 pairing: 3
 },
-"pal-03": {
+'pal-03': {
 funk: 1.5
 },
-"pal-09": {
+'pal-09': {
 earthy: 1.5
 },
-"pal-13": {
+'pal-13': {
 funk: 1.5
 },
-"glo-24": {
+'glo-24': {
 portion: 1.5
 },
-"op-format": {
+'op-format': {
 portion: 2
 },
-"hyd-08": {
+'hyd-08': {
 soup: 2
 },
-"afr-peppersoup": {
+'afr-peppersoup': {
 soup: 2
 },
-"pal-16": {
+'pal-16': {
 vegprotein: 1.5
 },
-"hyd-aroma": {
+'hyd-aroma': {
 aromatics: 2
 },
-"sou-aroma": {
+'sou-aroma': {
 aromatics: 2
 },
-"asi-aroma": {
+'asi-aroma': {
 aromatics: 2
 },
-"mid-aroma": {
+'mid-aroma': {
 aromatics: 2
 },
-"eur-aroma": {
+'eur-aroma': {
 aromatics: 2
 },
-"afr-aroma": {
+'afr-aroma': {
 aromatics: 2
 },
-"lat-aroma": {
+'lat-aroma': {
 aromatics: 2
 },
-"ame-aroma": {
+'ame-aroma': {
 aromatics: 2
 }
 };
@@ -2034,7 +2034,7 @@ if (v) sig[a] = (sig[a] || 0) + v;
 const m = TAG_AXIS[t];
 if (m) Object.entries(m).forEach(([a, v]) => add(a, v));
 });
-const text = (o.t || "").toLowerCase();
+const text = (o.t || '').toLowerCase();
 const neg = AXIS_NEG.test(text);
 AXIS_KEYWORDS.forEach(([src, a, v]) => {
 if (new RegExp(src).test(text)) add(a, neg ? -v : v);
@@ -2103,7 +2103,7 @@ if (v) sig[a] = (sig[a] || 0) + v;
 const m = TAG_AXIS[t];
 if (m) Object.entries(m).forEach(([a, v]) => add(a, v));
 });
-const text = (r.dish + " " + (r.why || "")).toLowerCase();
+const text = (r.dish + ' ' + (r.why || '')).toLowerCase();
 AXIS_KEYWORDS.forEach(([src, a, v]) => {
 if (new RegExp(src).test(text)) add(a, v * .8);
 });
@@ -2117,118 +2117,118 @@ return out;
 }
 
 const COUNTRY_REGION = {
-India: "southasia",
-Pakistan: "southasia",
-Bangladesh: "southasia",
-"Sri Lanka": "southasia",
-Nepal: "southasia",
-Afghanistan: "southasia",
-China: "eastasia",
-Japan: "eastasia",
-"South Korea": "eastasia",
-Indonesia: "eastasia",
-Thailand: "eastasia",
-Vietnam: "eastasia",
-Malaysia: "eastasia",
-Philippines: "eastasia",
-"Hong Kong": "eastasia",
-Taiwan: "eastasia",
-Singapore: "eastasia",
-Myanmar: "eastasia",
-Cambodia: "eastasia",
-Laos: "eastasia",
-Mongolia: "eastasia",
-"Saudi Arabia": "middleeast",
-"United Arab Emirates": "middleeast",
-Qatar: "middleeast",
-Kuwait: "middleeast",
-Oman: "middleeast",
-Bahrain: "middleeast",
-Israel: "middleeast",
-Lebanon: "middleeast",
-Jordan: "middleeast",
-Iran: "middleeast",
-Iraq: "middleeast",
-"Türkiye": "middleeast",
-Egypt: "middleeast",
-Kazakhstan: "middleeast",
-Uzbekistan: "middleeast",
-"United Kingdom": "europe",
-Germany: "europe",
-Italy: "europe",
-France: "europe",
-Spain: "europe",
-Netherlands: "europe",
-Switzerland: "europe",
-Poland: "europe",
-Ireland: "europe",
-Belgium: "europe",
-Austria: "europe",
-Sweden: "europe",
-Portugal: "europe",
-Greece: "europe",
-Norway: "europe",
-Denmark: "europe",
-Finland: "europe",
-Czechia: "europe",
-Iceland: "europe",
-Hungary: "europe",
-Romania: "europe",
-Bulgaria: "europe",
-Croatia: "europe",
-Serbia: "europe",
-Slovenia: "europe",
-Slovakia: "europe",
-Lithuania: "europe",
-Latvia: "europe",
-Estonia: "europe",
-Ukraine: "europe",
-Georgia: "europe",
-Armenia: "europe",
-Azerbaijan: "europe",
-"South Africa": "africa",
-Nigeria: "africa",
-Morocco: "africa",
-Kenya: "africa",
-Ghana: "africa",
-Ethiopia: "africa",
-Tanzania: "africa",
-Angola: "africa",
-Mozambique: "africa",
-Tunisia: "africa",
-Algeria: "africa",
-"United States": "unitedstates",
-Canada: "unitedstates",
-Brazil: "latinamerica",
-Mexico: "latinamerica",
-Colombia: "latinamerica",
-Argentina: "latinamerica",
-Chile: "latinamerica",
-Peru: "latinamerica",
-Ecuador: "latinamerica",
-Uruguay: "latinamerica",
-Paraguay: "latinamerica",
-Bolivia: "latinamerica",
-Venezuela: "latinamerica",
-Panama: "latinamerica",
-"Costa Rica": "latinamerica",
-Cuba: "latinamerica",
-"Dominican Republic": "latinamerica",
-"Puerto Rico": "latinamerica",
-Australia: "oceania",
-"New Zealand": "oceania",
-Fiji: "oceania"
+India: 'southasia',
+Pakistan: 'southasia',
+Bangladesh: 'southasia',
+'Sri Lanka': 'southasia',
+Nepal: 'southasia',
+Afghanistan: 'southasia',
+China: 'eastasia',
+Japan: 'eastasia',
+'South Korea': 'eastasia',
+Indonesia: 'eastasia',
+Thailand: 'eastasia',
+Vietnam: 'eastasia',
+Malaysia: 'eastasia',
+Philippines: 'eastasia',
+'Hong Kong': 'eastasia',
+Taiwan: 'eastasia',
+Singapore: 'eastasia',
+Myanmar: 'eastasia',
+Cambodia: 'eastasia',
+Laos: 'eastasia',
+Mongolia: 'eastasia',
+'Saudi Arabia': 'middleeast',
+'United Arab Emirates': 'middleeast',
+Qatar: 'middleeast',
+Kuwait: 'middleeast',
+Oman: 'middleeast',
+Bahrain: 'middleeast',
+Israel: 'middleeast',
+Lebanon: 'middleeast',
+Jordan: 'middleeast',
+Iran: 'middleeast',
+Iraq: 'middleeast',
+'Türkiye': 'middleeast',
+Egypt: 'middleeast',
+Kazakhstan: 'middleeast',
+Uzbekistan: 'middleeast',
+'United Kingdom': 'europe',
+Germany: 'europe',
+Italy: 'europe',
+France: 'europe',
+Spain: 'europe',
+Netherlands: 'europe',
+Switzerland: 'europe',
+Poland: 'europe',
+Ireland: 'europe',
+Belgium: 'europe',
+Austria: 'europe',
+Sweden: 'europe',
+Portugal: 'europe',
+Greece: 'europe',
+Norway: 'europe',
+Denmark: 'europe',
+Finland: 'europe',
+Czechia: 'europe',
+Iceland: 'europe',
+Hungary: 'europe',
+Romania: 'europe',
+Bulgaria: 'europe',
+Croatia: 'europe',
+Serbia: 'europe',
+Slovenia: 'europe',
+Slovakia: 'europe',
+Lithuania: 'europe',
+Latvia: 'europe',
+Estonia: 'europe',
+Ukraine: 'europe',
+Georgia: 'europe',
+Armenia: 'europe',
+Azerbaijan: 'europe',
+'South Africa': 'africa',
+Nigeria: 'africa',
+Morocco: 'africa',
+Kenya: 'africa',
+Ghana: 'africa',
+Ethiopia: 'africa',
+Tanzania: 'africa',
+Angola: 'africa',
+Mozambique: 'africa',
+Tunisia: 'africa',
+Algeria: 'africa',
+'United States': 'unitedstates',
+Canada: 'unitedstates',
+Brazil: 'latinamerica',
+Mexico: 'latinamerica',
+Colombia: 'latinamerica',
+Argentina: 'latinamerica',
+Chile: 'latinamerica',
+Peru: 'latinamerica',
+Ecuador: 'latinamerica',
+Uruguay: 'latinamerica',
+Paraguay: 'latinamerica',
+Bolivia: 'latinamerica',
+Venezuela: 'latinamerica',
+Panama: 'latinamerica',
+'Costa Rica': 'latinamerica',
+Cuba: 'latinamerica',
+'Dominican Republic': 'latinamerica',
+'Puerto Rico': 'latinamerica',
+Australia: 'oceania',
+'New Zealand': 'oceania',
+Fiji: 'oceania'
 };
 
 function destRegionOf(city) {
 if (!city) return null;
-if (city === "Hyderabad, India") return "hyderabad";
-return COUNTRY_REGION[city.slice(city.lastIndexOf(",") + 1).trim()] || null;
+if (city === 'Hyderabad, India') return 'hyderabad';
+return COUNTRY_REGION[city.slice(city.lastIndexOf(',') + 1).trim()] || null;
 }
 
 function destCountryOf(city) {
 if (!city) return null;
-return city.slice(city.lastIndexOf(",") + 1).trim() || null;
+return city.slice(city.lastIndexOf(',') + 1).trim() || null;
 }
 
 function computeResult(s) {
@@ -2262,17 +2262,17 @@ wSum += w;
 wCount++;
 picks.forEach((opt, pi) => {
 const mult = q.hate ? -1 : a.r ? 1 / (pi + 1) : 1;
-if (!q.hate && mult > 0 && !/^Nothing|^None of these/i.test(opt.t || "") && ![ "op-temp", "op-meats", "op-meats-halal", "op-protein-veg", "op-protein-vegan" ].includes(qid) && !/it (truly )?depends|no preference|not (sure|picky)|don'?t mind|anything (goes|works)/i.test(opt.t || "")) {
-let pAxes = axisSignalsFor(q, opt), pTags = (opt.tags || []).filter(t => t !== "rawok" && t !== "alcok" && t !== "eggok");
-if (qid === "op-spice") {
+if (!q.hate && mult > 0 && !/^Nothing|^None of these/i.test(opt.t || '') && ![ 'op-temp', 'op-meats', 'op-meats-halal', 'op-protein-veg', 'op-protein-vegan' ].includes(qid) && !/it (truly )?depends|no preference|not (sure|picky)|don'?t mind|anything (goes|works)/i.test(opt.t || '')) {
+let pAxes = axisSignalsFor(q, opt), pTags = (opt.tags || []).filter(t => t !== 'rawok' && t !== 'alcok' && t !== 'eggok');
+if (qid === 'op-spice') {
 pAxes = {
 warmspice: pAxes.warmspice || 0
 };
-pTags = pTags.filter(t => t === "spice");
+pTags = pTags.filter(t => t === 'spice');
 }
-if (qid === "op-sweet") {
+if (qid === 'op-sweet') {
 pAxes = {};
-pTags = pTags.filter(t => t === "sweet");
+pTags = pTags.filter(t => t === 'sweet');
 }
 pickRefs.push({
 text: opt.t,
@@ -2284,19 +2284,19 @@ axes: pAxes,
 tags: pTags
 });
 }
-if ((opt.tags || []).includes("rawok")) rawOk = true;
-if ((opt.tags || []).includes("alcok")) alcOk = true;
-if ((opt.tags || []).includes("eggok")) eggOk = true;
+if ((opt.tags || []).includes('rawok')) rawOk = true;
+if ((opt.tags || []).includes('alcok')) alcOk = true;
+if ((opt.tags || []).includes('eggok')) eggOk = true;
 (opt.tags || []).forEach(t => {
-if (t !== "rawok" && t !== "alcok" && t !== "eggok") tagCount[t] = (tagCount[t] || 0) + w * mult;
+if (t !== 'rawok' && t !== 'alcok' && t !== 'eggok') tagCount[t] = (tagCount[t] || 0) + w * mult;
 });
 Object.entries(axisSignalsFor(q, opt)).forEach(([a, v]) => {
 const c = v * w * mult;
 if (c > 0) axisPos[a] = (axisPos[a] || 0) + c; else axisNeg[a] = (axisNeg[a] || 0) - c;
 });
 if (!q.hate) {
-[ [ "spice", "spice" ], [ "sweet", "sweet" ], [ "adv", "adv" ] ].forEach(([f, k]) => {
-if (typeof opt[f] === "number") {
+[ [ 'spice', 'spice' ], [ 'sweet', 'sweet' ], [ 'adv', 'adv' ] ].forEach(([f, k]) => {
+if (typeof opt[f] === 'number') {
 meters[k][0] += opt[f] * w * Math.abs(mult);
 meters[k][1] += w * Math.abs(mult);
 }
@@ -2323,7 +2323,7 @@ const q = QBANK_BY_ID[qid];
 if (!q) return;
 const tags = new Set;
 q.options.forEach(o => (o.tags || []).forEach(t => {
-if (t !== "rawok" && t !== "alcok" && t !== "eggok") tags.add(t);
+if (t !== 'rawok' && t !== 'alcok' && t !== 'eggok') tags.add(t);
 }));
 tags.forEach(t => {
 skipTags[t] = Math.min(SKIP_CAP, (skipTags[t] || 0) + SKIP_W);
@@ -2351,13 +2351,13 @@ const lovedNamesNorm = [];
 (Array.isArray(s.loves) ? s.loves : []).forEach(id => {
 const d = (s.lovesData || {})[id];
 if (!d || !d.n) return;
-lovedNamesNorm.push(d.n.toLowerCase().replace(/[^a-z0-9]/g, ""));
+lovedNamesNorm.push(d.n.toLowerCase().replace(/[^a-z0-9]/g, ''));
 (d.f || []).forEach(t => {
 tagCount[t] = (tagCount[t] || 0) + 1;
 });
-const sigText = d.i && d.i.length ? d.i.join(" ") : d.n || "";
+const sigText = d.i && d.i.length ? d.i.join(' ') : d.n || '';
 const sig = axisSignalsFor({
-id: "loves"
+id: 'loves'
 }, {
 t: sigText,
 tags: d.f || []
@@ -2367,21 +2367,21 @@ const c = v * 1.5;
 if (c > 0) axisPos[a] = (axisPos[a] || 0) + c; else axisNeg[a] = (axisNeg[a] || 0) - c;
 });
 const LOVE_COURSE = {
-Dessert: "dessert",
-Drink: "drink",
-Appetizer: "appetizer",
-Starter: "appetizer",
-Snack: "appetizer",
-Salad: "appetizer",
-Side: "appetizer",
-Main: "main",
-Breakfast: "main",
-Soup: "main"
+Dessert: 'dessert',
+Drink: 'drink',
+Appetizer: 'appetizer',
+Starter: 'appetizer',
+Snack: 'appetizer',
+Salad: 'appetizer',
+Side: 'appetizer',
+Main: 'main',
+Breakfast: 'main',
+Soup: 'main'
 };
 const dom = Object.entries(sig).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => k);
 pickRefs.push({
 text: d.n,
-qid: "loves",
+qid: 'loves',
 w: 3,
 mult: 1,
 rank1: false,
@@ -2403,7 +2403,7 @@ hi: ax.hi,
 lo: ax.lo,
 pct: Math.round(100 * share),
 strength: Math.round(tot * 10) / 10,
-lean: tot < .5 ? "balanced" : share >= .58 ? "hi" : share <= .42 ? "lo" : "balanced"
+lean: tot < .5 ? 'balanced' : share >= .58 ? 'hi' : share <= .42 ? 'lo' : 'balanced'
 };
 }).sort((a, b) => b.strength - a.strength);
 const leanOf = {};
@@ -2479,20 +2479,20 @@ return null;
 }).filter(Boolean).sort((a, b) => b.wgt - a.wgt).slice(0, 2).map(x => x.label);
 };
 const dishScoreV2 = r => dishScore(r) + .55 * axisAlign(r) + exploreBonus(r);
-const AV_STOP = new Set([ "bitter", "raw", "smoked", "dry", "sweet", "mushy", "slimy", "stinky", "salty", "overcooked", "gristly", "chewy", "fishy", "everything", "friends", "overload", "hiding", "chalky", "vegetable", "vegetables", "fish" ]);
-const stemW = w => w.replace(/ies$/, "y").replace(/es$/, "").replace(/s$/, "");
+const AV_STOP = new Set([ 'bitter', 'raw', 'smoked', 'dry', 'sweet', 'mushy', 'slimy', 'stinky', 'salty', 'overcooked', 'gristly', 'chewy', 'fishy', 'everything', 'friends', 'overload', 'hiding', 'chalky', 'vegetable', 'vegetables', 'fish' ]);
+const stemW = w => w.replace(/ies$/, 'y').replace(/es$/, '').replace(/s$/, '');
 const aversionKeys = av => {
-const words = av.toLowerCase().split("—")[0].replace(/[^a-z ]/g, " ").split(/\s+/).filter(w => w.length > 2 && !AV_STOP.has(w));
+const words = av.toLowerCase().split('—')[0].replace(/[^a-z ]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !AV_STOP.has(w));
 if (!words.length) return [];
 return [ ...new Set([ words[0], words[words.length - 1] ].map(stemW)) ];
 };
 const vetoedByAversion = dish => {
-const dw = dish.toLowerCase().replace(/[^a-z ]/g, " ").split(/\s+/).filter(Boolean).map(stemW);
+const dw = dish.toLowerCase().replace(/[^a-z ]/g, ' ').split(/\s+/).filter(Boolean).map(stemW);
 return aversions.some(av => aversionKeys(av).some(k => dw.some(w => w === k || k.length >= 4 && w.startsWith(k))));
 };
-const scored = RECS.filter(r => s.builtFor.mode === "travel" || !ownRoots.includes(r.region)).filter(r => optVisible(r, s.builtFor.diet, meats)).filter(r => !r.raw || rawOk).filter(r => !r.alc || alcOk).filter(r => !r.egg || s.builtFor.diet !== "vegetarian" || eggOk).filter(r => !vetoedByAversion(r.dish)).filter(r => {
+const scored = RECS.filter(r => s.builtFor.mode === 'travel' || !ownRoots.includes(r.region)).filter(r => optVisible(r, s.builtFor.diet, meats)).filter(r => !r.raw || rawOk).filter(r => !r.alc || alcOk).filter(r => !r.egg || s.builtFor.diet !== 'vegetarian' || eggOk).filter(r => !vetoedByAversion(r.dish)).filter(r => {
 const fv = (s.feedback || {})[r.dish];
-return fv !== "no" && fv !== "love";
+return fv !== 'no' && fv !== 'love';
 }).map(r => ({
 r: r,
 score: dishScoreV2(r),
@@ -2504,64 +2504,64 @@ scored.forEach(e => {
 entryByDish[e.r.dish] = e;
 });
 const AXIS_SIM_HI = {
-salt: "Savoury and umami-rich",
-aromatics: "Big on garlic and aromatics",
-herbs: "Herb-loaded",
-earthy: "Deep and earthy",
-warmspice: "Warm-spiced and fragrant",
-crunch: "Properly crunchy",
-oil: "Rich and silky",
-funk: "Pleasantly funky",
-vegprotein: "Plant-forward",
-soup: "Brothy and sippable",
-pairing: "Made to pair with a drink",
-portion: "Feast-sized"
+salt: 'Savoury and umami-rich',
+aromatics: 'Big on garlic and aromatics',
+herbs: 'Herb-loaded',
+earthy: 'Deep and earthy',
+warmspice: 'Warm-spiced and fragrant',
+crunch: 'Properly crunchy',
+oil: 'Rich and silky',
+funk: 'Pleasantly funky',
+vegprotein: 'Plant-forward',
+soup: 'Brothy and sippable',
+pairing: 'Made to pair with a drink',
+portion: 'Feast-sized'
 };
 const AXIS_SIM_LO = {
-salt: "Lightly salted and clean",
-aromatics: "Gentle on the aromatics",
-herbs: "Simply seasoned",
-oil: "Clean, never heavy",
-funk: "Unfermented and straightforward",
-vegprotein: "Meat-led",
-soup: "Dry, not brothy"
+salt: 'Lightly salted and clean',
+aromatics: 'Gentle on the aromatics',
+herbs: 'Simply seasoned',
+oil: 'Clean, never heavy',
+funk: 'Unfermented and straightforward',
+vegprotein: 'Meat-led',
+soup: 'Dry, not brothy'
 };
 const TAG_SIM = {
-spice: "Properly hot",
-smoky: "Smoky",
-creamy: "Creamy and rich",
-tangy: "Bright and tangy",
-fresh: "Fresh and bright",
-sweet: "Sweet-leaning",
-rice: "Rice at its heart",
-meat: "Deeply meaty",
-veg: "Vegetable-led",
-home: "Home-style",
-classic: "Classic at heart",
-street: "Street-stall style",
-adventure: "A step beyond the usual",
-healthy: "Light but satisfying",
-noodle: "Noodle-led",
-soup: "Brothy",
-biryani: "Layered and fragrant",
-comfort: "Pure comfort food",
-crisp: "Crisp-edged",
-fermented: "Fermented and tangy",
-cafe: "Café-style",
-chai: "Chai-time warm",
-coffee: "Coffee-deep",
-deccan: "Deccani at heart",
-seafood: "Seafood-led",
-egg: "Egg-rich"
+spice: 'Properly hot',
+smoky: 'Smoky',
+creamy: 'Creamy and rich',
+tangy: 'Bright and tangy',
+fresh: 'Fresh and bright',
+sweet: 'Sweet-leaning',
+rice: 'Rice at its heart',
+meat: 'Deeply meaty',
+veg: 'Vegetable-led',
+home: 'Home-style',
+classic: 'Classic at heart',
+street: 'Street-stall style',
+adventure: 'A step beyond the usual',
+healthy: 'Light but satisfying',
+noodle: 'Noodle-led',
+soup: 'Brothy',
+biryani: 'Layered and fragrant',
+comfort: 'Pure comfort food',
+crisp: 'Crisp-edged',
+fermented: 'Fermented and tangy',
+cafe: 'Café-style',
+chai: 'Chai-time warm',
+coffee: 'Coffee-deep',
+deccan: 'Deccani at heart',
+seafood: 'Seafood-led',
+egg: 'Egg-rich'
 };
 const TAG_TO_AXIS = {
-spice: "warmspice",
-smoky: "earthy",
-creamy: "oil",
-soup: "soup",
-crisp: "crunch",
-fermented: "funk",
-tangy: "funk"
+spice: 'warmspice',
+smoky: 'earthy',
+creamy: 'oil',
+soup: 'soup',
+crisp: 'crunch',
+fermented: 'funk',
+tangy: 'funk'
 };
 const whyYouFor = r => {
 const da = dishAxesCache[r.dish];
@@ -2574,16 +2574,16 @@ const reasons = [];
 const usedAxes = new Set;
 AXES.forEach(ax => {
 const lean = leanOf[ax.id] || 0, dv = da[ax.id] || 0;
-if (ax.id === "vegprotein") {
-if (lean > .15 && !(r.diet === "vegan" || r.diet === "veg" || (r.match || []).includes("veg"))) return;
-if (lean < -.15 && !(String(r.diet).startsWith("meat") || (r.match || []).includes("meat"))) return;
+if (ax.id === 'vegprotein') {
+if (lean > .15 && !(r.diet === 'vegan' || r.diet === 'veg' || (r.match || []).includes('veg'))) return;
+if (lean < -.15 && !(String(r.diet).startsWith('meat') || (r.match || []).includes('meat'))) return;
 }
 if (lean > .15 && dv >= minDvHi) {
 const cands = axisCands(ax.id, 1, minPick);
 if (cands.length) {
 reasons.push({
 score: lean * dv * Math.min(1.5, cands[0].v),
-key: "ax:" + ax.id,
+key: 'ax:' + ax.id,
 cands: cands,
 short: AXIS_SIM_HI[ax.id],
 dishVal: dv,
@@ -2596,7 +2596,7 @@ const cands = axisCands(ax.id, -1, minPick);
 if (cands.length) {
 reasons.push({
 score: -lean * (1 - dv) * Math.min(1.5, cands[0].v),
-key: "ax:" + ax.id,
+key: 'ax:' + ax.id,
 cands: cands,
 short: AXIS_SIM_LO[ax.id],
 dishVal: dv,
@@ -2618,7 +2618,7 @@ v: p.mult * Math.min(p.w, 3)
 })).sort((a, b) => b.v - a.v);
 if (cands.length) reasons.push({
 score: .3 + (tagCount[t] || 0) / maxPos * rarity(t) * .3,
-key: "tag:" + t,
+key: 'tag:' + t,
 cands: cands,
 short: short,
 dishVal: (tagCount[t] || 0) / maxPos,
@@ -2629,13 +2629,13 @@ return reasons.sort((a, b) => b.score - a.score);
 };
 let reasons = buildReasons(.5, .5);
 const chosen = [], usedRefs = new Set;
-const courseCompat = (lc, dc) => !lc || !dc || lc === dc || (lc === "dessert" || lc === "drink") && (dc === "dessert" || dc === "drink");
+const courseCompat = (lc, dc) => !lc || !dc || lc === dc || (lc === 'dessert' || lc === 'drink') && (dc === 'dessert' || dc === 'drink');
 const refStrict = (rsn, p, loveUsed) => {
 if (!p.love) return true;
 if (loveUsed >= 1) return false;
 if (!courseCompat(p.course, r.course)) return false;
-if (rsn.key.startsWith("ax:") && !(p.dom || []).includes(rsn.key.slice(3))) return false;
-if (rsn.key === "tag:crisp" && !(p.dom || []).includes("crunch")) return false;
+if (rsn.key.startsWith('ax:') && !(p.dom || []).includes(rsn.key.slice(3))) return false;
+if (rsn.key === 'tag:crisp' && !(p.dom || []).includes('crunch')) return false;
 return true;
 };
 const takeFrom = list => {
@@ -2676,40 +2676,40 @@ refQid: c.ref.qid,
 dishVal: Math.round(c.dishVal * 100) / 100,
 pickVal: Math.round(c.pickVal * 100) / 100
 }));
-if (!chosen.length) return "It lines up with the flavours you kept picking.";
+if (!chosen.length) return 'It lines up with the flavours you kept picking.';
 const clause = (c, i) => {
 const t = c.ref.text;
-if (t.length <= 36 && !t.includes(" — ")) {
-const art = /^(The|A|An)\s/.test(t) ? "" : "the ";
-return c.short + ", like " + art + t + " " + (c.ref.rank1 ? "you ranked #1" : c.ref.love ? "you love" : (r.dish.length + i) % 2 ? "you picked" : "you chose");
+if (t.length <= 36 && !t.includes(' — ')) {
+const art = /^(The|A|An)\s/.test(t) ? '' : 'the ';
+return c.short + ', like ' + art + t + ' ' + (c.ref.rank1 ? 'you ranked #1' : c.ref.love ? 'you love' : (r.dish.length + i) % 2 ? 'you picked' : 'you chose');
 }
-const tt = t.length > 80 ? t.slice(0, 77) + "…" : t;
-return c.short + (c.ref.love ? " — one of your favourites: '" : " — just like your pick: '") + tt + "'";
+const tt = t.length > 80 ? t.slice(0, 77) + '…' : t;
+return c.short + (c.ref.love ? ' — one of your favourites: \'' : ' — just like your pick: \'') + tt + '\'';
 };
 const parts = chosen.map(clause);
 const lc = s => s.charAt(0).toLowerCase() + s.slice(1);
 let body = parts[0];
-if (parts.length === 2) body = parts[0] + " — and " + lc(parts[1]);
-if (parts.length >= 3) body = parts[0] + "; " + lc(parts[1]) + " — and " + lc(parts[2]);
-return body + ".";
+if (parts.length === 2) body = parts[0] + ' — and ' + lc(parts[1]);
+if (parts.length >= 3) body = parts[0] + '; ' + lc(parts[1]) + ' — and ' + lc(parts[2]);
+return body + '.';
 };
 const isLovedEcho = dish => {
-const dn = dish.toLowerCase().replace(/[^a-z0-9]/g, "");
+const dn = dish.toLowerCase().replace(/[^a-z0-9]/g, '');
 return lovedNamesNorm.some(ln => ln && (dn === ln || ln.length >= 5 && dn.includes(ln) || dn.length >= 5 && ln.includes(dn)));
 };
 const freshPool = scored.filter(e => !isLovedEcho(e.r.dish));
 const pool = freshPool.length >= 20 ? freshPool : scored;
-const COURSE_FRAME = [ [ "drink", 2 ], [ "appetizer", 6 ], [ "main", 8 ], [ "dessert", 4 ] ];
-const isTravel = s.builtFor.mode === "travel";
+const COURSE_FRAME = [ [ 'drink', 2 ], [ 'appetizer', 6 ], [ 'main', 8 ], [ 'dessert', 4 ] ];
+const isTravel = s.builtFor.mode === 'travel';
 const destR = isTravel ? destRegionOf(s.builtFor.city) : null;
 const destC = isTravel ? destCountryOf(s.builtFor.city) : null;
-const destPlace = isTravel && s.builtFor.city ? s.builtFor.city.split(",")[0].trim().toLowerCase() : null;
+const destPlace = isTravel && s.builtFor.city ? s.builtFor.city.split(',')[0].trim().toLowerCase() : null;
 const usedC = new Set;
 const composeCourses = want => {
 const out = [];
-const placeOf = r => (r.from || "").split("·")[0].trim().toLowerCase();
+const placeOf = r => (r.from || '').split('·')[0].trim().toLowerCase();
 const tierOf = e => {
-if (destR === "hyderabad" && e.r.region === "hyderabad") return 0;
+if (destR === 'hyderabad' && e.r.region === 'hyderabad') return 0;
 if (destC && e.r.country === destC && destPlace && placeOf(e.r) === destPlace) return 1;
 if (destC && e.r.country === destC) return 2;
 if (destR && e.r.region === destR) return 3;
@@ -2728,7 +2728,7 @@ usedC.add(e.r.dish);
 left--;
 }
 }
-for (const course of [ "main", "appetizer", "dessert", "drink" ]) {
+for (const course of [ 'main', 'appetizer', 'dessert', 'drink' ]) {
 if (out.length >= want) break;
 for (const e of orderedFor(course)) {
 if (out.length >= want) break;
@@ -2745,7 +2745,7 @@ dish: r.dish,
 from: r.from,
 course: r.course,
 why: r.why,
-yt: r.yt || "",
+yt: r.yt || '',
 axes: axisMatchLabels(r),
 whyYou: whyYouFor(r)
 }));
@@ -2754,17 +2754,17 @@ dish: r.dish,
 from: r.from,
 course: r.course,
 why: r.why,
-yt: r.yt || "",
+yt: r.yt || '',
 axes: axisMatchLabels(r),
 whyYou: whyYouFor(r)
 }));
 return {
-email: sessionUser ? sessionUser.email : "",
+email: sessionUser ? sessionUser.email : '',
 diet: s.builtFor.diet,
 roots: s.builtFor.roots,
 roots2: s.builtFor.roots2 || null,
-city: s.builtFor.city || "",
-mode: s.builtFor.mode || "explore",
+city: s.builtFor.city || '',
+mode: s.builtFor.mode || 'explore',
 topTags: topTags,
 affinities: affinities,
 aversions: aversions,
@@ -2778,20 +2778,20 @@ completedAt: (new Date).toISOString()
 }
 
 function recCardsHtml(list, res) {
-const fb = typeof st !== "undefined" && st && st.feedback || {};
+const fb = typeof st !== 'undefined' && st && st.feedback || {};
 return list.map(r => {
-const fv = fb[r.dish] || "";
-return `<div class="rec"><div class="r-head"><span class="r-emoji">${(RECS.find(x => x.dish === r.dish) || {}).emoji || "🍽️"}</span><div class="r-title"><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong></div></div><p class="r-sum">${r.why}</p>${r.whyYou ? `<p class="r-axes">${r.whyYou}</p>` : r.axes && r.axes.length ? `<p class="r-axes">Matches your: ${r.axes.join(" · ")}</p>` : ""}<div class="r-verdict" data-dish="${r.dish}"><button type="button" class="fb-btn${fv === "try" ? " on" : ""}" data-v="try">👍 Would try</button><button type="button" class="fb-btn${fv === "no" ? " on" : ""}" data-v="no">👎 Not for me</button><button type="button" class="fb-btn${fv === "love" ? " on" : ""}" data-v="love">❤️ Already love it</button></div>${r.yt || res.city ? `<div class="r-foot">${r.yt ? `<a class="r-find" rel="noopener" href="${r.yt}"><svg class="yt-logo" viewBox="0 0 28 20" aria-hidden="true"><path fill="#FF0000" d="M27.4 3.1c-.3-1.2-1.3-2.2-2.5-2.5C22.7 0 14 0 14 0S5.3 0 3.1.6C1.9.9.9 1.9.6 3.1.1 5.2 0 8.9 0 10s0 4.8.6 6.9c.3 1.2 1.3 2.2 2.5 2.5C5.3 20 14 20 14 20s8.7 0 10.9-.6c1.2-.3 2.2-1.3 2.5-2.5.5-2.1.6-6.9.6-6.9s0-4.8-.6-6.9z"/><path fill="#fff" d="M11.2 14.3V5.7l7.4 4.3z"/></svg>Watch it being made →</a>` : ""}${res.city ? `<a class="place-btn generic r-place" data-dish="${r.dish}" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.dish + " near " + res.city)}">📍 ${res.city.split(",")[0]}<small>Find this dish</small></a>` : ""}</div>` : ""}</div>`;
-}).join("");
+const fv = fb[r.dish] || '';
+return `<div class="rec"><div class="r-head"><span class="r-emoji">${(RECS.find(x => x.dish === r.dish) || {}).emoji || '🍽️'}</span><div class="r-title"><span class="r-from">${r.from.toUpperCase()}</span><strong>${r.dish}</strong></div></div><p class="r-sum">${r.why}</p>${r.whyYou ? `<p class="r-axes">${r.whyYou}</p>` : r.axes && r.axes.length ? `<p class="r-axes">Matches your: ${r.axes.join(' · ')}</p>` : ''}<div class="r-verdict" data-dish="${r.dish}"><button type="button" class="fb-btn${fv === 'try' ? ' on' : ''}" data-v="try">👍 Would try</button><button type="button" class="fb-btn${fv === 'no' ? ' on' : ''}" data-v="no">👎 Not for me</button><button type="button" class="fb-btn${fv === 'love' ? ' on' : ''}" data-v="love">❤️ Already love it</button></div>${r.yt || res.city ? `<div class="r-foot">${r.yt ? `<a class="r-find" rel="noopener" href="${r.yt}"><svg class="yt-logo" viewBox="0 0 28 20" aria-hidden="true"><path fill="#FF0000" d="M27.4 3.1c-.3-1.2-1.3-2.2-2.5-2.5C22.7 0 14 0 14 0S5.3 0 3.1.6C1.9.9.9 1.9.6 3.1.1 5.2 0 8.9 0 10s0 4.8.6 6.9c.3 1.2 1.3 2.2 2.5 2.5C5.3 20 14 20 14 20s8.7 0 10.9-.6c1.2-.3 2.2-1.3 2.5-2.5.5-2.1.6-6.9.6-6.9s0-4.8-.6-6.9z"/><path fill="#fff" d="M11.2 14.3V5.7l7.4 4.3z"/></svg>Watch it being made →</a>` : ''}${res.city ? `<a class="place-btn generic r-place" data-dish="${r.dish}" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.dish + ' near ' + res.city)}">📍 ${res.city.split(',')[0]}<small>Find this dish</small></a>` : ''}</div>` : ''}</div>`;
+}).join('');
 }
 
 let lastResult = null, recsAltShown = false;
 
-const COURSE_SECTIONS = [ [ "drink", "🥤 Drinks" ], [ "appetizer", "🥗 Appetizers" ], [ "main", "🍽️ Main Dishes" ], [ "dessert", "🍮 Desserts" ] ];
+const COURSE_SECTIONS = [ [ 'drink', '🥤 Drinks' ], [ 'appetizer', '🥗 Appetizers' ], [ 'main', '🍽️ Main Dishes' ], [ 'dessert', '🍮 Desserts' ] ];
 
 function recSectionsHtml(list, res) {
 const known = new Set(COURSE_SECTIONS.map(([c]) => c));
-let html = "";
+let html = '';
 for (const [course, label] of COURSE_SECTIONS) {
 const items = list.filter(r => r.course === course);
 if (items.length) html += `<h3 class="rec-title2 course-h" id="course-${course}">${label}</h3>` + recCardsHtml(items, res);
@@ -2802,16 +2802,16 @@ return html;
 }
 
 function paintCourseNav(list) {
-const nav = $("courseNav");
+const nav = $('courseNav');
 if (!nav) return;
 const present = COURSE_SECTIONS.filter(([c]) => (list || []).some(r => r.course === c));
 nav.hidden = !present.length;
-nav.innerHTML = present.map(([c, label]) => `<button type="button" data-course="${c}">${label}</button>`).join("");
-nav.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
-const target = document.getElementById("course-" + b.dataset.course);
+nav.innerHTML = present.map(([c, label]) => `<button type="button" data-course="${c}">${label}</button>`).join('');
+nav.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+const target = document.getElementById('course-' + b.dataset.course);
 if (target) target.scrollIntoView({
-behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-block: "start"
+behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+block: 'start'
 });
 }));
 }
@@ -2825,83 +2825,83 @@ if (st.finished && !(st.altRecs && st.altRecs.length)) {
 computeResult(st);
 st.altRecs = altRecsCache;
 }
-const strip = s2 => s2.replace(/^\S+\s/, "");
+const strip = s2 => s2.replace(/^\S+\s/, '');
 const labels = res.topTags.map(t => TAG_LABELS[t]).filter(Boolean);
-$("profileSummary").textContent = labels.length >= 2 ? `In one line: ${strip(labels[0])} meets ${strip(labels[1]).toLowerCase()}. Here's the full picture:` : "Here's what your answers say about your palate:";
+$('profileSummary').textContent = labels.length >= 2 ? `In one line: ${strip(labels[0])} meets ${strip(labels[1]).toLowerCase()}. Here's the full picture:` : 'Here\'s what your answers say about your palate:';
 const loveNames = (Array.isArray(st.loves) ? st.loves : []).map(id => (st.lovesData || {})[id]).filter(d => d && d.n).map(d => d.n);
-const ll = $("lovesLine");
+const ll = $('lovesLine');
 if (ll) {
 ll.hidden = !loveNames.length;
-ll.textContent = loveNames.length ? `❤️ Shaped by the dishes you love: ${loveNames.slice(0, 6).join(" · ")}${loveNames.length > 6 ? ` · +${loveNames.length - 6} more` : ""}` : "";
+ll.textContent = loveNames.length ? `❤️ Shaped by the dishes you love: ${loveNames.slice(0, 6).join(' · ')}${loveNames.length > 6 ? ` · +${loveNames.length - 6} more` : ''}` : '';
 }
 lastResult = res;
 recsAltShown = false;
-$("profileAffinities").innerHTML = "";
-$("profileAversions").innerHTML = (res.aversions || []).length ? `<h3 class="rec-title2">🚫 Your hard no's</h3><div class="traits">${res.aversions.map(a => `<span class="trait no">${a}</span>`).join("")}</div><p class="neg-note">We will never match you with these.</p>` : "";
+$('profileAffinities').innerHTML = '';
+$('profileAversions').innerHTML = (res.aversions || []).length ? `<h3 class="rec-title2">🚫 Your hard no's</h3><div class="traits">${res.aversions.map(a => `<span class="trait no">${a}</span>`).join('')}</div><p class="neg-note">We will never match you with these.</p>` : '';
 const names = {
-spice: "🌶️ Heat level",
-sweet: "🍮 Sweet tooth",
-adv: "🧭 Adventurousness",
-smoky: "🔥 Smoke & char",
-tangy: "🍋 Tang & sour",
-creamy: "🥛 Rich & creamy",
-fresh: "🌿 Fresh & bright",
-classic: "💛 Comfort & classic"
+spice: '🌶️ Heat level',
+sweet: '🍮 Sweet tooth',
+adv: '🧭 Adventurousness',
+smoky: '🔥 Smoke & char',
+tangy: '🍋 Tang & sour',
+creamy: '🥛 Rich & creamy',
+fresh: '🌿 Fresh & bright',
+classic: '💛 Comfort & classic'
 };
 const meterRow = ([k, pct]) => `<div class="meter"><div class="mhead"><span>${names[k]}</span><span>${meterLabel(k, pct)}</span></div>\n     <div class="track"><div class="fill" style="width:0%" data-w="${pct}"></div></div></div>`;
 const rankedMeters = Object.entries(res.meters).sort((x, y) => y[1] - x[1]);
-$("profileMeters").innerHTML = rankedMeters.slice(0, 3).map(meterRow).join("") + (rankedMeters.length > 3 ? `<div id="metersExtra" hidden>${rankedMeters.slice(3).map(meterRow).join("")}</div><button type="button" id="metersToggle" class="meters-toggle">Show all</button>` : "");
-const mtBtn = $("metersToggle");
-if (mtBtn) mtBtn.addEventListener("click", () => {
-const ex = $("metersExtra");
+$('profileMeters').innerHTML = rankedMeters.slice(0, 3).map(meterRow).join('') + (rankedMeters.length > 3 ? `<div id="metersExtra" hidden>${rankedMeters.slice(3).map(meterRow).join('')}</div><button type="button" id="metersToggle" class="meters-toggle">Show all</button>` : '');
+const mtBtn = $('metersToggle');
+if (mtBtn) mtBtn.addEventListener('click', () => {
+const ex = $('metersExtra');
 const open = ex.hidden;
 ex.hidden = !open;
-mtBtn.textContent = open ? "Show less" : "Show all";
+mtBtn.textContent = open ? 'Show less' : 'Show all';
 });
 requestAnimationFrame(() => requestAnimationFrame(() => {
-document.querySelectorAll("#profileMeters .fill").forEach(f => {
-f.style.width = f.dataset.w + "%";
+document.querySelectorAll('#profileMeters .fill').forEach(f => {
+f.style.width = f.dataset.w + '%';
 });
 }));
-const axEl = $("profileAxes");
-if (axEl) axEl.innerHTML = res.axes && res.axes.length ? `<h3 class="rec-title2">🧭 Your flavour axes</h3><div class="axes-chips">` + res.axes.map(a => `<button type="button" class="axis-chip">${a.emoji} ${a.lean === "hi" ? a.hi : a.lean === "lo" ? a.lo : a.name + " · Balanced"}</button>`).join("") + "</div>" : "";
-$("profileNote").textContent = (res.partial ? `⚠️ This profile is based on ${res.answered || res.detail.length} answers${res.skipped ? `, with ${res.skipped} question${res.skipped > 1 ? "s" : ""} skipped` : " — you finished early"}, so treat it as a first sketch, not the full picture. ` : "") + `Weighted by your confidence slider — your average pick strength was ${res.avgConfidence} / 5. Strong opinions shaped this profile most.`;
-$("profileRecs").innerHTML = recSectionsHtml(res.recs, res);
+const axEl = $('profileAxes');
+if (axEl) axEl.innerHTML = res.axes && res.axes.length ? `<h3 class="rec-title2">🧭 Your flavour axes</h3><div class="axes-chips">` + res.axes.map(a => `<button type="button" class="axis-chip">${a.emoji} ${a.lean === 'hi' ? a.hi : a.lean === 'lo' ? a.lo : a.name + ' · Balanced'}</button>`).join('') + '</div>' : '';
+$('profileNote').textContent = (res.partial ? `⚠️ This profile is based on ${res.answered || res.detail.length} answers${res.skipped ? `, with ${res.skipped} question${res.skipped > 1 ? 's' : ''} skipped` : ' — you finished early'}, so treat it as a first sketch, not the full picture. ` : '') + `Weighted by your confidence slider — your average pick strength was ${res.avgConfidence} / 5. Strong opinions shaped this profile most.`;
+$('profileRecs').innerHTML = recSectionsHtml(res.recs, res);
 paintCourseNav(res.recs);
-const recTitleEl = $("recTitle");
-if (recTitleEl) recTitleEl.textContent = res.mode === "travel" && res.city ? `What to eat in ${res.city.split(",")[0]} 🌍` : "Your personalized picks, Handpicked based on what you love 🌍";
+const recTitleEl = $('recTitle');
+if (recTitleEl) recTitleEl.textContent = res.mode === 'travel' && res.city ? `What to eat in ${res.city.split(',')[0]} 🌍` : 'Your personalized picks, Handpicked based on what you love 🌍';
 upgradeAllPlaces(res);
 enhanceReasonsAI(res);
-const mrb = $("moreRecsBtn");
+const mrb = $('moreRecsBtn');
 if (mrb) {
 mrb.hidden = !(st.altRecs || []).length;
-mrb.textContent = "🎲 Show me different flavours";
+mrb.textContent = '🎲 Show me different flavours';
 mrb.onclick = () => {
 recsAltShown = !recsAltShown;
-$("profileRecs").innerHTML = recSectionsHtml(recsAltShown ? st.altRecs : lastResult.recs || [], lastResult);
+$('profileRecs').innerHTML = recSectionsHtml(recsAltShown ? st.altRecs : lastResult.recs || [], lastResult);
 paintCourseNav(recsAltShown ? st.altRecs : lastResult.recs || []);
 upgradeAllPlaces(lastResult);
-mrb.textContent = recsAltShown ? "↩️ Back to my top matches" : "🎲 Show me different flavours";
+mrb.textContent = recsAltShown ? '↩️ Back to my top matches' : '🎲 Show me different flavours';
 };
 }
-$("sheetNote").textContent = SHEETS_ENDPOINT ? "✓ Your results were saved for flavour analysis." : "";
+$('sheetNote').textContent = SHEETS_ENDPOINT ? '✓ Your results were saved for flavour analysis.' : '';
 }
 
 async function sendToSheets() {
 if (!SHEETS_ENDPOINT || !st || st.sheetSent || !st.result) return;
 try {
 await fetch(SHEETS_ENDPOINT, {
-method: "POST",
-mode: "no-cors",
+method: 'POST',
+mode: 'no-cors',
 headers: {
-"Content-Type": "text/plain"
+'Content-Type': 'text/plain'
 },
 body: JSON.stringify(st.result)
 });
 st.sheetSent = true;
 saveState();
 } catch (e) {
-console.warn("Sheets save failed:", e);
+console.warn('Sheets save failed:', e);
 }
 }
 
@@ -2912,15 +2912,15 @@ if (!dish || !v || !st) return;
 st.feedback = st.feedback || {};
 if (st.feedback[dish] === v) delete st.feedback[dish]; else st.feedback[dish] = v;
 const now = st.feedback[dish] || null;
-if ((now === "no" || now === "love") && Array.isArray(st.altRecs)) {
+if ((now === 'no' || now === 'love') && Array.isArray(st.altRecs)) {
 st.altRecs = st.altRecs.filter(r => r.dish !== dish);
 }
-if (lastResult && $("profileRecs")) {
+if (lastResult && $('profileRecs')) {
 const list = recsAltShown ? st.altRecs || [] : lastResult.recs || [];
-$("profileRecs").innerHTML = recSectionsHtml(list, lastResult);
+$('profileRecs').innerHTML = recSectionsHtml(list, lastResult);
 paintCourseNav(list);
 upgradeAllPlaces(lastResult);
-const mrb = $("moreRecsBtn");
+const mrb = $('moreRecsBtn');
 if (mrb) mrb.hidden = !(st.altRecs || []).length;
 }
 saveState();
@@ -2931,17 +2931,17 @@ async function syncFeedbackRow(dish, verdict) {
 if (feedbackOff || !sb || !currentUser()) return;
 try {
 if (verdict) {
-const {error: error} = await sb.from("feedback").upsert({
+const {error: error} = await sb.from('feedback').upsert({
 user_id: currentUser().id,
 dish_key: dish,
 verdict: verdict,
 updated_at: (new Date).toISOString()
 }, {
-onConflict: "user_id,dish_key"
+onConflict: 'user_id,dish_key'
 });
 if (error) throw error;
 } else {
-const {error: error} = await sb.from("feedback").delete().eq("user_id", currentUser().id).eq("dish_key", dish);
+const {error: error} = await sb.from('feedback').delete().eq('user_id', currentUser().id).eq('dish_key', dish);
 if (error) throw error;
 }
 } catch (e) {
@@ -2949,10 +2949,10 @@ feedbackOff = true;
 }
 }
 
-document.addEventListener("click", e => {
-const b = e.target && e.target.closest ? e.target.closest(".fb-btn") : null;
+document.addEventListener('click', e => {
+const b = e.target && e.target.closest ? e.target.closest('.fb-btn') : null;
 if (!b) return;
-const wrap = b.closest(".r-verdict");
+const wrap = b.closest('.r-verdict');
 if (wrap) setVerdict(wrap.dataset.dish, b.dataset.v);
 });
 
@@ -2966,11 +2966,11 @@ if (picks.length >= 14) break;
 const loveNames = (Array.isArray(st.loves) ? st.loves : []).map(id => (st.lovesData || {})[id]).filter(d => d && d.n).map(d => d.n);
 return {
 profile: {
-diet: res.diet || "",
+diet: res.diet || '',
 roots: [ res.roots, res.roots2 ].filter(Boolean),
-context: res.mode === "travel" && res.city ? `Travelling to ${res.city}; these recommendations are for that trip.` : `Exploring new flavours from home in ${res.city || "their city"}.`,
-axes: (res.axes || []).slice(0, 6).map(a => `${a.name}: ${a.lean === "hi" ? a.hi : a.lean === "lo" ? a.lo : "balanced"}`),
-tags: (res.topTags || []).map(t => String(TAG_LABELS[t] || t).replace(/^\S+\s/, "")).slice(0, 8),
+context: res.mode === 'travel' && res.city ? `Travelling to ${res.city}; these recommendations are for that trip.` : `Exploring new flavours from home in ${res.city || 'their city'}.`,
+axes: (res.axes || []).slice(0, 6).map(a => `${a.name}: ${a.lean === 'hi' ? a.hi : a.lean === 'lo' ? a.lo : 'balanced'}`),
+tags: (res.topTags || []).map(t => String(TAG_LABELS[t] || t).replace(/^\S+\s/, '')).slice(0, 8),
 loves: loveNames.slice(0, 15),
 picks: picks
 },
@@ -2978,21 +2978,61 @@ dishes: [ ...res.recs || [], ...altList || [] ].map(r => ({
 n: r.dish,
 from: r.from,
 course: r.course,
-sum: r.why || "",
-tpl: r.whyYou || ""
+sum: r.why || '',
+tpl: r.whyYou || ''
 }))
 };
 }
 
-function applyAiReasons(lists, reasons) {
-const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const AI_STOP = new Set('a an the and or of to in on at by for with without your you yours their they them this that it its is are was were be been as from into over under more most less very really just not no all any some every each other another same only also than then when what which who how why pick picks picked chose chosen choice loves loved dish dishes food foods meal meals eat eats eating'.split(' '));
+
+function aiNorm(s) {
+return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function aiTokens(s, min) {
+return aiNorm(s).split(' ').filter(w => w.length >= min && !AI_STOP.has(w));
+}
+
+function aiAnchorSet(res) {
+const set = new Set, names = [];
+const loves = (Array.isArray(st.loves) ? st.loves : []).map(id => (st.lovesData || {})[id]).filter(d => d && d.n).map(d => d.n);
+for (const n of loves) {
+const nn = aiNorm(n);
+if (nn) names.push(nn);
+for (const w of aiTokens(n, 4)) set.add(w);
+}
+const detail = [ ...res.detail || [] ].sort((a, b) => (b.weight || 0) - (a.weight || 0));
+const picks = [];
+for (const d of detail) for (const p of d.picks || []) {
+if (p && !picks.includes(p)) picks.push(p);
+}
+for (const p of picks) for (const w of aiTokens(p, 5)) set.add(w);
+for (const a of res.axes || []) for (const w of aiTokens(`${a.name || ''} ${a.hi || ''} ${a.lo || ''}`, 5)) set.add(w);
+return {
+set: set,
+names: names
+};
+}
+
+function aiLineAnchored(line, anchors) {
+if (!anchors || !anchors.set.size && !anchors.names.length) return true;
+const nl = ' ' + aiNorm(line) + ' ';
+for (const n of anchors.names) if (n && nl.includes(' ' + n + ' ')) return true;
+for (const w of aiNorm(line).split(' ')) if (w.length >= 4 && anchors.set.has(w)) return true;
+return false;
+}
+
+function applyAiReasons(lists, reasons, anchors) {
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 let i = 0, applied = 0;
 for (const list of lists) {
 for (const r of list) {
 const cand = reasons[i++];
-if (typeof cand !== "string") continue;
-const t = cand.trim().replace(/\s+/g, " ");
+if (typeof cand !== 'string') continue;
+const t = cand.trim().replace(/\s+/g, ' ');
 if (t.length < 12 || t.length > 340 || /https?:|www\.|```/.test(t)) continue;
+if (!aiLineAnchored(t, anchors)) continue;
 r.whyYou = esc(t);
 applied++;
 }
@@ -3004,26 +3044,26 @@ let aiReasonsOff = false, aiReasonsBusy = false;
 
 async function enhanceReasonsAI(res) {
 if (aiReasonsOff || aiReasonsBusy) return;
-if (!sb || !sb.functions || typeof sb.functions.invoke !== "function") return;
+if (!sb || !sb.functions || typeof sb.functions.invoke !== 'function') return;
 if (!res || res.aiV || !Array.isArray(res.recs) || !res.recs.length) return;
 if (!currentUser()) return;
 aiReasonsBusy = true;
 try {
 const alt = Array.isArray(st.altRecs) ? st.altRecs : [];
 const payload = aiReasonsPayload(res, alt);
-const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error("ai timeout")), 25e3));
-const {data: data, error: error} = await Promise.race([ sb.functions.invoke("ai-reasons", {
+const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('ai timeout')), 25e3));
+const {data: data, error: error} = await Promise.race([ sb.functions.invoke('ai-reasons', {
 body: payload
 }), timeout ]);
-if (error || !data || !Array.isArray(data.reasons)) throw new Error("ai reasons unavailable");
-const applied = applyAiReasons([ res.recs, alt ], data.reasons);
+if (error || !data || !Array.isArray(data.reasons)) throw new Error('ai reasons unavailable');
+const applied = applyAiReasons([ res.recs, alt ], data.reasons, aiAnchorSet(res));
 if (!applied) {
 aiReasonsOff = true;
 return;
 }
 res.aiV = 1;
 const shownList = recsAltShown ? st.altRecs || [] : res.recs;
-$("profileRecs").innerHTML = recSectionsHtml(shownList, res);
+$('profileRecs').innerHTML = recSectionsHtml(shownList, res);
 paintCourseNav(shownList);
 upgradeAllPlaces(res);
 saveState();
@@ -3034,31 +3074,31 @@ aiReasonsOff = true;
 aiReasonsBusy = false;
 }
 
-const GEOAPIFY_KEY = "79a958030a5b49e191bdf89215ce9710";
+const GEOAPIFY_KEY = '79a958030a5b49e191bdf89215ce9710';
 
-const GOOGLE_PLACES_KEY = "";
+const GOOGLE_PLACES_KEY = '';
 
 let placesOff = false;
 
 const geoMemCache = {}, poolMemCache = {};
 
 const REGION_CUISINES = {
-hyderabad: [ "biryani", "hyderabadi", "deccan", "indian", "kebab", "mughlai" ],
-southasia: [ "indian", "biryani", "punjabi", "bengali", "sri lankan", "nepali", "pakistani", "curry" ],
-eastasia: [ "chinese", "japanese", "korean", "thai", "vietnamese", "asian", "noodle", "sushi", "ramen", "malaysian", "indonesian" ],
-middleeast: [ "lebanese", "arab", "turkish", "persian", "middle eastern", "mediterranean", "kebab", "egyptian", "moroccan" ],
-europe: [ "italian", "french", "spanish", "greek", "mediterranean", "german", "polish", "european", "pizza", "portuguese" ],
-africa: [ "ethiopian", "african", "nigerian", "moroccan", "south african", "egyptian", "kenyan", "ghanaian" ],
-latinamerica: [ "mexican", "peruvian", "brazilian", "argentinian", "colombian", "cuban", "latin", "taco", "caribbean" ],
-unitedstates: [ "american", "burger", "bbq", "barbecue", "southern", "cajun", "diner", "steakhouse", "tex-mex" ],
-oceania: [ "australian", "pacific", "cafe", "bakery", "kiwi" ]
+hyderabad: [ 'biryani', 'hyderabadi', 'deccan', 'indian', 'kebab', 'mughlai' ],
+southasia: [ 'indian', 'biryani', 'punjabi', 'bengali', 'sri lankan', 'nepali', 'pakistani', 'curry' ],
+eastasia: [ 'chinese', 'japanese', 'korean', 'thai', 'vietnamese', 'asian', 'noodle', 'sushi', 'ramen', 'malaysian', 'indonesian' ],
+middleeast: [ 'lebanese', 'arab', 'turkish', 'persian', 'middle eastern', 'mediterranean', 'kebab', 'egyptian', 'moroccan' ],
+europe: [ 'italian', 'french', 'spanish', 'greek', 'mediterranean', 'german', 'polish', 'european', 'pizza', 'portuguese' ],
+africa: [ 'ethiopian', 'african', 'nigerian', 'moroccan', 'south african', 'egyptian', 'kenyan', 'ghanaian' ],
+latinamerica: [ 'mexican', 'peruvian', 'brazilian', 'argentinian', 'colombian', 'cuban', 'latin', 'taco', 'caribbean' ],
+unitedstates: [ 'american', 'burger', 'bbq', 'barbecue', 'southern', 'cajun', 'diner', 'steakhouse', 'tex-mex' ],
+oceania: [ 'australian', 'pacific', 'cafe', 'bakery', 'kiwi' ]
 };
 
 async function geoCity(city) {
 if (geoMemCache[city]) return geoMemCache[city];
-const lsKey = "dib_geo_v1_" + city;
+const lsKey = 'dib_geo_v1_' + city;
 try {
-const c = JSON.parse(localStorage.getItem(lsKey) || "null");
+const c = JSON.parse(localStorage.getItem(lsKey) || 'null');
 if (c && c.placeId) {
 geoMemCache[city] = c;
 return c;
@@ -3066,7 +3106,7 @@ return c;
 } catch (e) {}
 const d = await fetchJsonTimeout(`https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&type=city&format=json&limit=1&apiKey=${GEOAPIFY_KEY}`, 6e3);
 const r = d && d.results && d.results[0];
-if (!r || !r.place_id) throw new Error("geocode miss");
+if (!r || !r.place_id) throw new Error('geocode miss');
 const out = {
 placeId: r.place_id,
 lon: r.lon,
@@ -3082,14 +3122,14 @@ return out;
 async function cityPool(city) {
 if (poolMemCache[city]) return poolMemCache[city];
 try {
-const hit = JSON.parse(localStorage.getItem("dib_pool_v1_" + city) || "null");
+const hit = JSON.parse(localStorage.getItem('dib_pool_v1_' + city) || 'null');
 if (hit && hit.t && Date.now() - hit.t < 864e5 && Array.isArray(hit.pool) && hit.pool.length) {
 poolMemCache[city] = hit.pool;
 return hit.pool;
 }
 } catch (e) {}
 const g = await geoCity(city);
-const cats = "catering.restaurant,catering.cafe,catering.fast_food";
+const cats = 'catering.restaurant,catering.cafe,catering.fast_food';
 const page = async off => {
 const d = await fetchJsonTimeout(`https://api.geoapify.com/v2/places?categories=${cats}&filter=place:${g.placeId}&limit=500&offset=${off}&apiKey=${GEOAPIFY_KEY}`, 8e3);
 return d && d.features || [];
@@ -3106,25 +3146,25 @@ feats = d && d.features || [];
 const seenPlace = new Set;
 const pool = feats.map(f => {
 const p = f.properties || {}, raw = p.datasource && p.datasource.raw || {};
-const areaRaw = (p.address_line2 || "").split(",")[0].trim();
+const areaRaw = (p.address_line2 || '').split(',')[0].trim();
 return {
-name: p.name || "",
-area: p.suburb || p.district || (areaRaw && areaRaw.toLowerCase() !== city.split(",")[0].toLowerCase() ? areaRaw : "") || "",
-cuisine: (raw.cuisine || "").toLowerCase(),
-cats: (p.categories || []).join(" ").toLowerCase(),
-website: raw.website || p.website || "",
-distKm: typeof p.lat === "number" && typeof p.lon === "number" ? Math.hypot((p.lon - g.lon) * 85, (p.lat - g.lat) * 111) : 0
+name: p.name || '',
+area: p.suburb || p.district || (areaRaw && areaRaw.toLowerCase() !== city.split(',')[0].toLowerCase() ? areaRaw : '') || '',
+cuisine: (raw.cuisine || '').toLowerCase(),
+cats: (p.categories || []).join(' ').toLowerCase(),
+website: raw.website || p.website || '',
+distKm: typeof p.lat === 'number' && typeof p.lon === 'number' ? Math.hypot((p.lon - g.lon) * 85, (p.lat - g.lat) * 111) : 0
 };
 }).filter(x => {
 if (!x.name) return false;
-const k = x.name + "|" + x.area;
+const k = x.name + '|' + x.area;
 if (seenPlace.has(k)) return false;
 seenPlace.add(k);
 return true;
 });
 poolMemCache[city] = pool;
 try {
-localStorage.setItem("dib_pool_v1_" + city, JSON.stringify({
+localStorage.setItem('dib_pool_v1_' + city, JSON.stringify({
 t: Date.now(),
 pool: pool
 }));
@@ -3134,8 +3174,8 @@ return pool;
 
 function dishPlaceFor(dishName, pool, usedCounts, areaCounts) {
 const rec = RECS.find(x => x.dish === dishName) || {};
-const stop = new Set([ "style", "with", "and", "the" ]);
-const toks = dishName.toLowerCase().replace(/[^a-z ]/g, " ").split(/\s+/).filter(w => w.length >= 4 && !stop.has(w));
+const stop = new Set([ 'style', 'with', 'and', 'the' ]);
+const toks = dishName.toLowerCase().replace(/[^a-z ]/g, ' ').split(/\s+/).filter(w => w.length >= 4 && !stop.has(w));
 const cuis = REGION_CUISINES[rec.region] || [];
 let best = null, bestScore = 0;
 pool.forEach(p => {
@@ -3165,15 +3205,15 @@ if (!pool.length) return 0;
 let any = 0;
 const usedCounts = new Map;
 const areaCounts = new Map;
-document.querySelectorAll("#profileRecs .r-place").forEach(a => {
+document.querySelectorAll('#profileRecs .r-place').forEach(a => {
 if (a.dataset.places) return;
-const p = dishPlaceFor(a.dataset.dish || "", pool, usedCounts, areaCounts);
+const p = dishPlaceFor(a.dataset.dish || '', pool, usedCounts, areaCounts);
 if (p) {
-a.innerHTML = `📍 ${p.name}${p.area ? `<small>${p.area}</small>` : ""}`;
-a.classList.remove("generic");
-a.classList.add("found");
-a.href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(p.name + " " + res.city);
-a.dataset.places = "geoapify";
+a.innerHTML = `📍 ${p.name}${p.area ? `<small>${p.area}</small>` : ''}`;
+a.classList.remove('generic');
+a.classList.add('found');
+a.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(p.name + ' ' + res.city);
+a.dataset.places = 'geoapify';
 usedCounts.set(p.name, (usedCounts.get(p.name) || 0) + 1);
 if (p.area) areaCounts.set(p.area, (areaCounts.get(p.area) || 0) + 1);
 any++;
@@ -3187,15 +3227,15 @@ return 0;
 }
 
 function appendPlacesAttr(googleUsed, geoapifyUsed) {
-if (document.querySelector(".places-attr")) return;
+if (document.querySelector('.places-attr')) return;
 const seg = [];
 if (geoapifyUsed) seg.push('Restaurant picks from OpenStreetMap data · Powered by <a href="https://www.geoapify.com/" target="_blank" rel="noopener">Geoapify</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>');
-if (googleUsed) seg.push((geoapifyUsed ? "" : "Restaurant picks · ") + "Ratings by Google");
+if (googleUsed) seg.push((geoapifyUsed ? '' : 'Restaurant picks · ') + 'Ratings by Google');
 if (!seg.length) return;
-const d = document.createElement("p");
-d.className = "places-attr";
-d.innerHTML = seg.join(" · ");
-const host = $("profileRecs");
+const d = document.createElement('p');
+d.className = 'places-attr';
+d.innerHTML = seg.join(' · ');
+const host = $('profileRecs');
 if (host && host.parentNode) host.parentNode.insertBefore(d, host.nextSibling);
 }
 
@@ -3223,14 +3263,14 @@ return best;
 }
 
 function gAreaOf(formattedAddress, city) {
-const parts = String(formattedAddress || "").split(",").map(s => s.trim()).filter(Boolean);
-if (parts.length < 2) return "";
-const cityBase = String(city || "").split(",")[0].trim().toLowerCase();
+const parts = String(formattedAddress || '').split(',').map(s => s.trim()).filter(Boolean);
+if (parts.length < 2) return '';
+const cityBase = String(city || '').split(',')[0].trim().toLowerCase();
 const idx = parts.findIndex(s => s.toLowerCase().startsWith(cityBase));
-let area = "";
+let area = '';
 if (idx > 0) area = parts[idx - 1]; else if (parts.length >= 3) area = parts[1];
-area = (area || "").replace(/\s+\d[\d\s-]*$/, "").trim();
-if (!area || /^\d/.test(area) || area.length > 34) return "";
+area = (area || '').replace(/\s+\d[\d\s-]*$/, '').trim();
+if (!area || /^\d/.test(area) || area.length > 34) return '';
 return area;
 }
 
@@ -3241,11 +3281,11 @@ const gPlaceMem = {};
 let googleOff = false;
 
 async function googleDishPlace(city, dish, geo) {
-const ck = city + "|" + dish;
+const ck = city + '|' + dish;
 if (ck in gPlaceMem) return gPlaceMem[ck];
-const lsKey = "dib_gp_v1_" + ck;
+const lsKey = 'dib_gp_v1_' + ck;
 try {
-const c = JSON.parse(localStorage.getItem(lsKey) || "null");
+const c = JSON.parse(localStorage.getItem(lsKey) || 'null');
 if (c && c.t && Date.now() - c.t < 7 * 24 * 3600 * 1e3) {
 gPlaceMem[ck] = c.p;
 return c.p;
@@ -3256,7 +3296,7 @@ const ctl = new AbortController;
 const to = setTimeout(() => ctl.abort(), 8e3);
 try {
 const body = {
-textQuery: dish + " in " + city,
+textQuery: dish + ' in ' + city,
 pageSize: 5
 };
 if (geo && geo.lon != null && geo.lat != null) body.locationBias = {
@@ -3268,24 +3308,24 @@ longitude: geo.lon
 radius: 15e3
 }
 };
-const r = await fetch("https://places.googleapis.com/v1/places:searchText", {
-method: "POST",
+const r = await fetch('https://places.googleapis.com/v1/places:searchText', {
+method: 'POST',
 signal: ctl.signal,
 headers: {
-"Content-Type": "application/json",
-"X-Goog-Api-Key": GOOGLE_PLACES_KEY,
-"X-Goog-FieldMask": "places.displayName,places.rating,places.userRatingCount,places.formattedAddress,places.googleMapsUri"
+'Content-Type': 'application/json',
+'X-Goog-Api-Key': GOOGLE_PLACES_KEY,
+'X-Goog-FieldMask': 'places.displayName,places.rating,places.userRatingCount,places.formattedAddress,places.googleMapsUri'
 },
 body: JSON.stringify(body)
 });
-if (!r.ok) throw new Error("google places " + r.status);
+if (!r.ok) throw new Error('google places ' + r.status);
 const d = await r.json();
 const best = gPickBest(d.places);
 if (best) out = {
 name: best.displayName.text,
 area: gAreaOf(best.formattedAddress, city),
 rating: best.rating || null,
-uri: best.googleMapsUri || ""
+uri: best.googleMapsUri || ''
 };
 } finally {
 clearTimeout(to);
@@ -3302,7 +3342,7 @@ return out;
 
 async function upgradePlacesGoogle(res) {
 if (!GOOGLE_PLACES_KEY || googleOff || !res || !res.city) return 0;
-const anchors = Array.from(document.querySelectorAll("#profileRecs .r-place"));
+const anchors = Array.from(document.querySelectorAll('#profileRecs .r-place'));
 if (!anchors.length) return 0;
 let geo = null;
 try {
@@ -3312,7 +3352,7 @@ let used = 0, upgraded = 0;
 const seen = new Set;
 for (const a of anchors) {
 if (used >= G_DISH_CAP || googleOff) break;
-const dish = a.dataset.dish || "";
+const dish = a.dataset.dish || '';
 if (!dish || seen.has(dish) || a.dataset.places) continue;
 seen.add(dish);
 used++;
@@ -3324,11 +3364,11 @@ googleOff = true;
 break;
 }
 if (p) {
-a.innerHTML = `📍 ${p.name}${p.area || p.rating ? `<small>${[ p.area, p.rating ? "★" + p.rating.toFixed(1) : "" ].filter(Boolean).join(" · ")}</small>` : ""}`;
-a.classList.remove("generic");
-a.classList.add("found");
-a.href = p.uri || "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(p.name + " " + res.city);
-a.dataset.places = "google";
+a.innerHTML = `📍 ${p.name}${p.area || p.rating ? `<small>${[ p.area, p.rating ? '★' + p.rating.toFixed(1) : '' ].filter(Boolean).join(' · ')}</small>` : ''}`;
+a.classList.remove('generic');
+a.classList.add('found');
+a.href = p.uri || 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(p.name + ' ' + res.city);
+a.dataset.places = 'google';
 upgraded++;
 }
 }
@@ -3336,10 +3376,10 @@ return upgraded;
 }
 
 (() => {
-const fx = document.querySelector(".bg-fx");
-if (!fx || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+const fx = document.querySelector('.bg-fx');
+if (!fx || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 let ticking = false;
-addEventListener("scroll", () => {
+addEventListener('scroll', () => {
 if (ticking) return;
 ticking = true;
 requestAnimationFrame(() => {
@@ -3370,11 +3410,11 @@ revealResults();
 let compileTimer = null, compilePhraseTimer = null;
 
 function revealResults() {
-const reduced = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
-const dots = $("holeDots");
+const reduced = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+const dots = $('holeDots');
 if (dots && !reduced) {
 const maxR = Math.round(Math.max(160, Math.min(window.innerWidth, window.innerHeight) * .46));
-let html = "";
+let html = '';
 for (let i = 0; i < 150; i++) {
 const a = Math.round(Math.random() * 360);
 const r = Math.round(95 + Math.random() * (maxR - 95));
@@ -3384,13 +3424,13 @@ html += `<span style="--a:${a}deg;--r:${r}px;--d:${d}s;background:rgb(${g},${g},
 }
 dots.innerHTML = html;
 }
-show("view-compiling");
+show('view-compiling');
 window.scrollTo({
 top: 0
 });
-const phrases = [ "Reading your palate…", "Weighing your flavour axes…", "Scanning kitchens around the world…", "Matching dishes to your taste…", "Handpicking your recommendations…" ];
+const phrases = [ 'Reading your palate…', 'Weighing your flavour axes…', 'Scanning kitchens around the world…', 'Matching dishes to your taste…', 'Handpicking your recommendations…' ];
 let pi = 0;
-const el = $("compilePhrase");
+const el = $('compilePhrase');
 if (el) el.textContent = phrases[0];
 clearInterval(compilePhraseTimer);
 if (!reduced) compilePhraseTimer = setInterval(() => {
@@ -3401,58 +3441,58 @@ clearTimeout(compileTimer);
 compileTimer = setTimeout(() => {
 clearInterval(compilePhraseTimer);
 renderResults();
-show("view-results");
+show('view-results');
 window.scrollTo({
 top: 0
 });
 }, reduced ? 700 : 7500);
 }
 
-$("endBtn").onclick = () => {
+$('endBtn').onclick = () => {
 if (st && !st.finished && answeredCount(st) >= 5) finish(true);
 };
 
-$("pickProfileBtn").addEventListener("click", () => show("view-profile"));
+$('pickProfileBtn').addEventListener('click', () => show('view-profile'));
 
-$("pickDishesBtn").addEventListener("click", () => show("view-dishes"));
+$('pickDishesBtn').addEventListener('click', () => show('view-dishes'));
 
-$("profileBackBtn").addEventListener("click", () => show("view-results"));
+$('profileBackBtn').addEventListener('click', () => show('view-results'));
 
-$("dishesBackBtn").addEventListener("click", () => show("view-results"));
+$('dishesBackBtn').addEventListener('click', () => show('view-results'));
 
-$("profileToDishesBtn").addEventListener("click", () => show("view-dishes"));
+$('profileToDishesBtn').addEventListener('click', () => show('view-dishes'));
 
-$("dishesToProfileBtn").addEventListener("click", () => show("view-profile"));
+$('dishesToProfileBtn').addEventListener('click', () => show('view-profile'));
 
-$("endInfoBtn").onclick = () => {
-const p = $("endInfoPanel");
+$('endInfoBtn').onclick = () => {
+const p = $('endInfoPanel');
 p.hidden = !p.hidden;
-$("endInfoBtn").classList.toggle("open", !p.hidden);
+$('endInfoBtn').classList.toggle('open', !p.hidden);
 };
 
-$("csvBtn").onclick = () => {
+$('csvBtn').onclick = () => {
 const res = st.result || computeResult(st);
-const esc = v => `"${String(v == null ? "" : v).replace(/"/g, '""')}"`;
-const rows = [ [ "Diving into Buds — taste profile results" ], [ "Email", res.email ], [ "Diet", DIET_LABELS[res.diet] || res.diet ], [ "Roots", rootsLabelOf(res) ], [ "City", res.city || "" ], [ "Questions answered", res.detail.length ], [ "Ended early", res.partial ? "Yes" : "No" ], [ "Completed", res.completedAt ], [ "Top traits", res.topTags.join(", ") ], [ "Affinities", Object.entries(res.affinities || {}).map(([k, v]) => `${k}:${v}`).join(", ") ], ...(res.axes || []).map(a => [ `Axis — ${a.name}`, `${a.lean === "hi" ? a.hi : a.lean === "lo" ? a.lo : "Balanced"} (${a.pct}% toward ${a.hi}, strength ${a.strength})` ]), [ "Hard no's", (res.aversions || []).join(", ") ], [ "Heat %", res.meters.spice ], [ "Sweet %", res.meters.sweet ], [ "Adventure %", res.meters.adv ], [ "Smoke %", res.meters.smoky ], [ "Tang %", res.meters.tangy ], [ "Creamy %", res.meters.creamy ], [ "Fresh %", res.meters.fresh ], [ "Classic %", res.meters.classic ], [ "Average confidence", res.avgConfidence ], [], [ "#", "Question", "Section", "Your pick(s)", "Confidence" ] ];
-res.detail.forEach((d, i) => rows.push([ i + 1, d.q, d.deck, d.picks.join(" + "), d.weight ]));
-rows.push([], [ "Recommendations" ]);
+const esc = v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
+const rows = [ [ 'Diving into Buds — taste profile results' ], [ 'Email', res.email ], [ 'Diet', DIET_LABELS[res.diet] || res.diet ], [ 'Roots', rootsLabelOf(res) ], [ 'City', res.city || '' ], [ 'Questions answered', res.detail.length ], [ 'Ended early', res.partial ? 'Yes' : 'No' ], [ 'Completed', res.completedAt ], [ 'Top traits', res.topTags.join(', ') ], [ 'Affinities', Object.entries(res.affinities || {}).map(([k, v]) => `${k}:${v}`).join(', ') ], ...(res.axes || []).map(a => [ `Axis — ${a.name}`, `${a.lean === 'hi' ? a.hi : a.lean === 'lo' ? a.lo : 'Balanced'} (${a.pct}% toward ${a.hi}, strength ${a.strength})` ]), [ 'Hard no\'s', (res.aversions || []).join(', ') ], [ 'Heat %', res.meters.spice ], [ 'Sweet %', res.meters.sweet ], [ 'Adventure %', res.meters.adv ], [ 'Smoke %', res.meters.smoky ], [ 'Tang %', res.meters.tangy ], [ 'Creamy %', res.meters.creamy ], [ 'Fresh %', res.meters.fresh ], [ 'Classic %', res.meters.classic ], [ 'Average confidence', res.avgConfidence ], [], [ '#', 'Question', 'Section', 'Your pick(s)', 'Confidence' ] ];
+res.detail.forEach((d, i) => rows.push([ i + 1, d.q, d.deck, d.picks.join(' + '), d.weight ]));
+rows.push([], [ 'Recommendations' ]);
 res.recs.forEach(r => rows.push([ r.dish, r.from, r.why ]));
-const blob = new Blob([ rows.map(r => r.map(esc).join(",")).join("\n") ], {
-type: "text/csv"
+const blob = new Blob([ rows.map(r => r.map(esc).join(',')).join('\n') ], {
+type: 'text/csv'
 });
-const a = document.createElement("a");
+const a = document.createElement('a');
 a.href = URL.createObjectURL(blob);
-a.download = "diving-into-buds-results.csv";
+a.download = 'diving-into-buds-results.csv';
 a.click();
 URL.revokeObjectURL(a.href);
 };
 
-$("retakeBtn").onclick = doRestart;
+$('retakeBtn').onclick = doRestart;
 
 (async function init() {
-store.del("dib_session");
+store.del('dib_session');
 if (!sb) {
-show("view-landing");
+show('view-landing');
 return;
 }
 const {data: data} = await sb.auth.getSession();
@@ -3464,40 +3504,40 @@ email: data.session.user.email
 await hydrate();
 routeAfterLogin();
 } else {
-show("view-landing");
+show('view-landing');
 }
 })();
 
-$("qInfoBtn").onclick = () => {
-const p = $("qInfoPanel");
+$('qInfoBtn').onclick = () => {
+const p = $('qInfoPanel');
 p.hidden = !p.hidden;
-$("qInfoBtn").classList.toggle("open", !p.hidden);
+$('qInfoBtn').classList.toggle('open', !p.hidden);
 };
 
-$("seInfoBtn").onclick = () => {
-const p = $("seInfoPanel");
+$('seInfoBtn').onclick = () => {
+const p = $('seInfoPanel');
 p.hidden = !p.hidden;
-$("seInfoBtn").classList.toggle("open", !p.hidden);
+$('seInfoBtn').classList.toggle('open', !p.hidden);
 };
 
 (() => {
-if (!("IntersectionObserver" in window)) {
-document.querySelectorAll(".reveal").forEach(el => el.classList.add("inview"));
+if (!('IntersectionObserver' in window)) {
+document.querySelectorAll('.reveal').forEach(el => el.classList.add('inview'));
 return;
 }
 const io = new IntersectionObserver(es => es.forEach(en => {
 if (en.isIntersecting) {
-en.target.classList.add("inview");
+en.target.classList.add('inview');
 io.unobserve(en.target);
 }
 }), {
 threshold: 0
 });
-document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 })();
 
 (() => {
-if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 const rootEl = document.documentElement;
 const stops = [ [ 139, 92, 246 ], [ 217, 70, 239 ], [ 79, 70, 229 ], [ 147, 51, 234 ], [ 139, 92, 246 ] ];
 let ticking = false;
@@ -3510,14 +3550,14 @@ const i = Math.min(stops.length - 2, Math.floor(seg));
 const f = seg - i;
 const c = stops[i].map((v, k) => Math.round(v + (stops[i + 1][k] - v) * f));
 const pulse = Math.sin(p * Math.PI);
-rootEl.style.setProperty("--glowA", `rgba(${c[0]},${c[1]},${c[2]},${(.4 + .16 * pulse).toFixed(3)})`);
-rootEl.style.setProperty("--glowB", `rgba(${c[2]},${c[1]},${c[0]},${(.26 + .12 * pulse).toFixed(3)})`);
-rootEl.style.setProperty("--gx1", 12 + p * 48 + "%");
-rootEl.style.setProperty("--gy1", -6 + p * 34 + "%");
-rootEl.style.setProperty("--gx2", 105 - p * 62 + "%");
-rootEl.style.setProperty("--gy2", 22 + p * 48 + "%");
+rootEl.style.setProperty('--glowA', `rgba(${c[0]},${c[1]},${c[2]},${(.4 + .16 * pulse).toFixed(3)})`);
+rootEl.style.setProperty('--glowB', `rgba(${c[2]},${c[1]},${c[0]},${(.26 + .12 * pulse).toFixed(3)})`);
+rootEl.style.setProperty('--gx1', 12 + p * 48 + '%');
+rootEl.style.setProperty('--gy1', -6 + p * 34 + '%');
+rootEl.style.setProperty('--gx2', 105 - p * 62 + '%');
+rootEl.style.setProperty('--gy2', 22 + p * 48 + '%');
 }
-addEventListener("scroll", () => {
+addEventListener('scroll', () => {
 if (!ticking) {
 ticking = true;
 requestAnimationFrame(paint);
@@ -3525,6 +3565,6 @@ requestAnimationFrame(paint);
 }, {
 passive: true
 });
-addEventListener("resize", paint);
+addEventListener('resize', paint);
 paint();
 })();

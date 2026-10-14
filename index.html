@@ -3,6 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* Stale-build self-heal (2026-10-14): if this page was served from a
+   cache older than the live build, reload once onto the current build.
+   version.json is fetched uncached, so the check always reaches the
+   server; a sessionStorage guard caps it at one heal per build per
+   session. Any failure is swallowed — the site behaves exactly as
+   before. Bump BUILD together with version.json on every deploy. */
+(function () {
+  var BUILD = "75";
+  try {
+    fetch("version.json?ts=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d || !d.build || String(d.build) === BUILD) return;
+        var k = "dib_heal_" + d.build;
+        try { if (sessionStorage.getItem(k)) return; sessionStorage.setItem(k, "1"); } catch (e) { return; }
+        var u = new URL(location.href);
+        u.searchParams.set("v", String(d.build));
+        location.replace(u.toString());
+      })
+      .catch(function () {});
+  } catch (e) {}
+})();
+</script>
 <meta name="theme-color" content="#7C3AED">
 <meta name="description" content="Diving into Buds — answer flavour-first questions shaped by your diet and roots, and discover dishes you'll love at restaurants near you.">
 <meta property="og:title" content="Diving into Buds — Take a dive into your taste buds">
@@ -305,13 +329,13 @@
 <footer>Made with 🌶️ and curiosity · Diving into Buds</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="questions.js?v=18"></script>
+<script src="questions.js?v=19"></script>
 <script src="questions2.js?v=10"></script>
 <script src="questions3.js?v=7"></script>
-<script src="recs.js?v=8"></script>
+<script src="recs.js?v=9"></script>
 <script src="recs2.js?v=3"></script>
 <script src="recs3.js?v=3"></script>
-<script src="recs4.js?v=2"></script>
-<script src="app.js?v=74"></script>
+<script src="recs4.js?v=3"></script>
+<script src="app.js?v=75"></script>
 </body>
 </html>

@@ -417,7 +417,7 @@ return null;
 function fixOrder(s) {
 if (!s.builtFor) return;
 const inOrder = new Set(s.order);
-const pool = [ ...s.reserve, ...QBANK.map(q => q.id).filter(id => !inOrder.has(id)) ];
+const pool = [ ...new Set([ ...s.reserve, ...QBANK.map(q => q.id).filter(id => !inOrder.has(id)) ]) ];
 const used = new Set;
 for (let i = s.pos + 1; i < s.order.length; i++) {
 const q = QBANK_BY_ID[s.order[i]];
@@ -554,7 +554,7 @@ const savedOrder = (rawAnswers.__order || {}).o, savedReserve = (rawAnswers.__or
 const orderOk = Array.isArray(savedOrder) && savedOrder.length >= 10 && savedOrder.filter(id => QBANK_BY_ID[id]).length >= savedOrder.length * .95;
 if (orderOk) {
 st.order = savedOrder.slice();
-st.reserve = Array.isArray(savedReserve) ? savedReserve.filter(id => QBANK_BY_ID[id]) : [];
+st.reserve = Array.isArray(savedReserve) ? [ ...new Set(savedReserve.filter(id => QBANK_BY_ID[id])) ] : [];
 } else buildOrder(st);
 fixOrder(st);
 st.seen = ((rawAnswers.__nav || {}).seen || local.seen || []).filter(id => st.order.includes(id));
@@ -1041,7 +1041,7 @@ $('primaryAction').textContent = 'See my taste profile';
 } else if (n > 0) {
 $('homeTitle').textContent = 'Welcome back 👋';
 $('homeText').textContent = `You've answered ${n} questions — everything, slider weights included, is saved to your account. Pick up right where you left off, on any device.`;
-$('primaryAction').textContent = `Continue — question ${n + 1}`;
+$('primaryAction').textContent = n >= runTotal(st) ? 'Continue — see your results' : `Continue — question ${n + 1}`;
 } else {
 $('homeTitle').textContent = 'Ready to dive in?';
 $('homeText').textContent = `Your questions are built around ${rootsLabelOf(st.builtFor)} roots and a ${DIET_LABELS[st.builtFor.diet]} diet. About 10 minutes — save & exit anytime.`;
@@ -1531,7 +1531,7 @@ const chips = [];
 for (const cand of STARTER_CANDIDATES) {
 const hits = searchDishes(cand);
 if (!hits.length) continue;
-const e = hits.map(h => h.e).find(x => x.nn === normDishText(cand)) || hits[0].e;
+const e = hits.find(x => x.nn === normDishText(cand)) || hits[0];
 if (e && !(st.loves || []).includes(e.id) && !chips.some(c => c.id === e.id)) chips.push(e);
 if (chips.length >= 8) break;
 }

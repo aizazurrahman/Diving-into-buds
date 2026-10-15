@@ -1,6 +1,150 @@
 /* Recommendation pool, part 3 — see recs.js. Loaded right after the previous part. */
 RECS.push(
 {
+ "dish": "Sel roti",
+ "yt": "https://www.youtube.com/watch?v=e_c3sOPrFOk",
+ "from": "Nepal · South Asia",
+ "region": "southasia",
+ "country": "Nepal",
+ "diet": "veg",
+ "emoji": "🍩",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "crisp",
+  "street"
+ ],
+ "why": "Ring-shaped rice-flour doughnuts, crisp and caramel-kissed."
+},
+{
+ "dish": "Tongba",
+ "yt": "https://www.youtube.com/watch?v=3d0svGV2BRU",
+ "from": "Limbu country · South Asia",
+ "region": "southasia",
+ "country": "Nepal",
+ "diet": "vegan",
+ "emoji": "🍺",
+ "course": "drink",
+ "match": [
+  "adventure",
+  "classic"
+ ],
+ "why": "Warm fermented-millet beer sipped through a bamboo straw.",
+ "alc": true
+},
+{
+ "dish": "Mohinga",
+ "yt": "https://www.youtube.com/watch?v=l1KgsWd_GOE",
+ "from": "Yangon · East Asia",
+ "region": "eastasia",
+ "country": "Myanmar",
+ "diet": "meat:fish",
+ "emoji": "🍜",
+ "course": "main",
+ "match": [
+  "soup",
+  "noodle",
+  "tangy"
+ ],
+ "why": "Fish and chickpea noodle soup with lemongrass — Myanmar's breakfast."
+},
+{
+ "dish": "Tea leaf salad",
+ "yt": "https://www.youtube.com/watch?v=x8O5JBvcz_k",
+ "from": "Shan State · East Asia",
+ "region": "eastasia",
+ "country": "Myanmar",
+ "diet": "vegan",
+ "emoji": "🥗",
+ "course": "appetizer",
+ "match": [
+  "tangy",
+  "adventure",
+  "fermented"
+ ],
+ "why": "Fermented tea leaves with peanuts, sesame and tomato — crunchy, sour, electric."
+},
+{
+ "dish": "Shan noodles",
+ "yt": "https://www.youtube.com/watch?v=pawjAuvca7s",
+ "from": "Shan State · East Asia",
+ "region": "eastasia",
+ "country": "Myanmar",
+ "diet": "meat:chicken",
+ "emoji": "🍜",
+ "course": "main",
+ "match": [
+  "noodle",
+  "home",
+  "tangy"
+ ],
+ "why": "Rice noodles in a light tomato-chicken sauce with pickles."
+},
+{
+ "dish": "Ohno kaukswe",
+ "yt": "https://www.youtube.com/watch?v=5eJNb_0e1zk",
+ "from": "Myanmar · East Asia",
+ "region": "eastasia",
+ "country": "Myanmar",
+ "diet": "meat:chicken",
+ "emoji": "🍜",
+ "course": "main",
+ "match": [
+  "noodle",
+  "creamy",
+  "soup"
+ ],
+ "why": "Coconut chicken noodles with crisp toppings — mohinga's rich cousin."
+},
+{
+ "dish": "Shwe yin aye",
+ "yt": "https://www.youtube.com/watch?v=H734NxkxO-U",
+ "from": "Myanmar · East Asia",
+ "region": "eastasia",
+ "country": "Myanmar",
+ "diet": "veg",
+ "emoji": "🍧",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "creamy",
+  "classic"
+ ],
+ "why": "Coconut milk with jellies, sticky rice and ice — 'golden heart cooler'."
+},
+{
+ "dish": "Fish amok",
+ "yt": "https://www.youtube.com/watch?v=mlngdPqXi10",
+ "from": "Phnom Penh · East Asia",
+ "region": "eastasia",
+ "country": "Cambodia",
+ "diet": "meat:fish",
+ "emoji": "🐟",
+ "course": "main",
+ "match": [
+  "creamy",
+  "spice",
+  "classic"
+ ],
+ "why": "Fish curry steamed in banana leaf with lemongrass and coconut — Cambodia's national dish."
+},
+{
+ "dish": "Beef lok lak",
+ "yt": "https://www.youtube.com/watch?v=__5WDCp9sN8",
+ "from": "Cambodia · East Asia",
+ "region": "eastasia",
+ "country": "Cambodia",
+ "diet": "meat:beef",
+ "emoji": "🥩",
+ "course": "main",
+ "match": [
+  "meat",
+  "tangy",
+  "crisp"
+ ],
+ "why": "Stir-fried beef over lettuce with a lime-and-pepper dip."
+},
+{
  "dish": "Pleah sach ko",
  "yt": "https://www.youtube.com/watch?v=3J7QLdcrAVc",
  "from": "Cambodia · East Asia",
@@ -126,7 +270,8 @@ RECS.push(
   "spice",
   "classic"
  ],
- "why": "Coconut rice with sambal, anchovies, egg and peanuts — Malaysia's national breakfast."
+ "why": "Coconut rice with sambal, anchovies, egg and peanuts — Malaysia's national breakfast.",
+ "egg": true
 },
 {
  "dish": "Roti canai",
@@ -158,7 +303,8 @@ RECS.push(
   "smoky",
   "street"
  ],
- "why": "Wok-fired flat noodles with prawns, cockles and chives."
+ "why": "Wok-fired flat noodles with prawns, cockles and chives.",
+ "egg": true
 },
 {
  "dish": "Cendol",
@@ -190,7 +336,8 @@ RECS.push(
   "sweet",
   "classic"
  ],
- "why": "Milk tea pulled between two vessels until it froths."
+ "why": "Milk tea pulled between two vessels until it froths.",
+ "dairy": true
 },
 {
  "dish": "Hainanese chicken rice",
@@ -222,7 +369,8 @@ RECS.push(
   "tangy",
   "adventure"
  ],
- "why": "Mud crabs in a sweet-spicy tomato-chilli sauce, mantou for mopping."
+ "why": "Mud crabs in a sweet-spicy tomato-chilli sauce, mantou for mopping.",
+ "egg": true
 },
 {
  "dish": "Bak kut teh",
@@ -286,7 +434,8 @@ RECS.push(
   "sweet",
   "creamy"
  ],
- "why": "Kopitiam coffee — dark, sweet, with condensed milk."
+ "why": "Kopitiam coffee — dark, sweet, with condensed milk.",
+ "dairy": true
 },
 {
  "dish": "Chicken adobo",
@@ -366,7 +515,8 @@ RECS.push(
   "tangy",
   "classic"
  ],
- "why": "Rice noodles in shrimp-annatto sauce with seafood and egg."
+ "why": "Rice noodles in shrimp-annatto sauce with seafood and egg.",
+ "egg": true
 },
 {
  "dish": "Halo-halo",
@@ -382,7 +532,8 @@ RECS.push(
   "creamy",
   "adventure"
  ],
- "why": "Shaved ice, milk, beans, jellies and ube ice cream — 'mix-mix' in a glass."
+ "why": "Shaved ice, milk, beans, jellies and ube ice cream — 'mix-mix' in a glass.",
+ "dairy": true
 },
 {
  "dish": "Calamansi juice",
@@ -430,7 +581,8 @@ RECS.push(
   "smoky",
   "street"
  ],
- "why": "Sweet-soy fried rice with chicken and a fried egg."
+ "why": "Sweet-soy fried rice with chicken and a fried egg.",
+ "egg": true
 },
 {
  "dish": "Soto ayam",
@@ -446,7 +598,8 @@ RECS.push(
   "tangy",
   "home"
  ],
- "why": "Golden turmeric chicken soup with noodles and egg."
+ "why": "Golden turmeric chicken soup with noodles and egg.",
+ "egg": true
 },
 {
  "dish": "Bajigur",
@@ -573,7 +726,8 @@ RECS.push(
   "soup",
   "classic"
  ],
- "why": "Springy noodles with pork-and-prawn wontons in clear broth."
+ "why": "Springy noodles with pork-and-prawn wontons in clear broth.",
+ "egg": true
 },
 {
  "dish": "Egg tart",
@@ -590,7 +744,8 @@ RECS.push(
   "classic"
  ],
  "why": "Wobbling custard in flaky pastry — the dai pai dong icon.",
- "egg": true
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Hong Kong milk tea",
@@ -606,7 +761,8 @@ RECS.push(
   "sweet",
   "classic"
  ],
- "why": "Strong tea strained silky with evaporated milk."
+ "why": "Strong tea strained silky with evaporated milk.",
+ "dairy": true
 },
 {
  "dish": "Beef noodle soup",
@@ -734,7 +890,8 @@ RECS.push(
   "creamy",
   "fresh"
  ],
- "why": "Snow-fine shaved milk ice with sweet red beans."
+ "why": "Snow-fine shaved milk ice with sweet red beans.",
+ "dairy": true
 },
 {
  "dish": "Sikhye",
@@ -830,7 +987,8 @@ RECS.push(
   "tangy",
   "street"
  ],
- "why": "Tamarind rice noodles with prawns, tofu, egg and peanuts."
+ "why": "Tamarind rice noodles with prawns, tofu, egg and peanuts.",
+ "egg": true
 },
 {
  "dish": "Thai iced tea",
@@ -846,7 +1004,8 @@ RECS.push(
   "creamy",
   "spice"
  ],
- "why": "Amber spiced tea poured over ice with condensed milk."
+ "why": "Amber spiced tea poured over ice with condensed milk.",
+ "dairy": true
 },
 {
  "dish": "Buuz",
@@ -910,7 +1069,8 @@ RECS.push(
   "classic",
   "adventure"
  ],
- "why": "Salted milk tea — the first thing offered in every ger."
+ "why": "Salted milk tea — the first thing offered in every ger.",
+ "dairy": true
 },
 {
  "dish": "Algerian couscous",
@@ -974,7 +1134,8 @@ RECS.push(
   "street",
   "spice"
  ],
- "why": "Cigar pastries of spiced beef and egg, fried crisp."
+ "why": "Cigar pastries of spiced beef and egg, fried crisp.",
+ "egg": true
 },
 {
  "dish": "Kalb el louz",
@@ -1006,7 +1167,8 @@ RECS.push(
   "street",
   "tangy"
  ],
- "why": "Paper-thin pastry with tuna, capers and a runny egg, fried to order."
+ "why": "Paper-thin pastry with tuna, capers and a runny egg, fried to order.",
+ "egg": true
 },
 {
  "dish": "Lablabi",
@@ -1118,7 +1280,8 @@ RECS.push(
   "comfort",
   "crisp"
  ],
- "why": "Chips folded into an omelette — Tanzania's beloved street supper."
+ "why": "Chips folded into an omelette — Tanzania's beloved street supper.",
+ "egg": true
 },
 {
  "dish": "Madafu",
@@ -1214,7 +1377,8 @@ RECS.push(
   "crisp",
   "adventure"
  ],
- "why": "Chicken, almond and cinnamon in crackling pastry, dusted with sugar."
+ "why": "Chicken, almond and cinnamon in crackling pastry, dusted with sugar.",
+ "egg": true
 },
 {
  "dish": "Zaalouk",
@@ -1406,7 +1570,8 @@ RECS.push(
   "street",
   "creamy"
  ],
- "why": "Crescent pastries of creamy prawn filling, crumbed and fried."
+ "why": "Crescent pastries of creamy prawn filling, crumbed and fried.",
+ "dairy": true
 },
 {
  "dish": "Galinha à zambeziana",
@@ -1486,7 +1651,8 @@ RECS.push(
   "classic",
   "creamy"
  ],
- "why": "Sponge squares in chocolate icing and desiccated coconut."
+ "why": "Sponge squares in chocolate icing and desiccated coconut.",
+ "egg": true
 },
 {
  "dish": "Anzac biscuits",
@@ -1502,7 +1668,8 @@ RECS.push(
   "classic",
   "home"
  ],
- "why": "Oat and golden-syrup biscuits, baked since the First World War."
+ "why": "Oat and golden-syrup biscuits, baked since the First World War.",
+ "dairy": true
 },
 {
  "dish": "Damper",
@@ -1582,7 +1749,8 @@ RECS.push(
   "fresh",
   "classic"
  ],
- "why": "Tiny whitebait set in egg, fried in butter — a South Island treasure."
+ "why": "Tiny whitebait set in egg, fried in butter — a South Island treasure.",
+ "egg": true
 },
 {
  "dish": "Pavlova",
@@ -1598,7 +1766,8 @@ RECS.push(
   "fresh",
   "classic"
  ],
- "why": "Crisp meringue, marshmallow heart, cream and kiwifruit."
+ "why": "Crisp meringue, marshmallow heart, cream and kiwifruit.",
+ "egg": true
 },
 {
  "dish": "Afghan biscuits",
@@ -1614,7 +1783,8 @@ RECS.push(
   "crisp",
   "classic"
  ],
- "why": "Chocolate cornflake biscuits with chocolate icing and a walnut."
+ "why": "Chocolate cornflake biscuits with chocolate icing and a walnut.",
+ "dairy": true
 },
 {
  "dish": "Kokoda",
@@ -1743,7 +1913,9 @@ RECS.push(
   "classic",
   "home"
  ],
- "why": "Gooey brown-sugar tarts, with or without raisins — a national argument."
+ "why": "Gooey brown-sugar tarts, with or without raisins — a national argument.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "BeaverTails",
@@ -1792,7 +1964,8 @@ RECS.push(
   "comfort",
   "meat"
  ],
- "why": "Baked pastries of beef, onion, olive and egg."
+ "why": "Baked pastries of beef, onion, olive and egg.",
+ "egg": true
 },
 {
  "dish": "Pastel de choclo",
@@ -1824,7 +1997,8 @@ RECS.push(
   "tangy",
   "classic"
  ],
- "why": "Hot dog buried under tomato, avocado and mayo."
+ "why": "Hot dog buried under tomato, avocado and mayo.",
+ "egg": true
 },
 {
  "dish": "Calzones rotos",
@@ -1840,7 +2014,8 @@ RECS.push(
   "crisp",
   "street"
  ],
- "why": "Twisted lemon fritters dusted with sugar."
+ "why": "Twisted lemon fritters dusted with sugar.",
+ "egg": true
 },
 {
  "dish": "Mote con huesillo",
@@ -1888,7 +2063,8 @@ RECS.push(
   "comfort",
   "tangy"
  ],
- "why": "Potato-cheese patties with peanut sauce and salad."
+ "why": "Potato-cheese patties with peanut sauce and salad.",
+ "dairy": true
 },
 {
  "dish": "Hornado",
@@ -1984,7 +2160,8 @@ RECS.push(
   "comfort",
   "classic"
  ],
- "why": "Sweet corn and cheese steamed in their own husks."
+ "why": "Sweet corn and cheese steamed in their own husks.",
+ "dairy": true
 },
 {
  "dish": "Sopa paraguaya",
@@ -2000,7 +2177,9 @@ RECS.push(
   "comfort",
   "classic"
  ],
- "why": "Not a soup at all — a golden cheese and corn bread, Paraguay's national dish."
+ "why": "Not a soup at all — a golden cheese and corn bread, Paraguay's national dish.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Chipa",
@@ -2016,7 +2195,9 @@ RECS.push(
   "street",
   "classic"
  ],
- "why": "Cheese bread rings of cassava flour — sold on every bus and corner."
+ "why": "Cheese bread rings of cassava flour — sold on every bus and corner.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Mbejú",
@@ -2032,7 +2213,8 @@ RECS.push(
   "comfort",
   "home"
  ],
- "why": "Crisp cassava-and-cheese flatbread from the pan."
+ "why": "Crisp cassava-and-cheese flatbread from the pan.",
+ "dairy": true
 },
 {
  "dish": "Tereré",
@@ -2064,7 +2246,9 @@ RECS.push(
   "street",
   "classic"
  ],
- "why": "Steak, ham, cheese, egg and more in one legendary sandwich."
+ "why": "Steak, ham, cheese, egg and more in one legendary sandwich.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Pascualina",
@@ -2097,7 +2281,9 @@ RECS.push(
   "creamy",
   "classic"
  ],
- "why": "Sponge, meringue, peaches and cream — Uruguay's birthday cake."
+ "why": "Sponge, meringue, peaches and cream — Uruguay's birthday cake.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Mate",
@@ -2145,7 +2331,8 @@ RECS.push(
   "creamy",
   "smoky"
  ],
- "why": "Provolone grilled until crisp at the edges, with oregano and chilli."
+ "why": "Provolone grilled until crisp at the edges, with oregano and chilli.",
+ "dairy": true
 },
 {
  "dish": "Milanesa a la napolitana",
@@ -2161,7 +2348,8 @@ RECS.push(
   "creamy",
   "classic"
  ],
- "why": "Breaded beef under tomato, ham and melted cheese."
+ "why": "Breaded beef under tomato, ham and melted cheese.",
+ "dairy": true
 },
 {
  "dish": "Submarino",
@@ -2177,7 +2365,8 @@ RECS.push(
   "creamy",
   "classic"
  ],
- "why": "Steamed milk with a chocolate bar to sink and stir — the submarine."
+ "why": "Steamed milk with a chocolate bar to sink and stir — the submarine.",
+ "dairy": true
 },
 {
  "dish": "Ajiaco",
@@ -2193,7 +2382,8 @@ RECS.push(
   "home",
   "classic"
  ],
- "why": "Chicken and three-potato soup with corn, capers and cream."
+ "why": "Chicken and three-potato soup with corn, capers and cream.",
+ "dairy": true
 },
 {
  "dish": "Buñuelos",
@@ -2209,7 +2399,9 @@ RECS.push(
   "street",
   "classic"
  ],
- "why": "Cheese fritters, round and golden — Christmas all year."
+ "why": "Cheese fritters, round and golden — Christmas all year.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Bocadillo con queso",
@@ -2225,7 +2417,8 @@ RECS.push(
   "classic",
   "street"
  ],
- "why": "Guava paste with fresh cheese — Colombia's sweet-salty bite."
+ "why": "Guava paste with fresh cheese — Colombia's sweet-salty bite.",
+ "dairy": true
 },
 {
  "dish": "Limonada de coco",
@@ -2257,7 +2450,8 @@ RECS.push(
   "spice",
   "home"
  ],
- "why": "Shredded chicken in a walnut and yellow-chilli cream."
+ "why": "Shredded chicken in a walnut and yellow-chilli cream.",
+ "dairy": true
 },
 {
  "dish": "Picarones",
@@ -2305,7 +2499,8 @@ RECS.push(
   "street",
   "classic"
  ],
- "why": "Teardrop croquettes of chicken in crisp crumb."
+ "why": "Teardrop croquettes of chicken in crisp crumb.",
+ "dairy": true
 },
 {
  "dish": "Pão de queijo",
@@ -2321,7 +2516,9 @@ RECS.push(
   "comfort",
   "classic"
  ],
- "why": "Chewy cheese puffs of cassava flour."
+ "why": "Chewy cheese puffs of cassava flour.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Caipirinha",
@@ -2435,7 +2632,8 @@ RECS.push(
   "creamy",
   "fresh"
  ],
- "why": "Orange juice and milk that somehow never curdle — 'to die dreaming'."
+ "why": "Orange juice and milk that somehow never curdle — 'to die dreaming'.",
+ "dairy": true
 },
 {
  "dish": "Mofongo",
@@ -2484,7 +2682,8 @@ RECS.push(
   "spice"
  ],
  "why": "Coconut and rum Christmas nog with cinnamon.",
- "alc": true
+ "alc": true,
+ "dairy": true
 },
 {
  "dish": "Casado",
@@ -2580,7 +2779,9 @@ RECS.push(
   "comfort",
   "classic"
  ],
- "why": "Spiced bread pudding — Panama's thrifty sweet."
+ "why": "Spiced bread pudding — Panama's thrifty sweet.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Chicheme",
@@ -2612,7 +2813,7 @@ RECS.push(
   "home",
   "classic"
  ],
- "why": "Shredded beef, black beans, rice and plantain — the national plate."
+ "why": "Shredded beef, black beans, rice and sweet plantain — the national plate."
 },
 {
  "dish": "Cachapa",
@@ -2628,7 +2829,8 @@ RECS.push(
   "crisp",
   "street"
  ],
- "why": "Sweet corn pancake folded around salty white cheese."
+ "why": "Sweet corn pancake folded around salty white cheese.",
+ "dairy": true
 },
 {
  "dish": "Papelón con limón",
@@ -2676,7 +2878,8 @@ RECS.push(
   "spice",
   "classic"
  ],
- "why": "Kuwait's saffron-cardamom sponge cake, perfumed with rose water."
+ "why": "Kuwait's saffron-cardamom sponge cake, perfumed with rose water.",
+ "egg": true
 },
 {
  "dish": "Elbah",
@@ -2692,7 +2895,9 @@ RECS.push(
   "creamy",
   "classic"
  ],
- "why": "Kuwait's baked saffron custard with cardamom and rose water."
+ "why": "Kuwait's baked saffron custard with cardamom and rose water.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Azifa",
@@ -2773,7 +2978,8 @@ RECS.push(
   "street",
   "classic"
  ],
- "why": "Cigar-thin pastry rolls with feta and parsley, fried crisp."
+ "why": "Cigar-thin pastry rolls with feta and parsley, fried crisp.",
+ "dairy": true
 },
 {
  "dish": "Cocada",
@@ -2821,7 +3027,8 @@ RECS.push(
   "fresh",
   "street"
  ],
- "why": "Shaved ice with fruit syrup, condensed sweetness and a straw — beach day in a cup."
+ "why": "Shaved ice with fruit syrup, condensed sweetness and a straw — beach day in a cup.",
+ "dairy": true
 },
 {
  "dish": "Empanadas criollas",
@@ -2837,7 +3044,8 @@ RECS.push(
   "street",
   "comfort"
  ],
- "why": "Beef, egg and olive turnovers, fried or baked."
+ "why": "Beef, egg and olive turnovers, fried or baked.",
+ "egg": true
 },
 {
  "dish": "Dulce de mamón",
@@ -3029,7 +3237,8 @@ RECS.push(
   "creamy",
   "classic"
  ],
- "why": "Ground-rice pudding set in clay bowls, scented with cardamom."
+ "why": "Ground-rice pudding set in clay bowls, scented with cardamom.",
+ "dairy": true
 },
 {
  "dish": "Jalebi",
@@ -3318,7 +3527,8 @@ RECS.push(
   "street"
  ],
  "why": "Cornmeal dumplings fried crisp, served beside every fish fry in the South.",
- "egg": true
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Fried pickles",
@@ -3350,7 +3560,8 @@ RECS.push(
   "soup",
   "classic"
  ],
- "why": "Virginia's colonial peanut soup — rich, savoury and smooth."
+ "why": "Virginia's colonial peanut soup — rich, savoury and smooth.",
+ "dairy": true
 },
 {
  "dish": "Gumbo z'herbes",
@@ -3414,7 +3625,8 @@ RECS.push(
   "comfort",
   "classic"
  ],
- "why": "Elbow pasta in a sharp cheddar sauce with a browned top — the American comfort dish."
+ "why": "Elbow pasta in a sharp cheddar sauce with a browned top — the American comfort dish.",
+ "dairy": true
 },
 {
  "dish": "Eggplant parmesan",
@@ -3431,7 +3643,8 @@ RECS.push(
   "classic"
  ],
  "why": "Breaded aubergine layered with tomato and mozzarella — Italian-American Sunday food.",
- "egg": true
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Baked apples",
@@ -3512,181 +3725,5 @@ RECS.push(
   "classic"
  ],
  "why": "Sicilian shaved ice — lemon, coffee or almond — eaten with a spoon and a brioche."
-},
-{
- "dish": "Castagnaccio",
- "yt": "https://www.youtube.com/watch?v=ZfjGI2fPMK0",
- "from": "Tuscany · Europe",
- "region": "europe",
- "country": "Italy",
- "diet": "vegan",
- "emoji": "🌰",
- "course": "dessert",
- "match": [
-  "sweet",
-  "home",
-  "classic"
- ],
- "why": "Chestnut-flour cake with rosemary, pine nuts and raisins — all Tuscany, nothing else needed."
-},
-{
- "dish": "Rote Grütze",
- "yt": "https://www.youtube.com/watch?v=lWilltwNbMQ",
- "from": "Hamburg · Europe",
- "region": "europe",
- "country": "Germany",
- "diet": "vegan",
- "emoji": "🍒",
- "course": "dessert",
- "match": [
-  "sweet",
-  "tangy",
-  "classic"
- ],
- "why": "Northern Germany's red-berry compote, tart and jewel-bright."
-},
-{
- "dish": "Churros",
- "yt": "https://www.youtube.com/watch?v=453mpKHVaBs",
- "from": "Madrid · Europe",
- "region": "europe",
- "country": "Spain",
- "diet": "vegan",
- "emoji": "🥖",
- "course": "dessert",
- "match": [
-  "sweet",
-  "crisp",
-  "street"
- ],
- "why": "Ridged dough sticks, fried and rolled in cinnamon sugar — Madrid's breakfast ritual."
-},
-{
- "dish": "Kashata",
- "yt": "https://www.youtube.com/watch?v=JSJFZkckrb0",
- "from": "Mombasa · Africa",
- "region": "africa",
- "country": "Kenya",
- "diet": "vegan",
- "emoji": "🥥",
- "course": "dessert",
- "match": [
-  "sweet",
-  "crisp",
-  "street"
- ],
- "why": "Coconut and peanut brittle from the Swahili coast — crunchy, caramel-dark."
-},
-{
- "dish": "Chin chin",
- "yt": "https://www.youtube.com/watch?v=qVK-uM9Tn4c",
- "from": "Lagos · Africa",
- "region": "africa",
- "country": "Nigeria",
- "diet": "vegan",
- "emoji": "🍪",
- "course": "dessert",
- "match": [
-  "sweet",
-  "crisp",
-  "street"
- ],
- "why": "Crunchy fried dough bites with nutmeg — Nigeria's party snack by the bowlful."
-},
-{
- "dish": "Guacamole",
- "yt": "https://www.youtube.com/watch?v=a6yCQdx3Pkg",
- "from": "Mexico City · Latin America",
- "region": "latinamerica",
- "country": "Mexico",
- "diet": "vegan",
- "emoji": "🥑",
- "course": "appetizer",
- "match": [
-  "fresh",
-  "tangy",
-  "classic"
- ],
- "why": "Avocado crushed with lime, onion, coriander and chilli — made at the table."
-},
-{
- "dish": "Tostones",
- "yt": "https://www.youtube.com/watch?v=722gwEzpqhI",
- "from": "San Juan · Latin America",
- "region": "latinamerica",
- "country": "Puerto Rico",
- "diet": "vegan",
- "emoji": "🍌",
- "course": "appetizer",
- "match": [
-  "crisp",
-  "street",
-  "classic"
- ],
- "why": "Twice-fried green plantain discs with garlic salt."
-},
-{
- "dish": "Sopaipillas",
- "yt": "https://www.youtube.com/watch?v=TY4mCJsdZrQ",
- "from": "Chile · Latin America",
- "region": "latinamerica",
- "country": "Chile",
- "diet": "vegan",
- "emoji": "🎃",
- "course": "appetizer",
- "match": [
-  "crisp",
-  "street",
-  "home"
- ],
- "why": "Golden pumpkin fritters — rainy-day food, plain or with pebre."
-},
-{
- "dish": "Pupusa de frijol",
- "yt": "https://www.youtube.com/watch?v=qNa1yYuRPio",
- "from": "San Salvador · Latin America",
- "region": "latinamerica",
- "country": "El Salvador",
- "diet": "vegan",
- "emoji": "🫓",
- "course": "appetizer",
- "match": [
-  "comfort",
-  "street",
-  "classic"
- ],
- "why": "Thick corn cakes stuffed with refried beans, with curtido slaw alongside."
-},
-{
- "dish": "Tacu tacu",
- "yt": "https://www.youtube.com/watch?v=1OHTqMOQn5U",
- "from": "Lima · Latin America",
- "region": "latinamerica",
- "country": "Peru",
- "diet": "vegan",
- "emoji": "🍛",
- "course": "main",
- "match": [
-  "rice",
-  "crisp",
-  "home"
- ],
- "why": "Beans and rice fried into a crisp-edged cake — Afro-Peruvian thrift at its best."
-},
-{
- "dish": "Locro de zapallo",
- "yt": "https://www.youtube.com/watch?v=CNwG8BQTXc0",
- "from": "Arequipa · Latin America",
- "region": "latinamerica",
- "country": "Peru",
- "diet": "vegan",
- "emoji": "🎃",
- "course": "main",
- "match": [
-  "creamy",
-  "home",
-  "comfort"
- ],
- "why": "Squash stew with potato, corn and broad beans — Andean comfort."
 }
 );

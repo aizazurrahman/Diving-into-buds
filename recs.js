@@ -1,4 +1,4 @@
-/* Recommendation pool: 730 dishes, each with a region, a country
+/* Recommendation pool: 795 dishes, each with a region, a country
    and a course (drink / appetizer / main / dessert) for the course-structured
    results (v37) and the country-led travel composition (v38).
    Loaded by index.html immediately before app.js; recs2.js/recs3.js carry the rest. */
@@ -141,7 +141,8 @@ const RECS = [
    "street",
    "tangy"
   ],
-  "why": "Charred corn, lime, chilli, cheese — chaat's long-lost Mexican sibling."
+  "why": "Charred corn, lime, chilli, cheese — chaat's long-lost Mexican sibling.",
+  "dairy": true
  },
  {
   "dish": "Mushroom pierogi",
@@ -187,7 +188,8 @@ const RECS = [
    "rice",
    "fresh"
   ],
-  "why": "A rainbow of vegetables over rice with gochujang — mix it like you mean it."
+  "why": "A rainbow of vegetables over rice with gochujang — mix it like you mean it.",
+  "egg": true
  },
  {
   "dish": "Mushroom risotto",
@@ -202,7 +204,8 @@ const RECS = [
    "creamy",
    "classic"
   ],
-  "why": "Rice stirred to silk — khichdi's elegant Italian cousin."
+  "why": "Rice stirred to silk — khichdi's elegant Italian cousin.",
+  "dairy": true
  },
  {
   "dish": "Tempeh satay skewers",
@@ -310,7 +313,8 @@ const RECS = [
    "street",
    "spice"
   ],
-  "why": "Buttered, mashed, masala-rich vegetables with soft pav rolls — Mumbai's street comfort at full volume."
+  "why": "Buttered, mashed, masala-rich vegetables with soft pav rolls — Mumbai's street comfort at full volume.",
+  "dairy": true
  },
  {
   "dish": "Masala dosa",
@@ -406,7 +410,8 @@ const RECS = [
    "street",
    "crisp"
   ],
-  "why": "Griddled corn cakes with a molten cheese middle — crisp outside, soft within."
+  "why": "Griddled corn cakes with a molten cheese middle — crisp outside, soft within.",
+  "dairy": true
  },
  {
   "dish": "Nashville hot chicken",
@@ -487,7 +492,8 @@ const RECS = [
    "classic"
   ],
   "why": "Beef shaved to silk with lemon and parmesan — raw, but dressed like royalty.",
-  "raw": true
+  "raw": true,
+  "dairy": true
  },
  {
   "dish": "Ceviche clásico",
@@ -660,7 +666,8 @@ const RECS = [
    "creamy",
    "classic"
   ],
-  "why": "Onions cooked to jam under a molten cheese crust — patience, rewarded."
+  "why": "Onions cooked to jam under a molten cheese crust — patience, rewarded.",
+  "dairy": true
  },
  {
   "dish": "Greek salad",
@@ -675,7 +682,8 @@ const RECS = [
    "fresh",
    "tangy"
   ],
-  "why": "Tomato, cucumber, olives and a slab of feta — no lettuce, no apologies."
+  "why": "Tomato, cucumber, olives and a slab of feta — no lettuce, no apologies.",
+  "dairy": true
  },
  {
   "dish": "New England clam chowder",
@@ -690,7 +698,8 @@ const RECS = [
    "soup",
    "creamy"
   ],
-  "why": "Clams and potato in a creamy bowl built for cold harbours."
+  "why": "Clams and potato in a creamy bowl built for cold harbours.",
+  "dairy": true
  },
  {
   "dish": "Pozole",
@@ -831,7 +840,9 @@ const RECS = [
    "coffee"
   ],
   "why": "Espresso-soaked layers under mascarpone clouds — pick-me-up, literally.",
-  "alc": true
+  "alc": true,
+  "egg": true,
+  "dairy": true
  },
  {
   "dish": "Maafe",
@@ -876,7 +887,9 @@ const RECS = [
    "creamy",
    "classic"
   ],
-  "why": "A boat of molten cheese with a yolk in the middle — tear, dip, repeat."
+  "why": "A boat of molten cheese with a yolk in the middle — tear, dip, repeat.",
+  "egg": true,
+  "dairy": true
  },
  {
   "dish": "Okonomiyaki",
@@ -891,7 +904,8 @@ const RECS = [
    "street",
    "adventure"
   ],
-  "why": "Savoury cabbage pancake off the grill, lacquered and dancing with bonito."
+  "why": "Savoury cabbage pancake off the grill, lacquered and dancing with bonito.",
+  "egg": true
  },
  {
   "dish": "Curry laksa",
@@ -938,7 +952,8 @@ const RECS = [
    "creamy",
    "home"
   ],
-  "why": "Aubergine and spiced lamb under a béchamel blanket."
+  "why": "Aubergine and spiced lamb under a béchamel blanket.",
+  "dairy": true
  },
  {
   "dish": "Goulash",
@@ -1060,7 +1075,9 @@ const RECS = [
    "sweet",
    "home"
   ],
-  "why": "Cape Malay spiced mince baked under a golden custard top."
+  "why": "Cape Malay spiced mince baked under a golden custard top.",
+  "egg": true,
+  "dairy": true
  },
  {
   "dish": "Som tam",
@@ -1107,7 +1124,8 @@ const RECS = [
    "creamy",
    "classic"
   ],
-  "why": "Tandoori chicken folded into tomato-butter silk."
+  "why": "Tandoori chicken folded into tomato-butter silk.",
+  "dairy": true
  },
  {
   "dish": "Nihari",
@@ -1152,7 +1170,8 @@ const RECS = [
    "classic",
    "meat"
   ],
-  "why": "Lacy crisp edges, molten cheese, soft bun — the diner, perfected."
+  "why": "Lacy crisp edges, molten cheese, soft bun — the diner, perfected.",
+  "dairy": true
  },
  {
   "dish": "Lobster roll",
@@ -1182,7 +1201,8 @@ const RECS = [
    "creamy",
    "classic"
   ],
-  "why": "Fries, gravy and squeaky cheese curds — Québec's gift to the world."
+  "why": "Fries, gravy and squeaky cheese curds — Québec's gift to the world.",
+  "dairy": true
  },
  {
   "dish": "Ribollita",
@@ -1214,7 +1234,8 @@ const RECS = [
    "classic",
    "home"
   ],
-  "why": "Potato-and-cheese dumplings with sweet fried onion — Central Europe's comfort handshake."
+  "why": "Potato-and-cheese dumplings with sweet fried onion — Central Europe's comfort handshake.",
+  "dairy": true
  },
  {
   "dish": "Beef stroganoff",
@@ -1230,7 +1251,8 @@ const RECS = [
    "comfort",
    "classic"
   ],
-  "why": "Beef folded through a tangy sour-cream sauce — rich, silky, unapologetic."
+  "why": "Beef folded through a tangy sour-cream sauce — rich, silky, unapologetic.",
+  "dairy": true
  },
  {
   "dish": "Salade niçoise",
@@ -1246,7 +1268,8 @@ const RECS = [
    "classic",
    "healthy"
   ],
-  "why": "Tuna, olives, eggs and green beans in sharp vinaigrette — the composed salad that eats like a meal."
+  "why": "Tuna, olives, eggs and green beans in sharp vinaigrette — the composed salad that eats like a meal.",
+  "egg": true
  },
  {
   "dish": "Cacio e pepe",
@@ -1262,7 +1285,8 @@ const RECS = [
    "classic",
    "comfort"
   ],
-  "why": "Three ingredients, zero hiding: pasta, black pepper and pecorino turned into gloss."
+  "why": "Three ingredients, zero hiding: pasta, black pepper and pecorino turned into gloss.",
+  "dairy": true
  },
  {
   "dish": "Drunken chicken",
@@ -1489,7 +1513,9 @@ const RECS = [
    "tangy",
    "spice"
   ],
-  "why": "Corn kernels in a cup with lime, chilli, mayo and cheese — street-corner electricity."
+  "why": "Corn kernels in a cup with lime, chilli, mayo and cheese — street-corner electricity.",
+  "egg": true,
+  "dairy": true
  },
  {
   "dish": "Lomo saltado",
@@ -1521,7 +1547,8 @@ const RECS = [
    "meat",
    "comfort"
   ],
-  "why": "A platter, not a plate: beans, rice, beef, chicharrón, egg, plantain and avocado."
+  "why": "A platter, not a plate: beans, rice, beef, chicharrón, egg, sweet plantain and avocado.",
+  "egg": true
  },
  {
   "dish": "Chiles rellenos",
@@ -1537,7 +1564,9 @@ const RECS = [
    "creamy",
    "classic"
   ],
-  "why": "Poblano peppers stuffed with cheese, battered and fried, floated in tomato broth."
+  "why": "Poblano peppers stuffed with cheese, battered and fried, floated in tomato broth.",
+  "egg": true,
+  "dairy": true
  },
  {
   "dish": "Sancocho",
@@ -1618,7 +1647,8 @@ const RECS = [
    "meat"
   ],
   "why": "Beef minced and warmed in mitmita spice and niter kibbeh — Ethiopia's steak tartare, served leb leb or raw.",
-  "raw": true
+  "raw": true,
+  "dairy": true
  },
  {
   "dish": "Misir wot",
@@ -1858,7 +1888,9 @@ const RECS = [
    "comfort",
    "classic"
   ],
-  "why": "Apricot sponge soaked in hot cream sauce — South Africa's hug in dessert form."
+  "why": "Apricot sponge soaked in hot cream sauce — South Africa's hug in dessert form.",
+  "egg": true,
+  "dairy": true
  },
  {
   "dish": "Bourbon-glazed salmon",
@@ -1924,7 +1956,9 @@ const RECS = [
    "sweet",
    "comfort"
   ],
-  "why": "Fried chicken on a waffle under maple syrup — sweet, salty, crunchy, perfect."
+  "why": "Fried chicken on a waffle under maple syrup — sweet, salty, crunchy, perfect.",
+  "egg": true,
+  "dairy": true
  },
  {
   "dish": "Cioppino",
@@ -2004,7 +2038,8 @@ const RECS = [
    "classic",
    "street"
   ],
-  "why": "Mostly crab, barely binder, heavy on the Old Bay — fried to a shattering crust."
+  "why": "Mostly crab, barely binder, heavy on the Old Bay — fried to a shattering crust.",
+  "egg": true
  },
  {
   "dish": "Buffalo cauliflower",
@@ -2052,7 +2087,8 @@ const RECS = [
    "comfort",
    "street"
   ],
-  "why": "Thick, airy crust with cheese fired right to the edges — those crispy corners are the point."
+  "why": "Thick, airy crust with cheese fired right to the edges — those crispy corners are the point.",
+  "dairy": true
  },
  {
   "dish": "Shrimp po' boy",
@@ -2068,7 +2104,8 @@ const RECS = [
    "street",
    "classic"
   ],
-  "why": "Fried shrimp, shredded lettuce and rémoulade in a crackling French roll — dressed, always."
+  "why": "Fried shrimp, shredded lettuce and rémoulade in a crackling French roll — dressed, always.",
+  "egg": true
  },
  {
   "dish": "Chicken pot pie",
@@ -2084,7 +2121,8 @@ const RECS = [
    "comfort",
    "home"
   ],
-  "why": "Chicken and vegetables in velvet gravy under a flaky lid — the casserole of record."
+  "why": "Chicken and vegetables in velvet gravy under a flaky lid — the casserole of record.",
+  "dairy": true
  },
  {
   "dish": "Bison chili",
@@ -2116,7 +2154,9 @@ const RECS = [
    "tangy",
    "classic"
   ],
-  "why": "Tart, creamy, cold — the Keys in a graham crust, crowned with meringue."
+  "why": "Tart, creamy, cold — the Keys in a graham crust, crowned with meringue.",
+  "egg": true,
+  "dairy": true
  },
  {
   "dish": "Mac and cheese",
@@ -2132,7 +2172,8 @@ const RECS = [
    "comfort",
    "classic"
   ],
-  "why": "Elbow pasta in a sharp cheddar sauce with a bronzed top — America's comfort benchmark."
+  "why": "Elbow pasta in a sharp cheddar sauce with a bronzed top — America's comfort benchmark.",
+  "dairy": true
  },
  {
   "dish": "Cobb salad",
@@ -2148,7 +2189,9 @@ const RECS = [
    "healthy",
    "classic"
   ],
-  "why": "Chicken, bacon, egg, avocado and blue cheese in rows — the chopped salad that eats like dinner."
+  "why": "Chicken, bacon, egg, avocado and blue cheese in rows — the chopped salad that eats like dinner.",
+  "egg": true,
+  "dairy": true
  },
  {
   "dish": "Kibbeh nayyeh",
@@ -2213,7 +2256,8 @@ const RECS = [
    "fermented",
    "comfort"
   ],
-  "why": "Lamb over rice under jameed — a tangy fermented-yogurt sauce; Jordan's national celebration."
+  "why": "Lamb over rice under jameed — a tangy fermented-yogurt sauce; Jordan's national celebration.",
+  "dairy": true
  },
  {
   "dish": "Musakhan",
@@ -2390,7 +2434,8 @@ const RECS = [
    "classic",
    "street"
   ],
-  "why": "Griddled pancakes folded around cheese or nuts, drenched in syrup — Ramadan's sweet."
+  "why": "Griddled pancakes folded around cheese or nuts, drenched in syrup — Ramadan's sweet.",
+  "dairy": true
  },
  {
   "dish": "Cheese sambousek",
@@ -2406,7 +2451,8 @@ const RECS = [
    "street",
    "comfort"
   ],
-  "why": "Half-moon pastries with molten salty cheese — mezze's crisp little pockets."
+  "why": "Half-moon pastries with molten salty cheese — mezze's crisp little pockets.",
+  "dairy": true
  },
  {
   "dish": "Shish tawook",
@@ -2422,7 +2468,8 @@ const RECS = [
    "smoky",
    "street"
   ],
-  "why": "Chicken marinated in yogurt and lemon, charred at the edges, garlic sauce non-negotiable."
+  "why": "Chicken marinated in yogurt and lemon, charred at the edges, garlic sauce non-negotiable.",
+  "dairy": true
  },
  {
   "dish": "Harees",
@@ -2470,7 +2517,8 @@ const RECS = [
    "creamy",
    "classic"
   ],
-  "why": "Shredded pastry over molten cheese, soaked in syrup and crowned with pistachio."
+  "why": "Shredded pastry over molten cheese, soaked in syrup and crowned with pistachio.",
+  "dairy": true
  },
  {
   "dish": "Chole bhature",
@@ -2486,7 +2534,8 @@ const RECS = [
    "comfort",
    "street"
   ],
-  "why": "Cloud-puffed fried bread with chickpeas simmered dark and tangy — Punjab's big breakfast."
+  "why": "Cloud-puffed fried bread with chickpeas simmered dark and tangy — Punjab's big breakfast.",
+  "dairy": true
  },
  {
   "dish": "Rogan josh",
@@ -2534,7 +2583,8 @@ const RECS = [
    "home",
    "healthy"
   ],
-  "why": "Paneer folded through silken spinach — green, gentle and quietly rich."
+  "why": "Paneer folded through silken spinach — green, gentle and quietly rich.",
+  "dairy": true
  },
  {
   "dish": "Aloo gobi",
@@ -2598,7 +2648,8 @@ const RECS = [
    "tangy",
    "spice"
   ],
-  "why": "A samosa smashed under chole, yogurt, chutneys and sev — chaos, deliciously."
+  "why": "A samosa smashed under chole, yogurt, chutneys and sev — chaos, deliciously.",
+  "dairy": true
  },
  {
   "dish": "Chicken tikka",
@@ -2614,7 +2665,8 @@ const RECS = [
    "spice",
    "street"
   ],
-  "why": "Yogurt-marinated chicken charred in the tandoor — the original smoky skewer."
+  "why": "Yogurt-marinated chicken charred in the tandoor — the original smoky skewer.",
+  "dairy": true
  },
  {
   "dish": "Malai kofta",
@@ -2806,7 +2858,8 @@ const RECS = [
    "creamy",
    "classic"
   ],
-  "why": "Feather-light cheese discs soaked in saffron-cardamom milk — Bengal's cloud dessert."
+  "why": "Feather-light cheese discs soaked in saffron-cardamom milk — Bengal's cloud dessert.",
+  "dairy": true
  },
  {
   "dish": "Chicken dum biryani",
@@ -2982,7 +3035,8 @@ const RECS = [
    "sweet",
    "classic"
   ],
-  "why": "Thick, sweet Irani chai dunked with a salty-sweet osmania — the café ritual of the old city."
+  "why": "Thick, sweet Irani chai dunked with a salty-sweet osmania — the café ritual of the old city.",
+  "dairy": true
  },
  {
   "dish": "Double ka meetha",
@@ -2998,7 +3052,8 @@ const RECS = [
    "comfort",
    "classic"
   ],
-  "why": "Fried bread soaked in saffron-rabri syrup — the Deccan's bread pudding, richer and prouder."
+  "why": "Fried bread soaked in saffron-rabri syrup — the Deccan's bread pudding, richer and prouder.",
+  "dairy": true
  },
  {
   "dish": "Qubani ka meetha",
@@ -3014,7 +3069,8 @@ const RECS = [
    "home",
    "classic"
   ],
-  "why": "Stewed apricots with their kernels, served with malai — sunshine in a bowl."
+  "why": "Stewed apricots with their kernels, served with malai — sunshine in a bowl.",
+  "dairy": true
  },
  {
   "dish": "Marag",
@@ -3142,7 +3198,8 @@ const RECS = [
    "crisp",
    "street"
   ],
-  "why": "Batter-fried fish tossed with curry leaves, chillies and yogurt — a Hyderabadi restaurant invention gone legend."
+  "why": "Batter-fried fish tossed with curry leaves, chillies and yogurt — a Hyderabadi restaurant invention gone legend.",
+  "dairy": true
  },
  {
   "dish": "Gongura mutton",
@@ -3174,7 +3231,8 @@ const RECS = [
    "creamy",
    "classic"
   ],
-  "why": "Vermicelli simmered in milk with dates and nuts — Eid morning in a bowl."
+  "why": "Vermicelli simmered in milk with dates and nuts — Eid morning in a bowl.",
+  "dairy": true
  },
  {
   "dish": "Zobo",
@@ -3253,7 +3311,8 @@ const RECS = [
    "sweet",
    "creamy"
   ],
-  "why": "Milk tea with chewy tapioca pearls — the original bubble tea from Taiwan."
+  "why": "Milk tea with chewy tapioca pearls — the original bubble tea from Taiwan.",
+  "dairy": true
  },
  {
   "dish": "Vietnamese iced coffee",
@@ -3269,7 +3328,8 @@ const RECS = [
    "sweet",
    "creamy"
   ],
-  "why": "Slow-drip robusta over condensed milk and ice — strong, sweet, ice-cold."
+  "why": "Slow-drip robusta over condensed milk and ice — strong, sweet, ice-cold.",
+  "dairy": true
  },
  {
   "dish": "Mango sticky rice",
@@ -3301,7 +3361,8 @@ const RECS = [
    "creamy",
    "adventure"
   ],
-  "why": "Ice cream wrapped in soft, chewy rice dough — a bite-sized Japanese treat."
+  "why": "Ice cream wrapped in soft, chewy rice dough — a bite-sized Japanese treat.",
+  "dairy": true
  },
  {
   "dish": "Sangria",
@@ -3349,7 +3410,9 @@ const RECS = [
    "creamy",
    "classic"
   ],
-  "why": "Vanilla custard under a shattering caramel shell — the French classic."
+  "why": "Vanilla custard under a shattering caramel shell — the French classic.",
+  "egg": true,
+  "dairy": true
  },
  {
   "dish": "Basque cheesecake",
@@ -3365,7 +3428,9 @@ const RECS = [
    "creamy",
    "classic"
   ],
-  "why": "Burnt-top cheesecake from San Sebastián — caramelised outside, molten within."
+  "why": "Burnt-top cheesecake from San Sebastián — caramelised outside, molten within.",
+  "egg": true,
+  "dairy": true
  },
  {
   "dish": "Falooda",
@@ -3380,7 +3445,8 @@ const RECS = [
    "sweet",
    "creamy"
   ],
-  "why": "Rose milk layered with vermicelli, basil seeds and ice cream — a tall, pink celebration."
+  "why": "Rose milk layered with vermicelli, basil seeds and ice cream — a tall, pink celebration.",
+  "dairy": true
  },
  {
   "dish": "Nannari sharbat",
@@ -3428,7 +3494,8 @@ const RECS = [
    "creamy",
    "classic"
   ],
-  "why": "Bottle-gourd and milk pudding with nuts — a Nizam-era dessert, 'the clay of paradise'."
+  "why": "Bottle-gourd and milk pudding with nuts — a Nizam-era dessert, 'the clay of paradise'.",
+  "dairy": true
  },
  {
   "dish": "Horchata",
@@ -3444,52 +3511,5 @@ const RECS = [
    "creamy"
   ],
   "why": "Cinnamon rice milk, ice-cold — the taqueria classic that cools every bite."
- },
- {
-  "dish": "Chicha morada",
-  "yt": "https://www.youtube.com/watch?v=W4m1l8Zesqs",
-  "from": "Peru · Latin America",
-  "region": "latinamerica",
-  "country": "Peru",
-  "diet": "vegan",
-  "emoji": "🍇",
-  "course": "drink",
-  "match": [
-   "sweet",
-   "tangy",
-   "spice"
-  ],
-  "why": "Purple-corn drink with pineapple and warm spices — Peru's deep-violet refresher."
- },
- {
-  "dish": "Tres leches cake",
-  "yt": "https://www.youtube.com/watch?v=bJfgEx2PBIg",
-  "from": "Mexico · Latin America",
-  "region": "latinamerica",
-  "country": "Mexico",
-  "diet": "veg",
-  "emoji": "🍰",
-  "course": "dessert",
-  "match": [
-   "sweet",
-   "creamy",
-   "classic"
-  ],
-  "why": "Sponge soaked in three milks — impossibly moist, crowned with cream."
- },
- {
-  "dish": "Brigadeiros",
-  "yt": "https://www.youtube.com/watch?v=r9P4F8rzkts",
-  "from": "Brazil · Latin America",
-  "region": "latinamerica",
-  "country": "Brazil",
-  "diet": "veg",
-  "emoji": "🍫",
-  "course": "dessert",
-  "match": [
-   "sweet",
-   "creamy"
-  ],
-  "why": "Condensed-milk chocolate truffles rolled in sprinkles — Brazil's party sweet."
  }
 ];

@@ -11,7 +11,7 @@
    session. Any failure is swallowed — the site behaves exactly as
    before. Bump BUILD together with version.json on every deploy. */
 (function () {
-  var BUILD = "79";
+  var BUILD = "80";
   try {
     fetch("version.json?ts=" + Date.now(), { cache: "no-store" })
       .then(function (r) { return r.ok ? r.json() : null; })
@@ -35,11 +35,10 @@
 <meta property="og:image" content="https://cdn.shopify.com/s/files/1/0851/9024/7465/files/Saffron_Threads_480x480.jpg?v=1726550435">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🍽️%3C/text%3E%3C/svg%3E">
 <title>Diving into Buds — a delicious dive into your taste buds</title>
-<meta name="description" content="Thoughtful questions. Zero fluff. We figure out what makes your taste buds tick, then match you to world flavors you didn't know you'd love.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=42">
+<link rel="stylesheet" href="styles.css?v=43">
 </head>
 <body>
 
@@ -63,7 +62,7 @@
       </div>
       <div class="badge">✦ A flavour journey ✦</div>
       <h1>Take a dive into your<br><em>taste buds</em>.</h1>
-      <p class="lede">Thoughtful questions. Zero fluff. We figure out what makes your taste buds tick, then match your tastes to quietly introduce you to world flavors you didn't know you'd love.</p>
+      <p class="lede">Tell us 5 dishes you love, then answer 20 flavour questions shaped by your diet and roots. You get a taste profile that's truly yours — and 20 new dishes to try, with the places near you that serve them.</p>
       <div class="floaties" aria-hidden="true"><span>🍜</span><span>🌮</span><span>🍣</span><span>🥐</span><span>🍛</span><span>🍕</span></div>
     </div>
 
@@ -82,6 +81,7 @@
           <span class="mode-go">Explore from home →</span>
         </button>
       </div>
+      <p class="hero-micro">Free · About 10 minutes · No spam, ever</p>
     </div>
   </section>
 
@@ -91,13 +91,8 @@
       <h2 class="info-title">How it works</h2>
       <div class="steps">
         <div class="step"><div class="step-emoji">🔐</div><strong>1 · Create an account</strong><span>Save your data if you wish to come back and access your profile</span></div>
-        <div class="step"><div class="step-emoji">🍽️</div><strong>2 · Select your preferences</strong><span>Select 5 Favs, answer 5 questions</span></div>
+        <div class="step"><div class="step-emoji">🍽️</div><strong>2 · Select your preferences</strong><span>Select 5 Favs, answer 20 questions</span></div>
         <div class="step"><div class="step-emoji">🎉</div><strong>3 · Meet your taste profile</strong><span>Our recommendations based on your profile</span></div>
-      </div>
-      <div class="slider-explain">
-        <div class="se-head"><span class="se-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V5"/><path d="M5.8 11L12 4.8 18.2 11"/></svg></span> <strong>The Confidence Slider: How Sure Are You?</strong><button type="button" id="seInfoBtn" class="info-btn" aria-label="More about the confidence slider" title="More about the confidence slider">i</button></div>
-        <p>5 = no contest · 1 = the others nearly won. Your strongest picks shape your results most.</p>
-        <p class="info-panel" id="seInfoPanel" hidden>🎚️ Every pick you make carries a strength from 1 to 5. At 1 the other options nearly won; at 5 it's this pick, no debate. Your high-confidence picks count for more when your taste profile and recommendations are built — so slide up only when you really mean it. Tip: unsure? Leave it at 1 and keep rolling to the next question.</p>
       </div>
 
     </div>
@@ -135,7 +130,7 @@
       <h3 class="fund-label">Fundamental 1 · Pick your diet<button type="button" id="dietInfoBtn" class="info-btn" aria-label="About the diet choices" title="About the diet choices">i</button></h3>
       <div class="fund-grid" id="dietGrid" role="radiogroup" aria-label="Pick your diet">
         <button type="button" class="fund-opt" data-diet="everything" role="radio" aria-checked="false"><span class="f-emoji">🍽️</span><strong>Everything</strong><span>No rules. Bring it all on.</span><span class="fi" data-fi="diet" data-key="everything" title="More about this choice">i</span></button>
-        <button type="button" class="fund-opt" data-diet="vegetarian" role="radio" aria-checked="false"><span class="f-emoji">🥗</span><strong>Vegetarian</strong><span>No meat or seafood — dairy &amp; eggs welcome.</span><span class="fi" data-fi="diet" data-key="vegetarian" title="More about this choice">i</span></button>
+        <button type="button" class="fund-opt" data-diet="vegetarian" role="radio" aria-checked="false"><span class="f-emoji">🥗</span><strong>Vegetarian</strong><span>No meat or seafood — eggs &amp; dairy are your call.</span><span class="fi" data-fi="diet" data-key="vegetarian" title="More about this choice">i</span></button>
         <button type="button" class="fund-opt" data-diet="vegan" role="radio" aria-checked="false"><span class="f-emoji">🌱</span><strong>Vegan</strong><span>Fully plant-based, all the way.</span><span class="fi" data-fi="diet" data-key="vegan" title="More about this choice">i</span></button>
         <button type="button" class="fund-opt" data-diet="halal" role="radio" aria-checked="false"><span class="f-emoji">🌙</span><strong>Everything Halal</strong><span>Everything, halal — no pork, no alcohol.</span><span class="fi" data-fi="diet" data-key="halal" title="More about this choice">i</span></button>
       </div>
@@ -180,7 +175,7 @@
       <div class="stack">
         <button class="btn primary big" id="primaryAction" type="button">Start the questions</button>
         <button class="btn ghost" id="changeFundBtn" type="button" hidden>Change fundamentals</button>
-        <button class="btn ghost" id="restartBtn" type="button" hidden>Start over</button>
+        <button class="btn ghost" id="restartBtn" type="button" hidden>↺ Start over</button>
       </div>
     </div>
   </section>
@@ -189,12 +184,17 @@
   <!-- ——— LOVED DISHES (v22) ——— -->
   <section id="view-loves" class="view" hidden>
     <div class="card qcard">
-      <div class="qmeta"><span class="chip">First question</span></div>
+      <div class="qmeta"><span class="chip">Warm-up · before the 20 questions</span></div>
       <h2 class="qtext">Tell us what you love! ❤️</h2>
       <p class="loves-sub">Pick 5 of your favorite foods to get started — whether they're starters, main courses, desserts, regional foods, or global dishes.</p>
       <p class="loves-note">We've done our best to feature as many of your favorites as we can.</p>
       <div class="loves-search">
         <input type="text" id="lovesInput" class="city-input" placeholder="Type a dish or drink you love…" autocomplete="off" maxlength="60" aria-label="Search dishes and drinks you love">
+      </div>
+      <p class="fund-hint" id="lovesLoadNote">Loading the dish list — 49,405 dishes…</p>
+      <div class="loves-starters" id="lovesStarters" hidden>
+        <p class="loves-starters-label">Or start with a classic — tap to add:</p>
+        <div class="starter-chips" id="starterChips"></div>
       </div>
       <div class="options" id="lovesResults" role="group" aria-label="Dish matches"></div>
       <h3 class="loves-picked-title">Your Favs <span class="loves-dots" id="lovesDots" aria-hidden="true"></span><span id="lovesCount">0 of 5 to get started</span></h3>
@@ -221,6 +221,7 @@
       </div>
       <p class="info-panel" id="endInfoPanel" hidden>🏁 <strong>End here</strong> finishes the questionnaire right now and builds your taste profile from the answers you've given so far. The more questions you answer, the sharper and more complete the profile — ending early gives results based on limited information.</p>
       <div class="progress" role="progressbar" aria-label="Questions answered" aria-valuemin="0" aria-valuemax="20" aria-valuenow="0" id="progressWrap"><div class="bar" id="progressBar"></div></div>
+      <p class="quiz-milestone" id="quizMilestone" hidden></p>
     </div>
 
     <div class="card qcard" id="qCard">
@@ -235,7 +236,7 @@
         <p class="multi-hint" id="multiHint" hidden>✋ Pick all that apply — then hit Next.</p>
         <div class="options" id="qOptions" role="group" aria-label="Answer options"></div>
 
-        <div class="slider-block">
+        <div class="slider-block" id="sliderBlock">
           <div class="slider-head">
             <label for="weightSlider"><span class="slider-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V5"/><path d="M5.8 11L12 4.8 18.2 11"/></svg></span>How strong is this pick?</label>
             <span class="slider-val" id="sliderVal">1 · Almost a tie</span>
@@ -275,18 +276,18 @@
       <div class="pick-stack">
         <button class="pick-btn" id="pickProfileBtn" type="button">
           <span class="pick-emoji">👤</span>
-          <span class="pick-text"><strong>My taste profile</strong><small>Your meters, flavour axes and what shaped your palate</small></span>
+          <span class="pick-text"><strong>My taste profile</strong><small id="forkProfileFact">Your meters, flavour axes and what shaped your palate</small></span>
           <span class="pick-arrow">→</span>
         </button>
         <button class="pick-btn" id="pickDishesBtn" type="button">
           <span class="pick-emoji">🍽️</span>
-          <span class="pick-text"><strong>Dishes recommended</strong><small>20 dishes picked for your palate — and where to try them</small></span>
+          <span class="pick-text"><strong>Dishes recommended</strong><small id="forkDishesFact">20 dishes picked for your palate — and where to try them</small></span>
           <span class="pick-arrow">→</span>
         </button>
       </div>
       <p class="fineprint" id="sheetNote"></p>
       <div class="stack">
-        <button class="btn primary" id="retakeBtn" type="button">Retake the questions</button>
+        <button class="btn primary" id="retakeBtn" type="button">↺ Start over</button>
       </div>
     </div>
   </section>
@@ -307,6 +308,7 @@
       <div id="profileAversions"></div>
       <div class="stack">
         <button class="btn primary big" id="profileToDishesBtn" type="button">🍽️ See my dishes</button>
+        <button class="btn ghost" id="shareProfileBtn" type="button">↗️ Share my palate</button>
         <button class="btn ghost" id="csvBtn" type="button">⬇️ Download my results (CSV)</button>
       </div>
     </div>
@@ -329,13 +331,14 @@
 <footer>Made with 🌶️ and curiosity · Diving into Buds</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="questions.js?v=20"></script>
-<script src="questions2.js?v=11"></script>
-<script src="questions3.js?v=8"></script>
-<script src="recs.js?v=9"></script>
-<script src="recs2.js?v=3"></script>
-<script src="recs3.js?v=3"></script>
-<script src="recs4.js?v=3"></script>
-<script src="app.js?v=79"></script>
+<script src="questions.js?v=21"></script>
+<script src="questions2.js?v=12"></script>
+<script src="questions3.js?v=9"></script>
+<script src="recs.js?v=10"></script>
+<script src="recs2.js?v=4"></script>
+<script src="recs3.js?v=4"></script>
+<script src="recs4.js?v=4"></script>
+<script src="app2.js?v=1"></script>
+<script src="app.js?v=80"></script>
 </body>
 </html>

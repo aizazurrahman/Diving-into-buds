@@ -11,7 +11,7 @@
    session. Any failure is swallowed — the site behaves exactly as
    before. Bump BUILD together with version.json on every deploy. */
 (function () {
-  var BUILD = "81";
+  var BUILD = "82";
   try {
     fetch("version.json?ts=" + Date.now(), { cache: "no-store" })
       .then(function (r) { return r.ok ? r.json() : null; })

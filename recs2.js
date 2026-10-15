@@ -1,6 +1,56 @@
 /* Recommendation pool, part 2 — see recs.js. Loaded right after the previous part. */
 RECS.push(
 {
+ "dish": "Chicha morada",
+ "yt": "https://www.youtube.com/watch?v=W4m1l8Zesqs",
+ "from": "Peru · Latin America",
+ "region": "latinamerica",
+ "country": "Peru",
+ "diet": "vegan",
+ "emoji": "🍇",
+ "course": "drink",
+ "match": [
+  "sweet",
+  "tangy",
+  "spice"
+ ],
+ "why": "Purple-corn drink with pineapple and warm spices — Peru's deep-violet refresher."
+},
+{
+ "dish": "Tres leches cake",
+ "yt": "https://www.youtube.com/watch?v=bJfgEx2PBIg",
+ "from": "Mexico · Latin America",
+ "region": "latinamerica",
+ "country": "Mexico",
+ "diet": "veg",
+ "emoji": "🍰",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "creamy",
+  "classic"
+ ],
+ "why": "Sponge soaked in three milks — impossibly moist, crowned with cream.",
+ "egg": true,
+ "dairy": true
+},
+{
+ "dish": "Brigadeiros",
+ "yt": "https://www.youtube.com/watch?v=r9P4F8rzkts",
+ "from": "Brazil · Latin America",
+ "region": "latinamerica",
+ "country": "Brazil",
+ "diet": "veg",
+ "emoji": "🍫",
+ "course": "dessert",
+ "match": [
+  "sweet",
+  "creamy"
+ ],
+ "why": "Condensed-milk chocolate truffles rolled in sprinkles — Brazil's party sweet.",
+ "dairy": true
+},
+{
  "dish": "Turkish coffee",
  "yt": "https://www.youtube.com/watch?v=TvNWLrRzIAM",
  "from": "Türkiye · Middle East",
@@ -45,7 +95,8 @@ RECS.push(
   "crisp",
   "classic"
  ],
- "why": "Forty layers of filo, pistachio and syrup — the queen of Middle Eastern desserts."
+ "why": "Forty layers of filo, pistachio and syrup — the queen of Middle Eastern desserts.",
+ "dairy": true
 },
 {
  "dish": "Baba ghanoush",
@@ -77,7 +128,8 @@ RECS.push(
   "creamy",
   "classic"
  ],
- "why": "Milk tea boiled with ginger and crushed spices — India's daily ritual."
+ "why": "Milk tea boiled with ginger and crushed spices — India's daily ritual.",
+ "dairy": true
 },
 {
  "dish": "Jaljeera",
@@ -109,7 +161,8 @@ RECS.push(
   "classic",
   "creamy"
  ],
- "why": "Warm milk dumplings in rose-cardamom syrup — the subcontinent's celebration sweet."
+ "why": "Warm milk dumplings in rose-cardamom syrup — the subcontinent's celebration sweet.",
+ "dairy": true
 },
 {
  "dish": "Kulfi",
@@ -125,7 +178,8 @@ RECS.push(
   "creamy",
   "classic"
  ],
- "why": "Dense, slow-cooked milk ice cream with pistachio — no churning, all richness."
+ "why": "Dense, slow-cooked milk ice cream with pistachio — no churning, all richness.",
+ "dairy": true
 },
 {
  "dish": "Sweet tea",
@@ -156,7 +210,8 @@ RECS.push(
   "creamy",
   "classic"
  ],
- "why": "Vanilla ice cream drowned in root beer — a soda-fountain time machine."
+ "why": "Vanilla ice cream drowned in root beer — a soda-fountain time machine.",
+ "dairy": true
 },
 {
  "dish": "New York cheesecake",
@@ -172,7 +227,9 @@ RECS.push(
   "creamy",
   "classic"
  ],
- "why": "Tall, dense and unapologetic — the deli-counter original."
+ "why": "Tall, dense and unapologetic — the deli-counter original.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Pecan pie",
@@ -188,7 +245,9 @@ RECS.push(
   "classic",
   "comfort"
  ],
- "why": "Dark-syrup pecan custard in a crisp shell — the Southern holiday pie."
+ "why": "Dark-syrup pecan custard in a crisp shell — the Southern holiday pie.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Sauerbraten",
@@ -236,7 +295,8 @@ RECS.push(
   "comfort",
   "home"
  ],
- "why": "Swabian pasta pockets of pork, beef and spinach in broth or browned with onions."
+ "why": "Swabian pasta pockets of pork, beef and spinach in broth or browned with onions.",
+ "egg": true
 },
 {
  "dish": "Kartoffelsalat",
@@ -269,7 +329,8 @@ RECS.push(
   "classic"
  ],
  "why": "Hand-scraped egg noodles layered with mountain cheese and crisped onions.",
- "egg": true
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Apfelstrudel",
@@ -318,7 +379,8 @@ RECS.push(
   "comfort",
   "classic"
  ],
- "why": "Eggs, sausage, bacon, beans and mushrooms — the full works on one plate."
+ "why": "Eggs, sausage, bacon, beans and mushrooms — the full works on one plate.",
+ "egg": true
 },
 {
  "dish": "Shepherd's pie",
@@ -350,7 +412,9 @@ RECS.push(
   "classic",
   "comfort"
  ],
- "why": "Roast beef, Yorkshire pudding, roast potatoes and gravy — the Sunday institution."
+ "why": "Roast beef, Yorkshire pudding, roast potatoes and gravy — the Sunday institution.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Scotch egg",
@@ -366,7 +430,8 @@ RECS.push(
   "street",
   "meat"
  ],
- "why": "A boiled egg wrapped in sausage meat, crumbed and fried golden."
+ "why": "A boiled egg wrapped in sausage meat, crumbed and fried golden.",
+ "egg": true
 },
 {
  "dish": "Cornish pasty",
@@ -398,7 +463,9 @@ RECS.push(
   "comfort",
   "classic"
  ],
- "why": "Date sponge drowned in warm toffee sauce."
+ "why": "Date sponge drowned in warm toffee sauce.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Eton mess",
@@ -414,7 +481,9 @@ RECS.push(
   "creamy",
   "fresh"
  ],
- "why": "Crushed meringue, strawberries and cream — beautifully deliberate chaos."
+ "why": "Crushed meringue, strawberries and cream — beautifully deliberate chaos.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Irish stew",
@@ -446,7 +515,8 @@ RECS.push(
   "home",
   "creamy"
  ],
- "why": "Mashed potatoes folded with kale and butter — humble and rich."
+ "why": "Mashed potatoes folded with kale and butter — humble and rich.",
+ "dairy": true
 },
 {
  "dish": "Boxty",
@@ -478,7 +548,8 @@ RECS.push(
   "fresh",
   "classic"
  ],
- "why": "Oak-smoked salmon on wheaten soda bread with lemon."
+ "why": "Oak-smoked salmon on wheaten soda bread with lemon.",
+ "dairy": true
 },
 {
  "dish": "Irish coffee",
@@ -495,7 +566,8 @@ RECS.push(
   "sweet"
  ],
  "why": "Whiskey-laced coffee under a cool cream cap — invented for cold Atlantic nights.",
- "alc": true
+ "alc": true,
+ "dairy": true
 },
 {
  "dish": "Citron pressé",
@@ -527,7 +599,8 @@ RECS.push(
   "crisp",
   "fresh"
  ],
- "why": "Warm goat's cheese on toast over dressed leaves with a touch of honey."
+ "why": "Warm goat's cheese on toast over dressed leaves with a touch of honey.",
+ "dairy": true
 },
 {
  "dish": "Moules-frites",
@@ -591,7 +664,9 @@ RECS.push(
   "crisp",
   "classic"
  ],
- "why": "Yeasted waffles with pearl sugar that caramelises in the iron."
+ "why": "Yeasted waffles with pearl sugar that caramelises in the iron.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Tomate aux crevettes",
@@ -607,7 +682,8 @@ RECS.push(
   "creamy",
   "classic"
  ],
- "why": "Tomatoes filled with grey shrimp and mayonnaise — a coastal classic."
+ "why": "Tomatoes filled with grey shrimp and mayonnaise — a coastal classic.",
+ "egg": true
 },
 {
  "dish": "Stamppot with rookworst",
@@ -656,7 +732,8 @@ RECS.push(
   "meat",
   "street"
  ],
- "why": "Crisp-fried balls of beef ragout — the café snack, with mustard."
+ "why": "Crisp-fried balls of beef ragout — the café snack, with mustard.",
+ "dairy": true
 },
 {
  "dish": "Pannenkoeken",
@@ -672,7 +749,9 @@ RECS.push(
   "comfort",
   "classic"
  ],
- "why": "Plate-sized pancakes, sweet or savoury — a Dutch family institution."
+ "why": "Plate-sized pancakes, sweet or savoury — a Dutch family institution.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Stroopwafel",
@@ -688,7 +767,8 @@ RECS.push(
   "classic",
   "crisp"
  ],
- "why": "Two thin waffles glued with caramel syrup — best warmed over coffee."
+ "why": "Two thin waffles glued with caramel syrup — best warmed over coffee.",
+ "dairy": true
 },
 {
  "dish": "Advocaat",
@@ -737,7 +817,8 @@ RECS.push(
   "comfort",
   "crisp"
  ],
- "why": "Salt cod scrambled with egg, onion and matchstick potatoes."
+ "why": "Salt cod scrambled with egg, onion and matchstick potatoes.",
+ "egg": true
 },
 {
  "dish": "Peixinhos da horta",
@@ -769,7 +850,8 @@ RECS.push(
   "creamy",
   "adventure"
  ],
- "why": "A stacked meat sandwich drowned in cheese and beer sauce — Porto's glorious excess."
+ "why": "A stacked meat sandwich drowned in cheese and beer sauce — Porto's glorious excess.",
+ "dairy": true
 },
 {
  "dish": "Pastel de nata",
@@ -785,7 +867,9 @@ RECS.push(
   "crisp",
   "classic"
  ],
- "why": "Blistered custard tarts with cinnamon — still warm from Belém's ovens."
+ "why": "Blistered custard tarts with cinnamon — still warm from Belém's ovens.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Vinho verde",
@@ -834,7 +918,8 @@ RECS.push(
   "classic",
   "comfort"
  ],
- "why": "A bubbling pot of Gruyère and Vacheron for communal dunking."
+ "why": "A bubbling pot of Gruyère and Vacheron for communal dunking.",
+ "dairy": true
 },
 {
  "dish": "Raclette",
@@ -850,7 +935,8 @@ RECS.push(
   "comfort",
   "classic"
  ],
- "why": "Melted cheese scraped over potatoes, pickles and onions."
+ "why": "Melted cheese scraped over potatoes, pickles and onions.",
+ "dairy": true
 },
 {
  "dish": "Rösti",
@@ -882,7 +968,8 @@ RECS.push(
   "classic",
   "comfort"
  ],
- "why": "Veal strips in a mushroom-cream sauce, born in Zurich's kitchens."
+ "why": "Veal strips in a mushroom-cream sauce, born in Zurich's kitchens.",
+ "dairy": true
 },
 {
  "dish": "Basler Läckerli",
@@ -946,7 +1033,8 @@ RECS.push(
   "creamy",
   "comfort"
  ],
- "why": "Pan-fried cheese dumplings in broth or on salad — Alpine fuel."
+ "why": "Pan-fried cheese dumplings in broth or on salad — Alpine fuel.",
+ "dairy": true
 },
 {
  "dish": "Sachertorte",
@@ -962,7 +1050,8 @@ RECS.push(
   "classic",
   "creamy"
  ],
- "why": "Dense chocolate cake with apricot jam and a glossy dark coat."
+ "why": "Dense chocolate cake with apricot jam and a glossy dark coat.",
+ "egg": true
 },
 {
  "dish": "Almdudler",
@@ -994,7 +1083,8 @@ RECS.push(
   "classic",
   "tangy"
  ],
- "why": "Open rye sandwich crowned with pickled herring, onion and dill."
+ "why": "Open rye sandwich crowned with pickled herring, onion and dill.",
+ "dairy": true
 },
 {
  "dish": "Frikadeller",
@@ -1010,7 +1100,8 @@ RECS.push(
   "comfort",
   "home"
  ],
- "why": "Pan-fried pork meatballs with creamed cabbage and potatoes."
+ "why": "Pan-fried pork meatballs with creamed cabbage and potatoes.",
+ "dairy": true
 },
 {
  "dish": "Stegt flæsk",
@@ -1026,7 +1117,8 @@ RECS.push(
   "crisp",
   "classic"
  ],
- "why": "Crisp pork belly with parsley sauce and potatoes — Denmark's national dish."
+ "why": "Crisp pork belly with parsley sauce and potatoes — Denmark's national dish.",
+ "dairy": true
 },
 {
  "dish": "Æbleskiver",
@@ -1042,7 +1134,9 @@ RECS.push(
   "classic",
   "comfort"
  ],
- "why": "Spherical pancakes dusted with sugar, jam on the side."
+ "why": "Spherical pancakes dusted with sugar, jam on the side.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Gløgg",
@@ -1124,7 +1218,8 @@ RECS.push(
   "comfort",
   "classic"
  ],
- "why": "Soft potato flatbread rolled with butter, sugar and cinnamon."
+ "why": "Soft potato flatbread rolled with butter, sugar and cinnamon.",
+ "dairy": true
 },
 {
  "dish": "Norwegian waffles",
@@ -1139,7 +1234,9 @@ RECS.push(
   "sweet",
   "classic"
  ],
- "why": "Heart-shaped waffles with brown cheese or jam and sour cream."
+ "why": "Heart-shaped waffles with brown cheese or jam and sour cream.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Köttbullar",
@@ -1155,7 +1252,8 @@ RECS.push(
   "comfort",
   "classic"
  ],
- "why": "Swedish meatballs in cream gravy with lingonberries and mash."
+ "why": "Swedish meatballs in cream gravy with lingonberries and mash.",
+ "dairy": true
 },
 {
  "dish": "Pickled herring",
@@ -1187,7 +1285,8 @@ RECS.push(
   "comfort",
   "classic"
  ],
- "why": "Potato and anchovy bake under a golden cream crust."
+ "why": "Potato and anchovy bake under a golden cream crust.",
+ "dairy": true
 },
 {
  "dish": "Ärtsoppa",
@@ -1219,7 +1318,8 @@ RECS.push(
   "classic",
   "spice"
  ],
- "why": "The original cinnamon bun, knotted and pearl-sugared."
+ "why": "The original cinnamon bun, knotted and pearl-sugared.",
+ "dairy": true
 },
 {
  "dish": "Lingonberry cordial",
@@ -1252,7 +1352,8 @@ RECS.push(
   "home"
  ],
  "why": "Thin rye pasties with rice porridge and egg butter.",
- "egg": true
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Lohikeitto",
@@ -1268,7 +1369,8 @@ RECS.push(
   "creamy",
   "home"
  ],
- "why": "Creamy salmon and potato soup with dill."
+ "why": "Creamy salmon and potato soup with dill.",
+ "dairy": true
 },
 {
  "dish": "Poronkäristys",
@@ -1300,7 +1402,8 @@ RECS.push(
   "classic",
   "fresh"
  ],
- "why": "Bilberry pie with a rye-shortcrust and a sour-cream top."
+ "why": "Bilberry pie with a rye-shortcrust and a sour-cream top.",
+ "dairy": true
 },
 {
  "dish": "Hákarl",
@@ -1332,7 +1435,8 @@ RECS.push(
   "home",
   "creamy"
  ],
- "why": "Cod mashed with potatoes and onions — the fisherman's hash."
+ "why": "Cod mashed with potatoes and onions — the fisherman's hash.",
+ "dairy": true
 },
 {
  "dish": "Skyr",
@@ -1348,7 +1452,8 @@ RECS.push(
   "fresh",
   "healthy"
  ],
- "why": "Thick, strained yogurt-cheese, eaten with berries and cream."
+ "why": "Thick, strained yogurt-cheese, eaten with berries and cream.",
+ "dairy": true
 },
 {
  "dish": "Brennivín",
@@ -1395,7 +1500,9 @@ RECS.push(
   "classic",
   "fresh"
  ],
- "why": "Sprat and egg on dark rye — Estonia's little open sandwich."
+ "why": "Sprat and egg on dark rye — Estonia's little open sandwich.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Kama",
@@ -1411,7 +1518,8 @@ RECS.push(
   "classic",
   "home"
  ],
- "why": "Roasted grain flour whisked into kefir — an ancient Baltic breakfast-dessert."
+ "why": "Roasted grain flour whisked into kefir — an ancient Baltic breakfast-dessert.",
+ "dairy": true
 },
 {
  "dish": "Kali",
@@ -1460,7 +1568,8 @@ RECS.push(
   "tangy"
  ],
  "why": "Cold kefir-beet soup, shockingly pink, with egg and herbs.",
- "egg": true
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Sklandrausis",
@@ -1508,7 +1617,8 @@ RECS.push(
   "comfort",
   "classic"
  ],
- "why": "Zeppelin-shaped potato dumplings with pork and sour cream."
+ "why": "Zeppelin-shaped potato dumplings with pork and sour cream.",
+ "dairy": true
 },
 {
  "dish": "Šaltibarščiai",
@@ -1525,7 +1635,8 @@ RECS.push(
   "tangy"
  ],
  "why": "Cold beet-kefir soup with egg and dill — summer's pink bowl.",
- "egg": true
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Šakotis",
@@ -1541,7 +1652,9 @@ RECS.push(
   "classic",
   "crisp"
  ],
- "why": "Tree cake baked on a rotating spit — branches of golden batter."
+ "why": "Tree cake baked on a rotating spit — branches of golden batter.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Gira",
@@ -1573,7 +1686,8 @@ RECS.push(
   "tangy",
   "comfort"
  ],
- "why": "Sour rye soup with sausage and egg, often in a bread bowl."
+ "why": "Sour rye soup with sausage and egg, often in a bread bowl.",
+ "egg": true
 },
 {
  "dish": "Pączki",
@@ -1589,7 +1703,9 @@ RECS.push(
   "classic",
   "street"
  ],
- "why": "Jam-filled doughnuts with a pale band around the middle."
+ "why": "Jam-filled doughnuts with a pale band around the middle.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Kompot",
@@ -1621,7 +1737,8 @@ RECS.push(
   "comfort",
   "classic"
  ],
- "why": "Beef in a silky root-vegetable cream sauce with dumplings and cranberries."
+ "why": "Beef in a silky root-vegetable cream sauce with dumplings and cranberries.",
+ "dairy": true
 },
 {
  "dish": "Vepřo-knedlo-zelo",
@@ -1653,7 +1770,8 @@ RECS.push(
   "street",
   "comfort"
  ],
- "why": "Marjoram potato pancakes, fried lacy and golden."
+ "why": "Marjoram potato pancakes, fried lacy and golden.",
+ "egg": true
 },
 {
  "dish": "Koláče",
@@ -1669,7 +1787,9 @@ RECS.push(
   "classic",
   "home"
  ],
- "why": "Round pastries with plum, poppy-seed or curd hearts."
+ "why": "Round pastries with plum, poppy-seed or curd hearts.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Becherovka",
@@ -1702,7 +1822,8 @@ RECS.push(
   "comfort",
   "classic"
  ],
- "why": "Potato dumplings folded through salty sheep's cheese."
+ "why": "Potato dumplings folded through salty sheep's cheese.",
+ "dairy": true
 },
 {
  "dish": "Kapustnica",
@@ -1766,7 +1887,8 @@ RECS.push(
   "street",
   "comfort"
  ],
- "why": "Deep-fried dough with sour cream and grated cheese."
+ "why": "Deep-fried dough with sour cream and grated cheese.",
+ "dairy": true
 },
 {
  "dish": "Hortobágyi palacsinta",
@@ -1782,7 +1904,9 @@ RECS.push(
   "creamy",
   "spice"
  ],
- "why": "Savoury pancakes stuffed with paprika meat in a sour-cream sauce."
+ "why": "Savoury pancakes stuffed with paprika meat in a sour-cream sauce.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Dobos torte",
@@ -1798,7 +1922,9 @@ RECS.push(
   "classic",
   "creamy"
  ],
- "why": "Five layers of sponge and chocolate buttercream under a caramel lid."
+ "why": "Five layers of sponge and chocolate buttercream under a caramel lid.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Tokaji aszú",
@@ -1846,7 +1972,8 @@ RECS.push(
   "home",
   "creamy"
  ],
- "why": "Golden polenta layered with salty cheese and sour cream."
+ "why": "Golden polenta layered with salty cheese and sour cream.",
+ "dairy": true
 },
 {
  "dish": "Salată de vinete",
@@ -1878,7 +2005,9 @@ RECS.push(
   "creamy",
   "classic"
  ],
- "why": "Fried cheese doughnuts with sour cream and sour-cherry jam."
+ "why": "Fried cheese doughnuts with sour cream and sour-cherry jam.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Țuică",
@@ -1910,7 +2039,8 @@ RECS.push(
   "tangy",
   "classic"
  ],
- "why": "Tomato, cucumber and peppers under a snow of white cheese."
+ "why": "Tomato, cucumber and peppers under a snow of white cheese.",
+ "dairy": true
 },
 {
  "dish": "Banitsa",
@@ -1926,7 +2056,9 @@ RECS.push(
   "creamy",
   "street"
  ],
- "why": "Spiralled filo pastry with white cheese — breakfast from any bakery window."
+ "why": "Spiralled filo pastry with white cheese — breakfast from any bakery window.",
+ "egg": true,
+ "dairy": true
 },
 {
  "dish": "Kavarma",
@@ -1958,7 +2090,8 @@ RECS.push(
   "fresh",
   "classic"
  ],
- "why": "Salted yogurt drink, whisked to a froth."
+ "why": "Salted yogurt drink, whisked to a froth.",
+ "dairy": true
 },
 {
  "dish": "Pašticada",
@@ -2006,7 +2139,8 @@ RECS.push(
   "street",
   "classic"
  ],
- "why": "Rum-and-raisin fritters dusted with sugar."
+ "why": "Rum-and-raisin fritters dusted with sugar.",
+ "egg": true
 },
 {
  "dish": "Rakija",
@@ -2038,7 +2172,8 @@ RECS.push(
   "street",
   "smoky"
  ],
- "why": "Grilled minced-beef fingers in flatbread with onion and kajmak."
+ "why": "Grilled minced-beef fingers in flatbread with onion and kajmak.",
+ "dairy": true
 },
 {
  "dish": "Sarma",
@@ -2070,7 +2205,8 @@ RECS.push(
   "home",
   "classic"
  ],
- "why": "Golden corn bread with cheese — the village table staple."
+ "why": "Golden corn bread with cheese — the village table staple.",
+ "dairy": true
 },
 {
  "dish": "Vanilice",
@@ -2118,7 +2254,8 @@ RECS.push(
   "home",
   "classic"
  ],
- "why": "Rolled dumplings with curd or walnut filling, steamed or baked."
+ "why": "Rolled dumplings with curd or walnut filling, steamed or baked.",
+ "dairy": true
 },
 {
  "dish": "Potica",
@@ -2134,7 +2271,8 @@ RECS.push(
   "classic",
   "home"
  ],
- "why": "Festive walnut roll with a perfect spiral."
+ "why": "Festive walnut roll with a perfect spiral.",
+ "dairy": true
 },
 {
  "dish": "Cviček",
@@ -2166,7 +2304,8 @@ RECS.push(
   "street",
   "smoky"
  ],
- "why": "Char-grilled pork skewers in warm pita with tzatziki and tomato."
+ "why": "Char-grilled pork skewers in warm pita with tzatziki and tomato.",
+ "dairy": true
 },
 {
  "dish": "Spanakopita",
@@ -2182,7 +2321,8 @@ RECS.push(
   "creamy",
   "classic"
  ],
- "why": "Spinach and feta in crackling filo."
+ "why": "Spinach and feta in crackling filo.",
+ "dairy": true
 },
 {
  "dish": "Loukoumades",
@@ -2230,7 +2370,8 @@ RECS.push(
   "home",
   "classic"
  ],
- "why": "Crescent dumplings with potato and cheese, fried onions on top."
+ "why": "Crescent dumplings with potato and cheese, fried onions on top.",
+ "dairy": true
 },
 {
  "dish": "Chicken Kyiv",
@@ -2246,7 +2387,8 @@ RECS.push(
   "classic",
   "meat"
  ],
- "why": "Crumbed chicken with a molten garlic-herb butter heart."
+ "why": "Crumbed chicken with a molten garlic-herb butter heart.",
+ "dairy": true
 },
 {
  "dish": "Uzvar",
@@ -2326,7 +2468,8 @@ RECS.push(
   "creamy",
   "comfort"
  ],
- "why": "Milky, porridge-soft rice under roast chicken — Hijazi comfort."
+ "why": "Milky, porridge-soft rice under roast chicken — Hijazi comfort.",
+ "dairy": true
 },
 {
  "dish": "Sambousa",
@@ -2358,7 +2501,8 @@ RECS.push(
   "street",
   "meat"
  ],
- "why": "Griddled stuffed pancake of beef, egg and leek."
+ "why": "Griddled stuffed pancake of beef, egg and leek.",
+ "egg": true
 },
 {
  "dish": "Luqaimat",
@@ -2438,7 +2582,8 @@ RECS.push(
   "crisp",
   "street"
  ],
- "why": "Saffron-cardamom pancakes with date syrup or cheese."
+ "why": "Saffron-cardamom pancakes with date syrup or cheese.",
+ "egg": true
 },
 {
  "dish": "Balaleet",
@@ -2470,7 +2615,8 @@ RECS.push(
   "creamy",
   "classic"
  ],
- "why": "Strong spiced milk tea — the Emirates' adopted daily ritual."
+ "why": "Strong spiced milk tea — the Emirates' adopted daily ritual.",
+ "dairy": true
 },
 {
  "dish": "Warak enab",
@@ -2518,7 +2664,8 @@ RECS.push(
   "creamy",
   "classic"
  ],
- "why": "Hot bread pudding with milk, nuts and coconut."
+ "why": "Hot bread pudding with milk, nuts and coconut.",
+ "dairy": true
 },
 {
  "dish": "Laban",
@@ -2533,7 +2680,8 @@ RECS.push(
   "tangy",
   "fresh"
  ],
- "why": "Chilled fermented milk — the desert table's cooler."
+ "why": "Chilled fermented milk — the desert table's cooler.",
+ "dairy": true
 },
 {
  "dish": "Muhammar",
@@ -2581,7 +2729,8 @@ RECS.push(
   "classic",
   "spice"
  ],
- "why": "Rose-and-saffron starch halwa studded with nuts."
+ "why": "Rose-and-saffron starch halwa studded with nuts.",
+ "dairy": true
 },
 {
  "dish": "Loomi tea",
@@ -2645,7 +2794,8 @@ RECS.push(
   "spice",
   "classic"
  ],
- "why": "Dark, gelatinous halwa of rosewater, nuts and ghee."
+ "why": "Dark, gelatinous halwa of rosewater, nuts and ghee.",
+ "dairy": true
 },
 {
  "dish": "Frankincense tea",
@@ -2774,7 +2924,8 @@ RECS.push(
   "street",
   "creamy"
  ],
- "why": "Flaky pastries of cheese, potato or mushroom from the market bakeries."
+ "why": "Flaky pastries of cheese, potato or mushroom from the market bakeries.",
+ "dairy": true
 },
 {
  "dish": "Malabi",
@@ -2790,7 +2941,8 @@ RECS.push(
   "creamy",
   "fresh"
  ],
- "why": "Rosewater milk pudding with syrup and pistachio."
+ "why": "Rosewater milk pudding with syrup and pistachio.",
+ "dairy": true
 },
 {
  "dish": "Sachlav",
@@ -2806,7 +2958,8 @@ RECS.push(
   "sweet",
   "spice"
  ],
- "why": "Hot, thick orchid-root drink with cinnamon and coconut — winter in a cup."
+ "why": "Hot, thick orchid-root drink with cinnamon and coconut — winter in a cup.",
+ "dairy": true
 },
 {
  "dish": "Maqluba",
@@ -2870,7 +3023,8 @@ RECS.push(
   "sweet",
   "spice"
  ],
- "why": "Hot orchid-root milk with cinnamon — the Levant's winter warmer."
+ "why": "Hot orchid-root milk with cinnamon — the Levant's winter warmer.",
+ "dairy": true
 },
 {
  "dish": "Ghormeh sabzi",
@@ -2902,7 +3056,8 @@ RECS.push(
   "home",
   "healthy"
  ],
- "why": "Thick noodle, bean and herb soup with kashk and fried mint."
+ "why": "Thick noodle, bean and herb soup with kashk and fried mint.",
+ "dairy": true
 },
 {
  "dish": "Faloodeh",
@@ -2934,7 +3089,8 @@ RECS.push(
   "fresh",
   "classic"
  ],
- "why": "Salted yogurt and mint drink, sometimes lightly sparkling."
+ "why": "Salted yogurt and mint drink, sometimes lightly sparkling.",
+ "dairy": true
 },
 {
  "dish": "Mahshi",
@@ -2982,7 +3138,8 @@ RECS.push(
   "classic",
   "creamy"
  ],
- "why": "Semolina cake soaked in syrup with coconut."
+ "why": "Semolina cake soaked in syrup with coconut.",
+ "dairy": true
 },
 {
  "dish": "Karkadeh",
@@ -3046,7 +3203,8 @@ RECS.push(
   "home",
   "classic"
  ],
- "why": "Crumbly millet and curd-cheese sweet with raisins."
+ "why": "Crumbly millet and curd-cheese sweet with raisins.",
+ "dairy": true
 },
 {
  "dish": "Shubat",
@@ -3062,7 +3220,8 @@ RECS.push(
   "adventure",
   "classic"
  ],
- "why": "Fermented camel's milk — the Kazakh steppe's champagne."
+ "why": "Fermented camel's milk — the Kazakh steppe's champagne.",
+ "dairy": true
 },
 {
  "dish": "Uzbek plov",
@@ -3094,7 +3253,8 @@ RECS.push(
   "comfort",
   "home"
  ],
- "why": "Big steamed dumplings of beef and onion with yogurt."
+ "why": "Big steamed dumplings of beef and onion with yogurt.",
+ "dairy": true
 },
 {
  "dish": "Samsa",
@@ -3141,7 +3301,8 @@ RECS.push(
   "tangy",
   "adventure"
  ],
- "why": "Lightly fermented mare's milk — Silk Road refreshment."
+ "why": "Lightly fermented mare's milk — Silk Road refreshment.",
+ "dairy": true
 },
 {
  "dish": "Shah plov",
@@ -3189,7 +3350,8 @@ RECS.push(
   "crisp",
   "classic"
  ],
- "why": "Diamond-cut pastry of nuts and honey for Novruz."
+ "why": "Diamond-cut pastry of nuts and honey for Novruz.",
+ "dairy": true
 },
 {
  "dish": "Sherbet",
@@ -3253,7 +3415,8 @@ RECS.push(
   "classic",
   "home"
  ],
- "why": "Buttery sweet bread with a crumbly khoriz heart."
+ "why": "Buttery sweet bread with a crumbly khoriz heart.",
+ "dairy": true
 },
 {
  "dish": "Tan",
@@ -3269,7 +3432,8 @@ RECS.push(
   "fresh",
   "classic"
  ],
- "why": "Salted yogurt drink with cucumber or herbs."
+ "why": "Salted yogurt drink with cucumber or herbs.",
+ "dairy": true
 },
 {
  "dish": "Kabuli pulao",
@@ -3301,7 +3465,8 @@ RECS.push(
   "home",
   "tangy"
  ],
- "why": "Steamed beef dumplings under garlic yogurt and split peas."
+ "why": "Steamed beef dumplings under garlic yogurt and split peas.",
+ "dairy": true
 },
 {
  "dish": "Bolani",
@@ -3333,7 +3498,8 @@ RECS.push(
   "spice",
   "sweet"
  ],
- "why": "Pink salt tea with cardamom — Kashmiri-Afghan hospitality."
+ "why": "Pink salt tea with cardamom — Kashmiri-Afghan hospitality.",
+ "dairy": true
 },
 {
  "dish": "Sindhi biryani",
@@ -3397,7 +3563,8 @@ RECS.push(
   "creamy",
   "street"
  ],
- "why": "Lentil dumplings soaked in spiced yogurt with tamarind."
+ "why": "Lentil dumplings soaked in spiced yogurt with tamarind.",
+ "dairy": true
 },
 {
  "dish": "Shahi tukray",
@@ -3413,7 +3580,8 @@ RECS.push(
   "creamy",
   "classic"
  ],
- "why": "Fried bread in saffron rabri with pistachio — the royal crumb."
+ "why": "Fried bread in saffron rabri with pistachio — the royal crumb.",
+ "dairy": true
 },
 {
  "dish": "Sattu sharbat",
@@ -3509,7 +3677,8 @@ RECS.push(
   "creamy",
   "classic"
  ],
- "why": "Caramelised sweet yogurt set in clay pots."
+ "why": "Caramelised sweet yogurt set in clay pots.",
+ "dairy": true
 },
 {
  "dish": "Borhani",
@@ -3525,7 +3694,8 @@ RECS.push(
   "spice",
   "creamy"
  ],
- "why": "Spiced yogurt drink served beside biryani at weddings."
+ "why": "Spiced yogurt drink served beside biryani at weddings.",
+ "dairy": true
 },
 {
  "dish": "Lamprais",
@@ -3573,7 +3743,8 @@ RECS.push(
   "creamy",
   "spice"
  ],
- "why": "Coconut and jaggery custard with cardamom and cashews."
+ "why": "Coconut and jaggery custard with cardamom and cashews.",
+ "egg": true
 },
 {
  "dish": "Dal bhat",
@@ -3590,149 +3761,5 @@ RECS.push(
   "healthy"
  ],
  "why": "Lentil soup, rice, greens and pickles — the plate Nepal runs on."
-},
-{
- "dish": "Sel roti",
- "yt": "https://www.youtube.com/watch?v=e_c3sOPrFOk",
- "from": "Nepal · South Asia",
- "region": "southasia",
- "country": "Nepal",
- "diet": "veg",
- "emoji": "🍩",
- "course": "dessert",
- "match": [
-  "sweet",
-  "crisp",
-  "street"
- ],
- "why": "Ring-shaped rice-flour doughnuts, crisp and caramel-kissed."
-},
-{
- "dish": "Tongba",
- "yt": "https://www.youtube.com/watch?v=3d0svGV2BRU",
- "from": "Limbu country · South Asia",
- "region": "southasia",
- "country": "Nepal",
- "diet": "vegan",
- "emoji": "🍺",
- "course": "drink",
- "match": [
-  "adventure",
-  "classic"
- ],
- "why": "Warm fermented-millet beer sipped through a bamboo straw.",
- "alc": true
-},
-{
- "dish": "Mohinga",
- "yt": "https://www.youtube.com/watch?v=l1KgsWd_GOE",
- "from": "Yangon · East Asia",
- "region": "eastasia",
- "country": "Myanmar",
- "diet": "meat:fish",
- "emoji": "🍜",
- "course": "main",
- "match": [
-  "soup",
-  "noodle",
-  "tangy"
- ],
- "why": "Fish and chickpea noodle soup with lemongrass — Myanmar's breakfast."
-},
-{
- "dish": "Tea leaf salad",
- "yt": "https://www.youtube.com/watch?v=x8O5JBvcz_k",
- "from": "Shan State · East Asia",
- "region": "eastasia",
- "country": "Myanmar",
- "diet": "vegan",
- "emoji": "🥗",
- "course": "appetizer",
- "match": [
-  "tangy",
-  "adventure",
-  "fermented"
- ],
- "why": "Fermented tea leaves with peanuts, sesame and tomato — crunchy, sour, electric."
-},
-{
- "dish": "Shan noodles",
- "yt": "https://www.youtube.com/watch?v=pawjAuvca7s",
- "from": "Shan State · East Asia",
- "region": "eastasia",
- "country": "Myanmar",
- "diet": "meat:chicken",
- "emoji": "🍜",
- "course": "main",
- "match": [
-  "noodle",
-  "home",
-  "tangy"
- ],
- "why": "Rice noodles in a light tomato-chicken sauce with pickles."
-},
-{
- "dish": "Ohno kaukswe",
- "yt": "https://www.youtube.com/watch?v=5eJNb_0e1zk",
- "from": "Myanmar · East Asia",
- "region": "eastasia",
- "country": "Myanmar",
- "diet": "meat:chicken",
- "emoji": "🍜",
- "course": "main",
- "match": [
-  "noodle",
-  "creamy",
-  "soup"
- ],
- "why": "Coconut chicken noodles with crisp toppings — mohinga's rich cousin."
-},
-{
- "dish": "Shwe yin aye",
- "yt": "https://www.youtube.com/watch?v=H734NxkxO-U",
- "from": "Myanmar · East Asia",
- "region": "eastasia",
- "country": "Myanmar",
- "diet": "veg",
- "emoji": "🍧",
- "course": "dessert",
- "match": [
-  "sweet",
-  "creamy",
-  "classic"
- ],
- "why": "Coconut milk with jellies, sticky rice and ice — 'golden heart cooler'."
-},
-{
- "dish": "Fish amok",
- "yt": "https://www.youtube.com/watch?v=mlngdPqXi10",
- "from": "Phnom Penh · East Asia",
- "region": "eastasia",
- "country": "Cambodia",
- "diet": "meat:fish",
- "emoji": "🐟",
- "course": "main",
- "match": [
-  "creamy",
-  "spice",
-  "classic"
- ],
- "why": "Fish curry steamed in banana leaf with lemongrass and coconut — Cambodia's national dish."
-},
-{
- "dish": "Beef lok lak",
- "yt": "https://www.youtube.com/watch?v=__5WDCp9sN8",
- "from": "Cambodia · East Asia",
- "region": "eastasia",
- "country": "Cambodia",
- "diet": "meat:beef",
- "emoji": "🥩",
- "course": "main",
- "match": [
-  "meat",
-  "tangy",
-  "crisp"
- ],
- "why": "Stir-fried beef over lettuce with a lime-and-pepper dip."
 }
 );

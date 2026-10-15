@@ -119,8 +119,26 @@ if (!a || !Array.isArray(a.o) || !a.o.length) return null;
 return a.o.map(i => QBANK_BY_ID[qid].options[i].diet.replace('meat:', ''));
 }
 
-function optVisible(opt, diet, meats) {
+function chosenEgg(s) {
+if (!s.builtFor || s.builtFor.diet !== 'vegetarian') return null;
+const stanceOf = qid => {
+const a = s.answers[qid];
+if (!a) return null;
+const q = QBANK_BY_ID[qid];
+if (!q) return null;
+const idx = Array.isArray(a.o) ? a.o : [ a.o ];
+const picked = idx.map(i => q.options[i]).filter(Boolean);
+if (!picked.length) return null;
+return picked.some(o => (o.tags || []).includes('eggok'));
+};
+const dedicated = stanceOf('op-eggs');
+if (dedicated !== null) return dedicated;
+return stanceOf('op-protein-veg');
+}
+
+function optVisible(opt, diet, meats, egg) {
 const d = opt.diet;
+if (opt.egg && egg === false) return false;
 if (opt.alt && (diet === 'everything' || diet === 'halal')) return false;
 if (opt.noveg && (diet === 'vegetarian' || diet === 'vegan')) return false;
 if (diet === 'vegan') return d === 'vegan';
@@ -136,9 +154,10 @@ return true;
 function visibleOpts(q, s) {
 const diet = s.builtFor.diet;
 const meats = q.id === 'op-meats' || q.id === 'op-meats-halal' ? null : chosenMeats(s);
+const egg = q.id === 'op-eggs' || q.id === 'op-protein-veg' ? null : chosenEgg(s);
 const out = [];
 q.options.forEach((o, i) => {
-if (optVisible(o, diet, meats)) out.push({
+if (optVisible(o, diet, meats, egg)) out.push({
 o: o,
 i: i
 });
@@ -2490,6 +2509,8 @@ const vetoedByAversion = dish => {
 const dw = dish.toLowerCase().replace(/[^a-z ]/g, ' ').split(/\s+/).filter(Boolean).map(stemW);
 return aversions.some(av => aversionKeys(av).some(k => dw.some(w => w === k || k.length >= 4 && w.startsWith(k))));
 };
+const eggStance = chosenEgg(s);
+if (eggStance !== null) eggOk = eggStance;
 const scored = RECS.filter(r => s.builtFor.mode === 'travel' || !ownRoots.includes(r.region)).filter(r => optVisible(r, s.builtFor.diet, meats)).filter(r => !r.raw || rawOk).filter(r => !r.alc || alcOk).filter(r => !r.egg || s.builtFor.diet !== 'vegetarian' || eggOk).filter(r => !vetoedByAversion(r.dish)).filter(r => {
 const fv = (s.feedback || {})[r.dish];
 return fv !== 'no' && fv !== 'love';

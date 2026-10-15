@@ -136,9 +136,111 @@ if (dedicated !== null) return dedicated;
 return stanceOf('op-protein-veg');
 }
 
-function optVisible(opt, diet, meats, egg) {
+function aversionsOf(s) {
+const out = [];
+Object.keys(s.answers || {}).forEach(qid => {
+const q = QBANK_BY_ID[qid];
+const a = s.answers[qid];
+if (!q || !a || !q.hate) return;
+(Array.isArray(a.o) ? a.o : [ a.o ]).forEach(i => {
+const t = (q.options[i] || {}).t;
+if (t && !/^Nothing|^None of these/i.test(t) && !out.includes(t)) out.push(t);
+});
+});
+return out;
+}
+
+function aversionHit(text, aversions) {
+const STOP = new Set([ 'bitter', 'raw', 'smoked', 'dry', 'sweet', 'mushy', 'slimy', 'stinky', 'salty', 'overcooked', 'gristly', 'chewy', 'fishy', 'funk', 'savoury', 'savory', 'flavours', 'flavors', 'everything', 'friends', 'overload', 'hiding', 'chalky', 'vegetable', 'vegetables', 'fish', 'oil' ]);
+const GENERIC = new Set([ 'cheese', 'sauce', 'soup', 'salad', 'bread', 'rice', 'pasta', 'curry', 'stew', 'pie', 'cake', 'milk', 'cream', 'butter', 'flour', 'meat', 'egg', 'eggs', 'chicken', 'pork', 'beef', 'lamb', 'water', 'style', 'roll', 'rolls', 'bun', 'buns' ]);
+const SYN = {
+cilantro: 'coriander',
+aubergine: 'eggplant',
+baingan: 'eggplant',
+brinjal: 'eggplant',
+courgette: 'zucchini',
+garbanzo: 'chickpea',
+rocket: 'arugula',
+shrimp: 'prawn',
+bhindi: 'okra',
+paya: 'offal',
+lauki: 'gourd',
+karela: 'gourd',
+melon: 'gourd'
+};
+const stem = w => w.replace(/ies$/, 'y').replace(/es$/, '').replace(/s$/, '');
+const norm = w => SYN[stem(w)] || stem(w);
+const words = String(text || '').toLowerCase().replace(/[^a-z ]/g, ' ').split(/\s+/).filter(Boolean).map(norm);
+if (!words.length) return false;
+const has = k => words.some(w => w === k || k.length >= 4 && w.startsWith(k));
+return aversions.some(av => {
+const rawHead = String(av).toLowerCase().split('—')[0].replace(/[^a-z ]/g, ' ').split(/\s+/).filter(w => w.length > 2);
+const head = rawHead.filter(w => !STOP.has(w)).map(norm);
+if (!head.length) {
+if (rawHead.length < 2) return false;
+const phrase = rawHead.map(norm);
+outer2: for (let i = 0; i + phrase.length <= words.length; i++) {
+for (let j = 0; j < phrase.length; j++) if (words[i + j] !== phrase[j]) continue outer2;
+return true;
+}
+return false;
+}
+const specific = head.filter(k => !GENERIC.has(k));
+if (!specific.length) {
+outer: for (let i = 0; i + head.length <= words.length; i++) {
+for (let j = 0; j < head.length; j++) if (words[i + j] !== head[j]) continue outer;
+return true;
+}
+return false;
+}
+if (!specific.some(has)) return false;
+const generics = head.filter(k => GENERIC.has(k));
+if (generics.length && !generics.some(has)) return false;
+const DESCRIPTORS = new Set([ 'raw', 'smoked', 'bitter', 'sweet', 'dry' ]);
+const COMPOUNDS = new Set([ 'bitter gourd', 'bitter melon', 'bitter leaf' ]);
+if (rawHead.length > 1 && DESCRIPTORS.has(rawHead[0]) && !COMPOUNDS.has(rawHead[0] + ' ' + rawHead[1])) {
+if (!has(stem(rawHead[0])) && !(rawHead[0] === 'sweet' && has('ripe'))) return false;
+}
+return true;
+});
+}
+
+function chosenDairy(s) {
+const a = s.answers['pal-14'];
+if (!a) return null;
+const q = QBANK_BY_ID['pal-14'];
+if (!q) return null;
+const idx = Array.isArray(a.o) ? a.o : [ a.o ];
+const picked = idx.map(i => q.options[i]).filter(Boolean);
+if (!picked.length) return null;
+return picked.some(o => o.dairyfree) ? false : null;
+}
+
+function chosenAlc(s) {
+const a = s.answers['glo-alc'];
+if (!a) return null;
+const q = QBANK_BY_ID['glo-alc'];
+if (!q) return null;
+const idx = Array.isArray(a.o) ? a.o : [ a.o ];
+const picked = idx.map(i => q.options[i]).filter(Boolean);
+if (!picked.length) return null;
+return picked.some(o => o.noalc) ? false : null;
+}
+
+function refusedPick(s, qid) {
+const a = s.answers[qid];
+if (!a) return false;
+const q = QBANK_BY_ID[qid];
+if (!q) return false;
+const idx = Array.isArray(a.o) ? a.o : [ a.o ];
+return idx.some(i => (q.options[i] || {}).refusal);
+}
+
+function optVisible(opt, diet, meats, egg, dairy, alc) {
 const d = opt.diet;
 if (opt.egg && egg === false) return false;
+if (opt.dairy && dairy === false) return false;
+if (opt.alc && alc === false) return false;
 if (opt.alt && (diet === 'everything' || diet === 'halal')) return false;
 if (opt.noveg && (diet === 'vegetarian' || diet === 'vegan')) return false;
 if (diet === 'vegan') return d === 'vegan';
@@ -155,9 +257,12 @@ function visibleOpts(q, s) {
 const diet = s.builtFor.diet;
 const meats = q.id === 'op-meats' || q.id === 'op-meats-halal' ? null : chosenMeats(s);
 const egg = q.id === 'op-eggs' || q.id === 'op-protein-veg' ? null : chosenEgg(s);
+const dairy = q.id === 'pal-14' ? null : chosenDairy(s);
+const alc = q.id === 'glo-alc' ? null : chosenAlc(s);
+const aversions = q.hate ? [] : aversionsOf(s);
 const out = [];
 q.options.forEach((o, i) => {
-if (optVisible(o, diet, meats, egg)) out.push({
+if (optVisible(o, diet, meats, egg, dairy, alc) && !aversionHit(o.t, aversions)) out.push({
 o: o,
 i: i
 });
@@ -183,6 +288,8 @@ return true;
 function playable(q, s) {
 if (!s.builtFor || !q.diets.includes(s.builtFor.diet)) return false;
 if (s.skipped && s.skipped[q.id]) return false;
+if (q.id === 'bri-07' && refusedPick(s, 'glo-fish')) return false;
+if (q.id === 'bri-13' && refusedPick(s, 'glo-beef')) return false;
 if (q.gate && s.order && !s.order.includes(q.gate.q) && !(s.reserve || []).includes(q.gate.q)) return false;
 if (!gateOpen(q, s)) return false;
 return visibleOpts(q, s).length >= 2;
@@ -205,7 +312,9 @@ latinamerica: 'latchain'
 const chainDeck = chainDeckOf(F.roots);
 const rootsList = [ F.roots, F.roots2 ].filter(Boolean);
 const dietOpener = byDeck('opener').filter(q => q.id.startsWith('op-meats') || q.id.startsWith('op-protein')).slice(0, 1);
-const heatSweet = [ 'op-spice', 'op-temp', 'op-sweet' ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
+const heatSweet = [ 'op-spice', 'op-sweet' ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
+const rot = Object.keys(ROOT_LABELS).indexOf(F.roots);
+const rotate = (arr, n) => arr.length ? [ ...arr.slice(n % arr.length), ...arr.slice(0, n % arr.length) ] : arr;
 const eggQ = diet === 'vegetarian' ? [ 'op-eggs' ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q)) : [];
 let regional;
 if (rootsList.length === 2) {
@@ -222,20 +331,21 @@ if (b[i]) out.push(b[i]);
 }
 return out;
 };
-const blend = zip(core(rootsList[0]), core(rootsList[1]));
-const restZip = zip(byDeck(rootsList[0]).filter(q => !q.hate), byDeck(rootsList[1]).filter(q => !q.hate));
-regional = [ ...dietOpener, ...nogos, ...heatSweet, ...eggQ, ...blend, ...restZip ].slice(0, 12);
+const blend = zip(core(rootsList[0]), core(rootsList[1])).slice(0, 4);
+const rankedCoreD = zip(...rootsList.map(r => rotate(byDeck(r).filter(q => q.rank && !q.hate), rot))).filter(q => !blend.includes(q)).slice(0, 2);
+const restZip = zip(...rootsList.map(r => byDeck(r).filter(q => !q.hate && !rankedCoreD.includes(q))));
+regional = [ ...dietOpener, ...nogos.slice(0, 1), ...heatSweet, ...eggQ, ...nogos.slice(1), ...blend, ...rankedCoreD, ...restZip ].slice(0, 11);
 } else {
 const rootsDeckAll = byDeck(F.roots);
 const rootsNogo = rootsDeckAll.filter(q => q.hate).slice(0, 1);
-const rootsRest = rootsDeckAll.filter(q => !q.hate);
 const chains = byDeck(chainDeck);
-regional = [ ...dietOpener, ...rootsNogo, ...heatSweet, ...eggQ, ...chains, ...rootsRest ].slice(0, 12);
+const chainsCapped = [ ...chains.filter(q => !q.gate), ...chains.filter(q => q.gate && q.id.includes('-k-')) ].slice(0, 4);
+const rankedCore = rotate(rootsDeckAll.filter(q => q.rank && !q.hate), rot).slice(0, 2);
+const rootsRest = rootsDeckAll.filter(q => !q.hate && !rankedCore.includes(q));
+regional = [ ...dietOpener, ...rootsNogo, ...heatSweet, ...eggQ, ...chainsCapped, ...rankedCore, ...rootsRest ].slice(0, 11);
 }
-const rot = Object.keys(ROOT_LABELS).indexOf(F.roots);
-const rotate = (arr, n) => arr.length ? [ ...arr.slice(n % arr.length), ...arr.slice(0, n % arr.length) ] : arr;
 const salad = [ 'pal-25', 'pal-26' ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
-const fishFam = [ 'glo-fish', ...QBANK.filter(c => c.gate && c.gate.q === 'glo-fish').map(c => c.id) ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
+const fishFam = [ 'glo-fish' ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q));
 const alcQ = diet === 'everything' ? [ 'glo-alc' ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q)) : [];
 const beefQ = diet === 'everything' || diet === 'halal' ? [ 'glo-beef' ].map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q)) : [];
 const zip3 = (a, b, c) => {
@@ -247,8 +357,11 @@ if (c[i]) out.push(c[i]);
 }
 return out;
 };
-const worldFill = zip3(rotate(byDeck('bridge'), rot * 2), rotate(byDeck('palate').filter(q => !salad.includes(q)), rot * 3), rotate(byDeck('global').filter(q => !fishFam.includes(q) && !alcQ.includes(q) && !beefQ.includes(q)), rot * 5));
-const worldPick = [ ...salad, ...fishFam, ...alcQ, ...beefQ, ...worldFill ].slice(0, 8);
+const ANCHOR_IDS = [ 'pal-01', 'pal-07', 'pal-08', 'glo-11', 'pal-15', 'bri-10', 'pal-17', 'glo-21', 'op-format', 'op-temp' ];
+const inRegional = new Set(regional.map(q => q.id));
+const anchors = rotate(ANCHOR_IDS.map(id => QBANK_BY_ID[id]).filter(q => q && valid.includes(q) && !inRegional.has(q.id) && !salad.includes(q) && !fishFam.includes(q) && !alcQ.includes(q) && !beefQ.includes(q)), rot).slice(0, 2);
+const worldFill = zip3(rotate(byDeck('bridge').filter(q => !anchors.includes(q)), rot * 2), rotate(byDeck('palate').filter(q => !salad.includes(q) && !anchors.includes(q)), rot * 3), rotate(byDeck('global').filter(q => !fishFam.includes(q) && !alcQ.includes(q) && !beefQ.includes(q) && !anchors.includes(q)), rot * 5));
+const worldPick = [ ...fishFam, ...alcQ, ...beefQ, ...salad, ...anchors, ...worldFill ].slice(0, 9);
 const composed = [ ...regional, ...worldPick ];
 const seen = new Set;
 const order = composed.filter(q => !seen.has(q.id) && seen.add(q.id));
@@ -680,7 +793,7 @@ paintFundPicks();
 const FUND_INFO = {
 diet: {
 everything: 'Everything — no restrictions at all. The first question asks which meats you eat, so your questions stay relevant: pick chicken-only and mutton biryani quietly leaves the set.',
-vegetarian: 'Vegetarian — no meat and no seafood in any option, ever. Dairy and eggs still appear (paneer, curd rice, egg dishes), so this is not the vegan set.',
+vegetarian: 'Vegetarian — no meat and no seafood in any option, ever. Dairy still appears (paneer, curd rice); eggs appear only when you say you eat them — the questions will ask, and your answer governs everything after it.',
 vegan: 'Vegan — fully plant-based: no meat, seafood, dairy, eggs or honey in any option. Your questions swap in plant dishes that stand on their own.',
 halal: 'Everything Halal — the full spread, halal-style: no pork and no alcohol anywhere in your questions. You still pick your meats first, just like Everything.'
 },
@@ -841,7 +954,28 @@ const prev = st.builtFor;
 if (prev && prev.diet === F.diet && prev.roots === F.roots && (prev.roots2 || null) === F.roots2) {
 st.fundamentals = F;
 st.builtFor = F;
-if (st.result) st.result = computeResult(st);
+if (st.result) {
+const prevRes = st.result;
+st.result = computeResult(st);
+if (prevRes.partial) {
+st.result.partial = true;
+st.result.answered = prevRes.answered;
+st.result.skipped = prevRes.skipped;
+st.result.early = prevRes.early;
+}
+if (prevRes.aiV >= 2) {
+const oldLines = {};
+(prevRes.recs || []).forEach(r => {
+oldLines[r.dish] = r.whyYou;
+});
+(st.result.recs || []).forEach(r => {
+if (oldLines[r.dish]) r.whyYou = oldLines[r.dish];
+});
+st.result.aiV = 2;
+if (prevRes.aiAlt) st.result.aiAlt = prevRes.aiAlt;
+}
+st.altRecs = altRecsCache;
+}
 saveState();
 if (!st.finished && answeredCount(st) === 0) {
 st.pos = 0;
@@ -879,13 +1013,8 @@ enterQuiz();
 };
 
 $('fundExitBtn').onclick = () => {
-if (st && st.builtFor) {
 renderHome();
 show('view-home');
-} else {
-renderHome();
-show('view-home');
-}
 };
 
 function renderHome() {
@@ -901,7 +1030,15 @@ $('homeText').textContent = 'Pick your diet, your roots and the city you live in
 $('primaryAction').textContent = 'Pick my fundamentals →';
 } else if (st.finished) {
 $('homeTitle').textContent = 'Your taste profile is ready 🎉';
+if (st.result && !st.result.partial) {
+const stripLbl = s2 => String(s2 || '').replace(/^\S+\s/, '');
+const sumTags = (st.result.summaryTags && st.result.summaryTags.length >= 2 ? st.result.summaryTags : st.result.topTags || []).map(t => stripLbl(TAG_LABELS[t])).filter(Boolean);
+const topAx = (st.result.axes || []).find(a => a.lean && a.lean !== 'mid') || (st.result.axes || [])[0];
+const axBit = topAx ? ` · strongest lean: ${topAx.lean === 'hi' ? topAx.hi : topAx.lean === 'lo' ? topAx.lo : topAx.name}` : '';
+$('homeText').textContent = `Your palate in one line: ${sumTags.length >= 2 ? `${sumTags[0]} meets ${sumTags[1].toLowerCase()}` : 'mapped and ready'}${axBit}. ${(st.result.recs || []).length} dishes are picked and waiting.`;
+} else {
 $('homeText').textContent = st.result && st.result.partial ? `You ended early after ${n} answers, so this profile is based on limited information. Come see what your taste buds had to say — or retake the questions for the complete picture.` : 'You\'ve answered all your questions. Come see what your taste buds had to say — and which world flavours to meet next.';
+}
 $('primaryAction').textContent = 'See my taste profile';
 } else if (n > 0) {
 $('homeTitle').textContent = 'Welcome back 👋';
@@ -961,8 +1098,10 @@ st.finished = false;
 st.result = null;
 st.sheetSent = false;
 st.altRecs = null;
+if (!Array.isArray(st.loves) || st.loves.length < LOVES_MIN) {
 st.loves = null;
 st.lovesData = {};
+}
 buildOrder(st);
 saveState();
 renderHome();
@@ -1261,9 +1400,9 @@ source: 'name'
 }
 
 async function submitCommunityDish(pretty, data, sourced) {
-if (!sb || !st.user || communityOff) return;
+if (!sb || !sessionUser || communityOff) return;
 try {
-const {error: error} = await sb.from('community_dishes').insert(communityRowFor(pretty, data, sourced, st.user.id));
+const {error: error} = await sb.from('community_dishes').insert(communityRowFor(pretty, data, sourced, sessionUser.id));
 if (error && !/duplicate|23505|unique/i.test(error.message || '')) communityOff = true;
 } catch (e) {
 communityOff = true;
@@ -1381,16 +1520,46 @@ paintLoves();
 if (lovesLastQuery) paintLoveResults(lovesLastQuery);
 }
 
+const STARTER_CANDIDATES = [ 'Biryani', 'Pizza', 'Sushi', 'Pasta', 'Burger', 'Tacos', 'Chocolate cake', 'Fried chicken', 'Ice cream', 'Coffee', 'Ramen', 'Salad' ];
+
+function paintStarters() {
+const wrap = $('lovesStarters'), box = $('starterChips');
+if (!wrap || !box) return;
+if (!DISH_LIST || lovesQueryRaw || (st.loves || []).length >= LOVES_MIN) {
+wrap.hidden = true;
+return;
+}
+const chips = [];
+for (const cand of STARTER_CANDIDATES) {
+const hits = searchDishes(cand);
+if (!hits.length) continue;
+const e = hits.map(h => h.e).find(x => x.nn === normDishText(cand)) || hits[0].e;
+if (e && !(st.loves || []).includes(e.id) && !chips.some(c => c.id === e.id)) chips.push(e);
+if (chips.length >= 8) break;
+}
+box.innerHTML = chips.map(e => `<button type="button" class="starter-chip" data-starter="${e.id}">${e.name}</button>`).join('');
+wrap.hidden = !chips.length;
+}
+
 function renderLoves() {
 if (!Array.isArray(st.loves)) st.loves = [];
 $('lovesInput').value = '';
 lovesQueryRaw = '';
 paintLoveResults([]);
 paintLoves();
+const loadNote = $('lovesLoadNote');
+if (loadNote) loadNote.hidden = !!DISH_LIST;
 ensureDishMeta().then(() => ensureDishIndex()).then(() => {
 paintLoves();
+if (loadNote) loadNote.hidden = true;
+paintStarters();
+if (lovesQueryRaw) {
+paintLoveResults(searchDishes(lovesQueryRaw));
+scheduleCommunitySearch();
+}
 }).catch(() => {
 lovesLoadFailed = true;
+if (loadNote) loadNote.hidden = true;
 paintLoves();
 });
 if (lovesWired) return;
@@ -1402,10 +1571,18 @@ if (!DISH_LIST) return;
 if (!q) {
 lovesCommunityHits = [];
 paintLoveResults([]);
+paintStarters();
 return;
 }
+paintStarters();
 paintLoveResults(searchDishes(q));
 scheduleCommunitySearch();
+});
+$('starterChips').addEventListener('click', e => {
+const b = e.target.closest('[data-starter]');
+if (!b) return;
+addLove(+b.dataset.starter);
+paintStarters();
 });
 $('lovesResults').addEventListener('click', e => {
 const c = e.target.closest('[data-custom]');
@@ -1438,7 +1615,7 @@ show('view-quiz');
 }
 
 function enterQuiz() {
-if (st.loves === null) {
+if (st.loves === null || Array.isArray(st.loves) && st.loves.length > 0 && st.loves.length < LOVES_MIN && !st.finished && answeredCount(st) === 0) {
 renderLoves();
 show('view-loves');
 return;
@@ -1487,6 +1664,28 @@ const upto = st.order.slice(0, st.order.indexOf(q.id) + 1);
 const skippedBefore = upto.filter(id => id !== q.id && st.skipped && st.skipped[id]).length;
 const posInRun = Math.min(upto.length - skippedBefore, runTotal(st));
 $('qCounter').textContent = `Question ${posInRun} of ${runTotal(st)}`;
+const msEl = $('quizMilestone');
+if (msEl) {
+let ms = '';
+if (n === 5 || n === 10 || n === 15) {
+const parts = [];
+if (n === 5) {
+parts.push(`Five answers in — your ${rootsLabelOf(st.builtFor)} roots are steering this deck`);
+const av = aversionsOf(st);
+if (av.length) parts.push(`hard no's already on guard: ${av.slice(0, 2).map(a => a.split(' — ')[0]).join(', ')}`);
+} else if (n === 10) {
+parts.push('Halfway there');
+if ((st.loves || []).length >= LOVES_MIN) parts.push(`your ${(st.loves || []).length} favourites anchor every match`);
+if (st.builtFor && st.builtFor.city) parts.push(st.builtFor.mode === 'travel' ? `the ${st.builtFor.city.split(',')[0]} table is being set` : `places in ${st.builtFor.city.split(',')[0]} join at the end`);
+} else {
+parts.push('Fifteen down, five to go');
+parts.push('the last stretch goes wide — world flavours your roots haven\'t met yet');
+}
+ms = parts.join(' · ') + '.';
+}
+msEl.textContent = ms;
+msEl.hidden = !ms;
+}
 $('progressBar').style.width = n / runTotal(st) * 100 + '%';
 $('progressWrap').setAttribute('aria-valuenow', n);
 $('progressWrap').setAttribute('aria-valuemax', runTotal(st));
@@ -1496,11 +1695,24 @@ $('qEmoji').textContent = q.emoji;
 const img = $('qImg');
 const url = imgUrlFor(q);
 img.style.display = url ? '' : 'none';
-if (url) img.src = url;
+const qCardEl = $('qCard');
+if (qCardEl) {
+if (url) qCardEl.classList.remove('noimg'); else qCardEl.classList.add('noimg');
+}
+img.classList.remove('ld');
+if (url) {
+img.srcset = `${url.replace('w=1200', 'w=640')} 640w, ${url} 1200w`;
+img.sizes = '(max-width: 680px) 100vw, 640px';
+img.onload = () => img.classList.add('ld');
+img.src = url;
+if (img.complete && img.naturalWidth) img.classList.add('ld');
+}
 img.alt = q.q;
-$('qText').textContent = q.q;
+const visN = visibleOpts(q, st).length;
+const effRank = q.rank ? Math.min(q.rank, visN || 1) : 0;
+$('qText').textContent = q.rank && visN < q.rank ? q.q.replace(/top 3/i, 'top ' + visN).replace(/plus 2nd & 3rd/i, 'plus 2nd').replace(/rank your top 3/i, 'rank your top ' + visN) : q.q;
 $('multiHint').hidden = !(q.multi || q.rank);
-$('multiHint').textContent = q.rank ? q.rank === 3 ? '🥇 Tap in order — your #1 first, then #2, then #3.' : '🥇 Tap your #1 pick first — then your #2.' : '✋ Pick all that apply — then hit Next.';
+$('multiHint').textContent = q.rank ? effRank >= 3 ? '🥇 Tap in order — your #1 first, then #2, then #3.' : '🥇 Tap your #1 pick first — then your #2.' : '✋ Pick all that apply — then hit Next.';
 $('qInfoBtn').hidden = false;
 $('qInfoBtn').classList.remove('open');
 $('qInfoPanel').hidden = true;
@@ -1527,6 +1739,10 @@ b.onclick = () => q.rank ? toggleRank(i) : q.multi ? toggleOption(i) : selectOpt
 box.appendChild(b);
 });
 pendingW = saved ? saved.w : 1;
+const noSlider = !!q.hate || [ 'glo-fish', 'glo-alc', 'glo-beef' ].includes(q.id);
+if (noSlider) pendingW = 1;
+const sBlock = $('sliderBlock');
+if (sBlock) sBlock.style.display = noSlider ? 'none' : '';
 $('weightSlider').value = pendingW;
 updateSliderLabel();
 const sliderHint = $('sliderHint');
@@ -1561,6 +1777,8 @@ preventScroll: true
 
 function updateSliderLabel() {
 $('sliderVal').textContent = `${pendingW} · ${WEIGHT_WORDS[pendingW]}`;
+const sl = $('weightSlider');
+if (sl && sl.style && sl.style.setProperty) sl.style.setProperty('--valp', (pendingW - 1) / 4 * 100 + '%');
 }
 
 function paintEndBtn() {
@@ -1649,7 +1867,7 @@ if (pendingSel.size === 0) $('nextBtn').disabled = true;
 function toggleRank(oi) {
 const q = currentQ();
 const ix = pendingRank.indexOf(oi);
-const maxR = typeof q.rank === 'number' ? q.rank : 2;
+const maxR = Math.min(typeof q.rank === 'number' ? q.rank : 2, visibleOpts(q, st).length || 1);
 if (ix >= 0) pendingRank.splice(ix, 1); else if (pendingRank.length < maxR) pendingRank.push(oi); else pendingRank[maxR - 1] = oi;
 if (pendingRank.length) st.answers[q.id] = {
 o: [ ...pendingRank ],
@@ -1880,8 +2098,7 @@ warmspice: .7,
 salt: .15
 },
 mild: {
-warmspice: -.7,
-aromatics: -.4
+warmspice: -.7
 },
 tangy: {
 funk: .3
@@ -1974,9 +2191,6 @@ salt: 2.5
 'pal-05': {
 crunch: 2
 },
-'op-texture': {
-crunch: 2
-},
 'glo-04': {
 crunch: 1.5
 },
@@ -1991,6 +2205,9 @@ vegprotein: 2.5
 },
 'glo-alc': {
 pairing: 3
+},
+'pal-27': {
+pairing: 2
 },
 'pal-03': {
 funk: 1.5
@@ -2053,6 +2270,7 @@ if (v) sig[a] = (sig[a] || 0) + v;
 const m = TAG_AXIS[t];
 if (m) Object.entries(m).forEach(([a, v]) => add(a, v));
 });
+if (o.axis) Object.entries(o.axis).forEach(([a, v]) => add(a, v));
 const text = (o.t || '').toLowerCase();
 const neg = AXIS_NEG.test(text);
 AXIS_KEYWORDS.forEach(([src, a, v]) => {
@@ -2166,6 +2384,7 @@ Bahrain: 'middleeast',
 Israel: 'middleeast',
 Lebanon: 'middleeast',
 Jordan: 'middleeast',
+Palestine: 'middleeast',
 Iran: 'middleeast',
 Iraq: 'middleeast',
 'Türkiye': 'middleeast',
@@ -2202,6 +2421,7 @@ Lithuania: 'europe',
 Latvia: 'europe',
 Estonia: 'europe',
 Ukraine: 'europe',
+Russia: 'europe',
 Georgia: 'europe',
 Armenia: 'europe',
 Azerbaijan: 'europe',
@@ -2216,6 +2436,8 @@ Angola: 'africa',
 Mozambique: 'africa',
 Tunisia: 'africa',
 Algeria: 'africa',
+Mali: 'africa',
+Zambia: 'africa',
 'United States': 'unitedstates',
 Canada: 'unitedstates',
 Brazil: 'latinamerica',
@@ -2233,10 +2455,15 @@ Panama: 'latinamerica',
 'Costa Rica': 'latinamerica',
 Cuba: 'latinamerica',
 'Dominican Republic': 'latinamerica',
+'El Salvador': 'latinamerica',
+Jamaica: 'latinamerica',
 'Puerto Rico': 'latinamerica',
 Australia: 'oceania',
 'New Zealand': 'oceania',
-Fiji: 'oceania'
+Fiji: 'oceania',
+Samoa: 'oceania',
+Tonga: 'oceania',
+Vanuatu: 'oceania'
 };
 
 function destRegionOf(city) {
@@ -2367,12 +2594,13 @@ Object.entries(skipAxis).forEach(([a, v]) => {
 axisNeg[a] = (axisNeg[a] || 0) + v;
 });
 const lovedNamesNorm = [];
-(Array.isArray(s.loves) ? s.loves : []).forEach(id => {
+(Array.isArray(s.loves) ? s.loves : []).forEach((id, li) => {
 const d = (s.lovesData || {})[id];
 if (!d || !d.n) return;
 lovedNamesNorm.push(d.n.toLowerCase().replace(/[^a-z0-9]/g, ''));
+const lw = li < 5 ? 1 : .5;
 (d.f || []).forEach(t => {
-tagCount[t] = (tagCount[t] || 0) + 1;
+tagCount[t] = (tagCount[t] || 0) + lw;
 });
 const sigText = d.i && d.i.length ? d.i.join(' ') : d.n || '';
 const sig = axisSignalsFor({
@@ -2382,7 +2610,7 @@ t: sigText,
 tags: d.f || []
 });
 Object.entries(sig).forEach(([a, v]) => {
-const c = v * 1.5;
+const c = v * 1.5 * lw;
 if (c > 0) axisPos[a] = (axisPos[a] || 0) + c; else axisNeg[a] = (axisNeg[a] || 0) - c;
 });
 const LOVE_COURSE = {
@@ -2435,16 +2663,17 @@ const affinities = {};
 posTags.slice(0, 8).forEach(([t, c]) => {
 affinities[t] = Math.round(c * 10) / 10;
 });
-const aversions = [];
+const rawAversions = [];
 s.order.forEach(qid => {
 const q = QBANK_BY_ID[qid];
 const a = s.answers[qid];
 if (!q || !a || !q.hate) return;
 (Array.isArray(a.o) ? a.o : [ a.o ]).forEach(i => {
 const t = (q.options[i] || {}).t;
-if (t && !/^Nothing|^None of these/i.test(t) && !aversions.includes(t)) aversions.push(t);
+if (t && !/^Nothing|^None of these/i.test(t) && !rawAversions.includes(t)) rawAversions.push(t);
 });
 });
+const aversions = rawAversions.filter(av => aversionHit(av, [ av ]));
 const meterPct = {};
 Object.entries(meters).forEach(([k, [sum, wt]]) => {
 meterPct[k] = wt ? Math.round(100 * sum / (3 * wt)) : 0;
@@ -2460,6 +2689,7 @@ TAG_FREQ[t] = (TAG_FREQ[t] || 0) + 1;
 })));
 const TAG_TOTAL = Object.values(TAG_FREQ).reduce((a, b) => a + b, 0) || 1;
 const rarity = t => Math.log2(1 + TAG_TOTAL / (TAG_FREQ[t] || TAG_TOTAL));
+const summaryTags = posTags.slice(0, 8).map(([t, c]) => [ t, c * rarity(t) ]).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([t]) => t);
 const maxPos = Math.max(1, ...Object.values(tagCount));
 const dishScore = r => r.match.reduce((acc, t) => acc + (tagCount[t] || 0) / maxPos * rarity(t), 0) / Math.sqrt(r.match.length);
 const dishAxesCache = {};
@@ -2498,25 +2728,17 @@ return null;
 }).filter(Boolean).sort((a, b) => b.wgt - a.wgt).slice(0, 2).map(x => x.label);
 };
 const dishScoreV2 = r => dishScore(r) + .55 * axisAlign(r) + exploreBonus(r);
-const AV_STOP = new Set([ 'bitter', 'raw', 'smoked', 'dry', 'sweet', 'mushy', 'slimy', 'stinky', 'salty', 'overcooked', 'gristly', 'chewy', 'fishy', 'everything', 'friends', 'overload', 'hiding', 'chalky', 'vegetable', 'vegetables', 'fish' ]);
-const stemW = w => w.replace(/ies$/, 'y').replace(/es$/, '').replace(/s$/, '');
-const aversionKeys = av => {
-const words = av.toLowerCase().split('—')[0].replace(/[^a-z ]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !AV_STOP.has(w));
-if (!words.length) return [];
-return [ ...new Set([ words[0], words[words.length - 1] ].map(stemW)) ];
-};
-const vetoedByAversion = dish => {
-const dw = dish.toLowerCase().replace(/[^a-z ]/g, ' ').split(/\s+/).filter(Boolean).map(stemW);
-return aversions.some(av => aversionKeys(av).some(k => dw.some(w => w === k || k.length >= 4 && w.startsWith(k))));
-};
+const vetoedByAversion = dish => aversionHit(dish, aversions);
 const eggStance = chosenEgg(s);
 if (eggStance !== null) eggOk = eggStance;
-const scored = RECS.filter(r => s.builtFor.mode === 'travel' || !ownRoots.includes(r.region)).filter(r => optVisible(r, s.builtFor.diet, meats)).filter(r => !r.raw || rawOk).filter(r => !r.alc || alcOk).filter(r => !r.egg || s.builtFor.diet !== 'vegetarian' || eggOk).filter(r => !vetoedByAversion(r.dish)).filter(r => {
+const scored = RECS.filter(r => s.builtFor.mode === 'travel' || !ownRoots.includes(r.region)).filter(r => optVisible(r, s.builtFor.diet, meats)).filter(r => !r.raw || rawOk).filter(r => !r.alc || alcOk).filter(r => !r.egg || s.builtFor.diet !== 'vegetarian' || eggOk).filter(r => !r.dairy || chosenDairy(s) !== false).filter(r => !vetoedByAversion(r.dish + ' ' + (r.why || ''))).filter(r => {
 const fv = (s.feedback || {})[r.dish];
 return fv !== 'no' && fv !== 'love';
 }).map(r => ({
 r: r,
 score: dishScoreV2(r),
+ax: axisAlign(r),
+home: r.match.reduce((a, t) => a + Math.max(0, (tagCount[t] || 0) / maxPos), 0) / Math.max(1, r.match.length),
 matched: r.match.filter(t => (tagCount[t] || 0) > 0).length,
 mtags: r.match.filter(t => (tagCount[t] || 0) > 0).sort((a, b) => tagCount[b] / maxPos * rarity(b) - tagCount[a] / maxPos * rarity(a))
 })).sort((a, b) => b.score - a.score || b.matched - a.matched);
@@ -2726,7 +2948,27 @@ const destR = isTravel ? destRegionOf(s.builtFor.city) : null;
 const destC = isTravel ? destCountryOf(s.builtFor.city) : null;
 const destPlace = isTravel && s.builtFor.city ? s.builtFor.city.split(',')[0].trim().toLowerCase() : null;
 const usedC = new Set;
-const composeCourses = want => {
+const tagKeyOf = e => (e.r.match || []).slice().sort().join(',');
+const levDist = (a, b) => {
+a = a.toLowerCase();
+b = b.toLowerCase();
+if (Math.abs(a.length - b.length) > 2) return 99;
+let prev = Array.from({
+length: b.length + 1
+}, (_, i) => i);
+for (let i = 1; i <= a.length; i++) {
+const cur = [ i ];
+let best = cur[0];
+for (let j = 1; j <= b.length; j++) {
+cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+if (cur[j] < best) best = cur[j];
+}
+if (best > 2) return 99;
+prev = cur;
+}
+return prev[b.length];
+};
+const composeCourses = (want, opts) => {
 const out = [];
 const placeOf = r => (r.from || '').split('·')[0].trim().toLowerCase();
 const tierOf = e => {
@@ -2740,27 +2982,94 @@ const orderedFor = course => {
 const bucket = pool.filter(e => e.r.course === course && !usedC.has(e.r.dish));
 return isTravel ? [ ...bucket ].sort((a, b) => tierOf(a) - tierOf(b)) : bucket;
 };
-for (const [course, quota] of COURSE_FRAME) {
-let left = quota;
-for (const e of orderedFor(course)) {
-if (left <= 0 || out.length >= want) break;
-out.push(e.r);
-usedC.add(e.r.dish);
-left--;
+const pickCourse = (bucket, quota) => {
+const rest = [ ...bucket ];
+const inCourse = [];
+while (inCourse.length < quota && rest.length && out.length + inCourse.length < want) {
+const head = rest[0];
+const bandFloor = head.score - .05 * Math.max(1, Math.abs(head.score));
+let band = rest.filter(e => e.score >= bandFloor && (!isTravel || tierOf(e) === tierOf(head)));
+const keyCount = {};
+inCourse.forEach(e => {
+const k = tagKeyOf(e);
+keyCount[k] = (keyCount[k] || 0) + 1;
+});
+const names = [ ...out.map(r => r.dish), ...inCourse.map(e => e.r.dish) ];
+const underCap = e => (keyCount[tagKeyOf(e)] || 0) < 2;
+const isDup = e => names.some(n => n.length >= 8 && e.r.dish.length >= 8 && levDist(n, e.r.dish) <= 2);
+let cands = band.filter(e => underCap(e) && !isDup(e));
+if (!cands.length) {
+const tierRest = isTravel ? rest.filter(e => tierOf(e) === tierOf(head)) : rest;
+cands = tierRest.filter(e => underCap(e) && !isDup(e));
+if (!cands.length) cands = tierRest.filter(e => !isDup(e));
+if (!cands.length) cands = rest.filter(e => !isDup(e));
+if (!cands.length) cands = band;
+}
+if (opts && opts.contrastKeys) {
+const fresh = cands.filter(e => !opts.contrastKeys.has(tagKeyOf(e)));
+if (fresh.length) cands = fresh;
+}
+let pick = cands[0];
+if (inCourse.length && cands.length > 1) {
+let bestD = -1;
+for (const e of cands) {
+let dMin = 1;
+for (const c of inCourse) {
+const a = new Set(e.r.match || []), b = new Set(c.r.match || []);
+const inter = [ ...a ].filter(t => b.has(t)).length, uni = new Set([ ...a, ...b ]).size || 1;
+dMin = Math.min(dMin, 1 - inter / uni);
+}
+if (dMin > bestD) {
+bestD = dMin;
+pick = e;
+}
+}
+}
+inCourse.push(pick);
+usedC.add(pick.r.dish);
+rest.splice(rest.indexOf(pick), 1);
+}
+inCourse.forEach(e => out.push(e.r));
+};
+for (const [course, quota] of COURSE_FRAME) pickCourse(orderedFor(course), quota);
+if (opts && opts.stretch && !isTravel) {
+const quotas = {
+drink: 1,
+appetizer: 1,
+main: 2,
+dessert: 1
+};
+for (const [course, n] of Object.entries(quotas)) {
+const elig = pool.filter(e => e.r.course === course);
+if (!elig.length) continue;
+const homes = elig.map(e => e.home).sort((a, b) => a - b);
+const med = homes[Math.floor(homes.length / 2)];
+let done = 0;
+while (done < n) {
+const worst = out.filter(r => r.course === course).map(r => entryByDish[r.dish]).sort((a, b) => b.home - a.home)[0];
+if (!worst || worst.home <= med) break;
+const cand = pool.filter(e => e.r.course === course && !usedC.has(e.r.dish) && e.home <= med && e.ax >= worst.ax - .1 * Math.abs(worst.ax) && e.score >= worst.score - .25 * Math.abs(worst.score)).sort((a, b) => b.ax - a.ax || b.score - a.score)[0];
+if (!cand) break;
+out[out.indexOf(worst.r)] = cand.r;
+usedC.delete(worst.r.dish);
+usedC.add(cand.r.dish);
+done++;
+}
 }
 }
 for (const course of [ 'main', 'appetizer', 'dessert', 'drink' ]) {
 if (out.length >= want) break;
-for (const e of orderedFor(course)) {
-if (out.length >= want) break;
-out.push(e.r);
-usedC.add(e.r.dish);
-}
+pickCourse(orderedFor(course), want - out.length);
 }
 return out;
 };
-const recs = composeCourses(20);
-const more = composeCourses(20);
+const recs = composeCourses(20, {
+stretch: true
+});
+const primaryKeys = new Set(recs.map(r => (r.match || []).slice().sort().join(',')));
+const more = composeCourses(20, {
+contrastKeys: primaryKeys
+});
 const recObjs = recs.map(r => ({
 dish: r.dish,
 from: r.from,
@@ -2787,10 +3096,11 @@ roots2: s.builtFor.roots2 || null,
 city: s.builtFor.city || '',
 mode: s.builtFor.mode || 'explore',
 topTags: topTags,
+summaryTags: summaryTags,
 affinities: affinities,
 aversions: aversions,
 meters: meterPct,
-axes: axes.slice(0, 10),
+axes: axes.slice(0, 12),
 avgConfidence: wCount ? +(wSum / wCount).toFixed(2) : 1,
 detail: detail,
 recs: recObjs,
@@ -2842,12 +3152,22 @@ const res = st.result || computeResult(st);
 st.result = res;
 if (!res.city && st.builtFor && st.builtFor.city) res.city = st.builtFor.city;
 if (!res.mode && st.builtFor && st.builtFor.mode) res.mode = st.builtFor.mode;
-if (st.finished && !(st.altRecs && st.altRecs.length)) {
-computeResult(st);
-st.altRecs = altRecsCache;
+if (st.finished && (!(st.altRecs && st.altRecs.length) || res.aiV === 1)) {
+const fresh = computeResult(st);
+if (!(st.altRecs && st.altRecs.length)) st.altRecs = altRecsCache;
+if (res.aiV === 1) {
+const tpl = {};
+(fresh.recs || []).forEach(r => {
+tpl[r.dish] = r.whyYou;
+});
+(res.recs || []).forEach(r => {
+if (tpl[r.dish]) r.whyYou = tpl[r.dish];
+});
+delete res.aiV;
+}
 }
 const strip = s2 => s2.replace(/^\S+\s/, '');
-const labels = res.topTags.map(t => TAG_LABELS[t]).filter(Boolean);
+const labels = (res.summaryTags && res.summaryTags.length >= 2 ? res.summaryTags : res.topTags).map(t => TAG_LABELS[t]).filter(Boolean);
 $('profileSummary').textContent = labels.length >= 2 ? `In one line: ${strip(labels[0])} meets ${strip(labels[1]).toLowerCase()}. Here's the full picture:` : 'Here\'s what your answers say about your palate:';
 const loveNames = (Array.isArray(st.loves) ? st.loves : []).map(id => (st.lovesData || {})[id]).filter(d => d && d.n).map(d => d.n);
 const ll = $('lovesLine');
@@ -2869,7 +3189,17 @@ creamy: '🥛 Rich & creamy',
 fresh: '🌿 Fresh & bright',
 classic: '💛 Comfort & classic'
 };
-const meterRow = ([k, pct]) => `<div class="meter"><div class="mhead"><span>${names[k]}</span><span>${meterLabel(k, pct)}</span></div>\n     <div class="track"><div class="fill" style="width:0%" data-w="${pct}"></div></div></div>`;
+const meterKind = {
+spice: 'weighted average',
+sweet: 'weighted average',
+adv: 'weighted average',
+smoky: 'share of picks',
+tangy: 'share of picks',
+creamy: 'share of picks',
+fresh: 'share of picks',
+classic: 'share of picks'
+};
+const meterRow = ([k, pct]) => `<div class="meter"><div class="mhead"><span>${names[k]} <small class="m-kind">${meterKind[k] || ''}</small></span><span>${meterLabel(k, pct)}</span></div>\n     <div class="track"><div class="fill" style="width:0%" data-w="${pct}"></div></div></div>`;
 const rankedMeters = Object.entries(res.meters).sort((x, y) => y[1] - x[1]);
 $('profileMeters').innerHTML = rankedMeters.slice(0, 3).map(meterRow).join('') + (rankedMeters.length > 3 ? `<div id="metersExtra" hidden>${rankedMeters.slice(3).map(meterRow).join('')}</div><button type="button" id="metersToggle" class="meters-toggle">Show all</button>` : '');
 const mtBtn = $('metersToggle');
@@ -2885,8 +3215,11 @@ f.style.width = f.dataset.w + '%';
 });
 }));
 const axEl = $('profileAxes');
-if (axEl) axEl.innerHTML = res.axes && res.axes.length ? `<h3 class="rec-title2">🧭 Your flavour axes</h3><div class="axes-chips">` + res.axes.map(a => `<button type="button" class="axis-chip">${a.emoji} ${a.lean === 'hi' ? a.hi : a.lean === 'lo' ? a.lo : a.name + ' · Balanced'}</button>`).join('') + '</div>' : '';
-$('profileNote').textContent = (res.partial ? `⚠️ This profile is based on ${res.answered || res.detail.length} answers${res.skipped ? `, with ${res.skipped} question${res.skipped > 1 ? 's' : ''} skipped` : ' — you finished early'}, so treat it as a first sketch, not the full picture. ` : '') + `Weighted by your confidence slider — your average pick strength was ${res.avgConfidence} / 5. Strong opinions shaped this profile most.`;
+const axDots = s2 => s2 >= 4 ? '●●●' : s2 >= 1.5 ? '●●○' : s2 > 0 ? '●○○' : '○○○';
+if (axEl) axEl.innerHTML = res.axes && res.axes.length ? `<h3 class="rec-title2">🧭 Your flavour axes</h3><div class="axes-chips">` + res.axes.map(a => `<span class="axis-chip" title="Evidence behind this lean">${a.emoji} ${a.lean === 'hi' ? a.hi : a.lean === 'lo' ? a.lo : a.name + ' · Balanced'} <small class="ax-str">${axDots(a.strength || 0)}</small></span>`).join('') + '</div>' : '';
+const leaguesOpened = (res.detail || []).some(d => [ 'glo-fish', 'glo-fish-gate', 'glo-beef', 'glo-alc', 'pal-13' ].includes(d.qid));
+const confTail = res.avgConfidence >= 3.5 ? 'Strong opinions shaped this profile most.' : res.avgConfidence >= 2 ? 'A mix of firm and close-call picks shaped it.' : 'Most picks were close calls, so treat this as a gentle sketch of your palate.';
+$('profileNote').textContent = (res.partial ? `⚠️ This profile is based on ${res.answered || res.detail.length} answers${res.skipped ? `, with ${res.skipped} question${res.skipped > 1 ? 's' : ''} skipped` : ' — you finished early'}, so treat it as a first sketch, not the full picture.${!leaguesOpened ? ' Finishing this early also means the raw-food and alcohol questions never came up, so those dishes stayed closed.' : ''} ` : '') + `Weighted by your confidence slider — your average pick strength was ${res.avgConfidence} / 5. ${confTail}`;
 $('profileRecs').innerHTML = recSectionsHtml(res.recs, res);
 paintCourseNav(res.recs);
 const recTitleEl = $('recTitle');
@@ -2894,18 +3227,29 @@ if (recTitleEl) recTitleEl.textContent = res.mode === 'travel' && res.city ? `Wh
 upgradeAllPlaces(res);
 enhanceReasonsAI(res);
 const mrb = $('moreRecsBtn');
+const diceLabel = () => lastResult && lastResult.mode === 'travel' && lastResult.city ? `🎲 Widen the ring — flavours beyond ${lastResult.city.split(',')[0]}` : '🎲 Show me different flavours';
 if (mrb) {
 mrb.hidden = !(st.altRecs || []).length;
-mrb.textContent = '🎲 Show me different flavours';
+mrb.textContent = diceLabel();
 mrb.onclick = () => {
 recsAltShown = !recsAltShown;
 $('profileRecs').innerHTML = recSectionsHtml(recsAltShown ? st.altRecs : lastResult.recs || [], lastResult);
 paintCourseNav(recsAltShown ? st.altRecs : lastResult.recs || []);
 upgradeAllPlaces(lastResult);
-mrb.textContent = recsAltShown ? '↩️ Back to my top matches' : '🎲 Show me different flavours';
+mrb.textContent = recsAltShown ? '↩️ Back to my top matches' : diceLabel();
 };
 }
+paintFbCount();
 $('sheetNote').textContent = SHEETS_ENDPOINT ? '✓ Your results were saved for flavour analysis.' : '';
+const forkP = $('forkProfileFact'), forkD = $('forkDishesFact');
+if (forkP && res.axes && res.axes.length) {
+const topAx = res.axes.find(a => a.lean && a.lean !== 'mid') || res.axes[0];
+if (topAx) forkP.textContent = `Your strongest lean: ${topAx.lean === 'hi' ? topAx.hi : topAx.lean === 'lo' ? topAx.lo : topAx.name} — plus your meters & axes`;
+}
+if (forkD && res.recs && res.recs.length) {
+const regions = new Set(res.recs.map(r => (RECS.find(x => x.dish === r.dish) || {}).region).filter(Boolean));
+forkD.textContent = res.mode === 'travel' && res.city ? `${res.recs.length} dishes, led by ${res.city.split(',')[0]} — and where to try them` : `${res.recs.length} dishes from ${regions.size} corners of the world — and where to try them`;
+}
 }
 
 async function sendToSheets() {
@@ -2928,12 +3272,51 @@ console.warn('Sheets save failed:', e);
 
 let feedbackOff = false;
 
+function paintFbCount() {
+const host = $('profileRecs');
+if (!host || !host.parentNode) return;
+let el = $('fbCount');
+if (!el) {
+el = document.createElement('p');
+el.id = 'fbCount';
+el.className = 'fb-count';
+host.parentNode.insertBefore(el, host);
+}
+const n = Object.keys(st && st.feedback || {}).length;
+el.textContent = n ? `You've rated ${n} dish${n > 1 ? 'es' : ''} — every verdict re-tunes this list on the spot.` : 'Tap 👍 Would try, 👎 Not for me or ❤️ Already love it on any dish — your list re-tunes itself as you rate.';
+el.hidden = false;
+}
+
 function setVerdict(dish, v) {
 if (!dish || !v || !st) return;
 st.feedback = st.feedback || {};
 if (st.feedback[dish] === v) delete st.feedback[dish]; else st.feedback[dish] = v;
 const now = st.feedback[dish] || null;
-if ((now === 'no' || now === 'love') && Array.isArray(st.altRecs)) {
+if ((now === 'no' || now === 'love') && st.finished && lastResult) {
+const prev = lastResult;
+const prevLines = {};
+[ ...prev.recs || [], ...st.altRecs || [] ].forEach(r => {
+if (r.whyYou) prevLines[r.dish] = r.whyYou;
+});
+const fresh = computeResult(st);
+(fresh.recs || []).forEach(r => {
+if (prevLines[r.dish]) r.whyYou = prevLines[r.dish];
+});
+if (prev.partial) {
+fresh.partial = prev.partial;
+fresh.answered = prev.answered;
+fresh.skipped = prev.skipped;
+fresh.early = prev.early;
+}
+if (prev.aiV >= 2) fresh.aiV = prev.aiV;
+if (prev.aiAlt) fresh.aiAlt = prev.aiAlt;
+st.result = fresh;
+lastResult = fresh;
+st.altRecs = altRecsCache;
+(st.altRecs || []).forEach(r => {
+if (prevLines[r.dish]) r.whyYou = prevLines[r.dish];
+});
+} else if ((now === 'no' || now === 'love') && Array.isArray(st.altRecs)) {
 st.altRecs = st.altRecs.filter(r => r.dish !== dish);
 }
 if (lastResult && $('profileRecs')) {
@@ -2941,6 +3324,7 @@ const list = recsAltShown ? st.altRecs || [] : lastResult.recs || [];
 $('profileRecs').innerHTML = recSectionsHtml(list, lastResult);
 paintCourseNav(list);
 upgradeAllPlaces(lastResult);
+paintFbCount();
 const mrb = $('moreRecsBtn');
 if (mrb) mrb.hidden = !(st.altRecs || []).length;
 }
@@ -2949,11 +3333,11 @@ syncFeedbackRow(dish, now);
 }
 
 async function syncFeedbackRow(dish, verdict) {
-if (feedbackOff || !sb || !currentUser()) return;
+if (feedbackOff || !sb || !sessionUser) return;
 try {
 if (verdict) {
 const {error: error} = await sb.from('feedback').upsert({
-user_id: currentUser().id,
+user_id: sessionUser.id,
 dish_key: dish,
 verdict: verdict,
 updated_at: (new Date).toISOString()
@@ -2962,7 +3346,7 @@ onConflict: 'user_id,dish_key'
 });
 if (error) throw error;
 } else {
-const {error: error} = await sb.from('feedback').delete().eq('user_id', currentUser().id).eq('dish_key', dish);
+const {error: error} = await sb.from('feedback').delete().eq('user_id', sessionUser.id).eq('dish_key', dish);
 if (error) throw error;
 }
 } catch (e) {
@@ -2979,7 +3363,7 @@ if (wrap) setVerdict(wrap.dataset.dish, b.dataset.v);
 
 function aiReasonsPayload(res, altList) {
 const picks = [];
-const detail = [ ...res.detail || [] ].sort((a, b) => (b.weight || 0) - (a.weight || 0));
+const detail = [ ...res.detail || [] ].filter(d => !(QBANK_BY_ID[d.qid] || {}).hate).sort((a, b) => (b.weight || 0) - (a.weight || 0));
 for (const d of detail) for (const p of d.picks || []) {
 if (p && !picks.includes(p)) picks.push(p);
 if (picks.length >= 14) break;
@@ -3025,7 +3409,7 @@ const nn = aiNorm(n);
 if (nn) names.push(nn);
 for (const w of aiTokens(n, 4)) set.add(w);
 }
-const detail = [ ...res.detail || [] ].sort((a, b) => (b.weight || 0) - (a.weight || 0));
+const detail = [ ...res.detail || [] ].filter(d => !(QBANK_BY_ID[d.qid] || {}).hate).sort((a, b) => (b.weight || 0) - (a.weight || 0));
 const picks = [];
 for (const d of detail) for (const p of d.picks || []) {
 if (p && !picks.includes(p)) picks.push(p);
@@ -3076,20 +3460,27 @@ return data.reasons;
 async function enhanceReasonsAI(res) {
 if (aiReasonsOff || aiReasonsBusy) return;
 if (!sb || !sb.functions || typeof sb.functions.invoke !== 'function') return;
-if (!res || res.aiV || !Array.isArray(res.recs) || !res.recs.length) return;
+if (!res || !Array.isArray(res.recs) || !res.recs.length) return;
 if (!currentUser()) return;
+const alt0 = Array.isArray(st.altRecs) ? st.altRecs : [];
+const needPrimary = !(res.aiV >= 2);
+const needAlt = alt0.length && !res.aiAlt;
+if (!needPrimary && !needAlt) return;
 aiReasonsBusy = true;
 try {
-const alt = Array.isArray(st.altRecs) ? st.altRecs : [];
+const alt = alt0;
 const anchors = aiAnchorSet(res);
 const full = aiReasonsPayload(res, alt);
-const batches = [ {
+const batches = [];
+if (needPrimary) batches.push({
 list: res.recs,
-dishes: full.dishes.slice(0, res.recs.length)
-} ];
-if (alt.length) batches.push({
+dishes: full.dishes.slice(0, res.recs.length),
+kind: 'primary'
+});
+if (needAlt) batches.push({
 list: alt,
-dishes: full.dishes.slice(res.recs.length)
+dishes: full.dishes.slice(res.recs.length),
+kind: 'alt'
 });
 let anyApplied = 0;
 for (const b of batches) {
@@ -3107,7 +3498,7 @@ break;
 const applied = applyAiReasons([ b.list ], reasons, anchors);
 if (applied) {
 anyApplied += applied;
-res.aiV = 1;
+if (b.kind === 'primary') res.aiV = 2; else res.aiAlt = 1;
 const shownList = recsAltShown ? st.altRecs || [] : res.recs;
 $('profileRecs').innerHTML = recSectionsHtml(shownList, res);
 paintCourseNav(shownList);
@@ -3122,498 +3513,3 @@ aiReasonsOff = true;
 }
 aiReasonsBusy = false;
 }
-
-const GEOAPIFY_KEY = '79a958030a5b49e191bdf89215ce9710';
-
-const GOOGLE_PLACES_KEY = '';
-
-let placesOff = false;
-
-const geoMemCache = {}, poolMemCache = {};
-
-const REGION_CUISINES = {
-hyderabad: [ 'biryani', 'hyderabadi', 'deccan', 'indian', 'kebab', 'mughlai' ],
-southasia: [ 'indian', 'biryani', 'punjabi', 'bengali', 'sri lankan', 'nepali', 'pakistani', 'curry' ],
-eastasia: [ 'chinese', 'japanese', 'korean', 'thai', 'vietnamese', 'asian', 'noodle', 'sushi', 'ramen', 'malaysian', 'indonesian' ],
-middleeast: [ 'lebanese', 'arab', 'turkish', 'persian', 'middle eastern', 'mediterranean', 'kebab', 'egyptian', 'moroccan' ],
-europe: [ 'italian', 'french', 'spanish', 'greek', 'mediterranean', 'german', 'polish', 'european', 'pizza', 'portuguese' ],
-africa: [ 'ethiopian', 'african', 'nigerian', 'moroccan', 'south african', 'egyptian', 'kenyan', 'ghanaian' ],
-latinamerica: [ 'mexican', 'peruvian', 'brazilian', 'argentinian', 'colombian', 'cuban', 'latin', 'taco', 'caribbean' ],
-unitedstates: [ 'american', 'burger', 'bbq', 'barbecue', 'southern', 'cajun', 'diner', 'steakhouse', 'tex-mex' ],
-oceania: [ 'australian', 'pacific', 'cafe', 'bakery', 'kiwi' ]
-};
-
-async function geoCity(city) {
-if (geoMemCache[city]) return geoMemCache[city];
-const lsKey = 'dib_geo_v1_' + city;
-try {
-const c = JSON.parse(localStorage.getItem(lsKey) || 'null');
-if (c && c.placeId) {
-geoMemCache[city] = c;
-return c;
-}
-} catch (e) {}
-const d = await fetchJsonTimeout(`https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&type=city&format=json&limit=1&apiKey=${GEOAPIFY_KEY}`, 6e3);
-const r = d && d.results && d.results[0];
-if (!r || !r.place_id) throw new Error('geocode miss');
-const out = {
-placeId: r.place_id,
-lon: r.lon,
-lat: r.lat
-};
-geoMemCache[city] = out;
-try {
-localStorage.setItem(lsKey, JSON.stringify(out));
-} catch (e) {}
-return out;
-}
-
-async function cityPool(city) {
-if (poolMemCache[city]) return poolMemCache[city];
-try {
-const hit = JSON.parse(localStorage.getItem('dib_pool_v1_' + city) || 'null');
-if (hit && hit.t && Date.now() - hit.t < 864e5 && Array.isArray(hit.pool) && hit.pool.length) {
-poolMemCache[city] = hit.pool;
-return hit.pool;
-}
-} catch (e) {}
-const g = await geoCity(city);
-const cats = 'catering.restaurant,catering.cafe,catering.fast_food';
-const page = async off => {
-const d = await fetchJsonTimeout(`https://api.geoapify.com/v2/places?categories=${cats}&filter=place:${g.placeId}&limit=500&offset=${off}&apiKey=${GEOAPIFY_KEY}`, 8e3);
-return d && d.features || [];
-};
-let feats = await page(0);
-if (feats.length >= 500) {
-const more = await Promise.all([ page(500), page(1e3) ]);
-feats = feats.concat(more[0], more[1]);
-}
-if (!feats.length) {
-const d = await fetchJsonTimeout(`https://api.geoapify.com/v2/places?categories=${cats}&filter=circle:${g.lon},${g.lat},12000&limit=500&apiKey=${GEOAPIFY_KEY}`, 8e3);
-feats = d && d.features || [];
-}
-const seenPlace = new Set;
-const pool = feats.map(f => {
-const p = f.properties || {}, raw = p.datasource && p.datasource.raw || {};
-const areaRaw = (p.address_line2 || '').split(',')[0].trim();
-return {
-name: p.name || '',
-area: p.suburb || p.district || (areaRaw && areaRaw.toLowerCase() !== city.split(',')[0].toLowerCase() ? areaRaw : '') || '',
-cuisine: (raw.cuisine || '').toLowerCase(),
-cats: (p.categories || []).join(' ').toLowerCase(),
-website: raw.website || p.website || '',
-distKm: typeof p.lat === 'number' && typeof p.lon === 'number' ? Math.hypot((p.lon - g.lon) * 85, (p.lat - g.lat) * 111) : 0
-};
-}).filter(x => {
-if (!x.name) return false;
-const k = x.name + '|' + x.area;
-if (seenPlace.has(k)) return false;
-seenPlace.add(k);
-return true;
-});
-poolMemCache[city] = pool;
-try {
-localStorage.setItem('dib_pool_v1_' + city, JSON.stringify({
-t: Date.now(),
-pool: pool
-}));
-} catch (e) {}
-return pool;
-}
-
-function dishPlaceFor(dishName, pool, usedCounts, areaCounts) {
-const rec = RECS.find(x => x.dish === dishName) || {};
-const stop = new Set([ 'style', 'with', 'and', 'the' ]);
-const toks = dishName.toLowerCase().replace(/[^a-z ]/g, ' ').split(/\s+/).filter(w => w.length >= 4 && !stop.has(w));
-const cuis = REGION_CUISINES[rec.region] || [];
-let best = null, bestScore = 0;
-pool.forEach(p => {
-if (usedCounts && (usedCounts.get(p.name) || 0) >= 2) return;
-const nm = p.name.toLowerCase();
-let sc = 0;
-toks.forEach(t => {
-if (nm.includes(t)) sc += 5;
-});
-if (cuis.some(c => nm.includes(c) || p.cuisine.includes(c) || p.cats.includes(c))) sc += 2;
-if (p.website) sc += .5;
-sc -= Math.min(p.distKm || 0, 20) * .02;
-if (areaCounts && p.area && (areaCounts.get(p.area) || 0) >= 2) sc -= 1.5;
-if (sc > bestScore) {
-bestScore = sc;
-best = p;
-}
-});
-return bestScore >= 2 ? best : null;
-}
-
-async function upgradePlaces(res) {
-if (!GEOAPIFY_KEY || placesOff || !res || !res.city) return 0;
-try {
-const pool = await cityPool(res.city);
-if (!pool.length) return 0;
-let any = 0;
-const usedCounts = new Map;
-const areaCounts = new Map;
-document.querySelectorAll('#profileRecs .r-place').forEach(a => {
-if (a.dataset.places) return;
-const p = dishPlaceFor(a.dataset.dish || '', pool, usedCounts, areaCounts);
-if (p) {
-a.innerHTML = `📍 ${p.name}${p.area ? `<small>${p.area}</small>` : ''}`;
-a.classList.remove('generic');
-a.classList.add('found');
-a.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(p.name + ' ' + res.city);
-a.dataset.places = 'geoapify';
-usedCounts.set(p.name, (usedCounts.get(p.name) || 0) + 1);
-if (p.area) areaCounts.set(p.area, (areaCounts.get(p.area) || 0) + 1);
-any++;
-}
-});
-return any;
-} catch (e) {
-placesOff = true;
-return 0;
-}
-}
-
-function appendPlacesAttr(googleUsed, geoapifyUsed) {
-if (document.querySelector('.places-attr')) return;
-const seg = [];
-if (geoapifyUsed) seg.push('Restaurant picks from OpenStreetMap data · Powered by <a href="https://www.geoapify.com/" target="_blank" rel="noopener">Geoapify</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>');
-if (googleUsed) seg.push((geoapifyUsed ? '' : 'Restaurant picks · ') + 'Ratings by Google');
-if (!seg.length) return;
-const d = document.createElement('p');
-d.className = 'places-attr';
-d.innerHTML = seg.join(' · ');
-const host = $('profileRecs');
-if (host && host.parentNode) host.parentNode.insertBefore(d, host.nextSibling);
-}
-
-async function upgradeAllPlaces(res) {
-let g = 0, a = 0;
-try {
-g = await upgradePlacesGoogle(res);
-} catch (e) {}
-try {
-a = await upgradePlaces(res);
-} catch (e) {}
-if (g + a > 0) appendPlacesAttr(g > 0, a > 0);
-}
-
-function gFame(p) {
-return (p.rating || 0) * Math.log10((p.userRatingCount || 0) + 1);
-}
-
-function gPickBest(places) {
-const ps = (places || []).filter(p => p && p.displayName && p.displayName.text);
-if (!ps.length) return null;
-let best = ps[0];
-for (const p of ps.slice(1)) if (gFame(p) > gFame(best) * 1.5) best = p;
-return best;
-}
-
-function gAreaOf(formattedAddress, city) {
-const parts = String(formattedAddress || '').split(',').map(s => s.trim()).filter(Boolean);
-if (parts.length < 2) return '';
-const cityBase = String(city || '').split(',')[0].trim().toLowerCase();
-const idx = parts.findIndex(s => s.toLowerCase().startsWith(cityBase));
-let area = '';
-if (idx > 0) area = parts[idx - 1]; else if (parts.length >= 3) area = parts[1];
-area = (area || '').replace(/\s+\d[\d\s-]*$/, '').trim();
-if (!area || /^\d/.test(area) || area.length > 34) return '';
-return area;
-}
-
-const G_DISH_CAP = 12;
-
-const gPlaceMem = {};
-
-let googleOff = false;
-
-async function googleDishPlace(city, dish, geo) {
-const ck = city + '|' + dish;
-if (ck in gPlaceMem) return gPlaceMem[ck];
-const lsKey = 'dib_gp_v1_' + ck;
-try {
-const c = JSON.parse(localStorage.getItem(lsKey) || 'null');
-if (c && c.t && Date.now() - c.t < 7 * 24 * 3600 * 1e3) {
-gPlaceMem[ck] = c.p;
-return c.p;
-}
-} catch (e) {}
-let out = null;
-const ctl = new AbortController;
-const to = setTimeout(() => ctl.abort(), 8e3);
-try {
-const body = {
-textQuery: dish + ' in ' + city,
-pageSize: 5
-};
-if (geo && geo.lon != null && geo.lat != null) body.locationBias = {
-circle: {
-center: {
-latitude: geo.lat,
-longitude: geo.lon
-},
-radius: 15e3
-}
-};
-const r = await fetch('https://places.googleapis.com/v1/places:searchText', {
-method: 'POST',
-signal: ctl.signal,
-headers: {
-'Content-Type': 'application/json',
-'X-Goog-Api-Key': GOOGLE_PLACES_KEY,
-'X-Goog-FieldMask': 'places.displayName,places.rating,places.userRatingCount,places.formattedAddress,places.googleMapsUri'
-},
-body: JSON.stringify(body)
-});
-if (!r.ok) throw new Error('google places ' + r.status);
-const d = await r.json();
-const best = gPickBest(d.places);
-if (best) out = {
-name: best.displayName.text,
-area: gAreaOf(best.formattedAddress, city),
-rating: best.rating || null,
-uri: best.googleMapsUri || ''
-};
-} finally {
-clearTimeout(to);
-}
-gPlaceMem[ck] = out;
-try {
-localStorage.setItem(lsKey, JSON.stringify({
-t: Date.now(),
-p: out
-}));
-} catch (e) {}
-return out;
-}
-
-async function upgradePlacesGoogle(res) {
-if (!GOOGLE_PLACES_KEY || googleOff || !res || !res.city) return 0;
-const anchors = Array.from(document.querySelectorAll('#profileRecs .r-place'));
-if (!anchors.length) return 0;
-let geo = null;
-try {
-geo = await geoCity(res.city);
-} catch (e) {}
-let used = 0, upgraded = 0;
-const seen = new Set;
-for (const a of anchors) {
-if (used >= G_DISH_CAP || googleOff) break;
-const dish = a.dataset.dish || '';
-if (!dish || seen.has(dish) || a.dataset.places) continue;
-seen.add(dish);
-used++;
-let p = null;
-try {
-p = await googleDishPlace(res.city, dish, geo);
-} catch (e) {
-googleOff = true;
-break;
-}
-if (p) {
-a.innerHTML = `📍 ${p.name}${p.area || p.rating ? `<small>${[ p.area, p.rating ? '★' + p.rating.toFixed(1) : '' ].filter(Boolean).join(' · ')}</small>` : ''}`;
-a.classList.remove('generic');
-a.classList.add('found');
-a.href = p.uri || 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(p.name + ' ' + res.city);
-a.dataset.places = 'google';
-upgraded++;
-}
-}
-return upgraded;
-}
-
-(() => {
-const fx = document.querySelector('.bg-fx');
-if (!fx || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-let ticking = false;
-addEventListener('scroll', () => {
-if (ticking) return;
-ticking = true;
-requestAnimationFrame(() => {
-fx.style.transform = `translateY(${Math.min(window.scrollY * .05, 110)}px)`;
-ticking = false;
-});
-}, {
-passive: true
-});
-})();
-
-function finish(early) {
-st.finished = true;
-st.result = computeResult(st);
-st.altRecs = altRecsCache;
-const skippedInRun = st.skipped ? Object.keys(st.skipped).filter(id => st.order.includes(id)).length : 0;
-if (early || answeredCount(st) < runTotal(st)) {
-st.result.partial = true;
-st.result.answered = answeredCount(st);
-st.result.skipped = skippedInRun;
-st.result.early = !!early;
-}
-saveState();
-sendToSheets();
-revealResults();
-}
-
-let compileTimer = null, compilePhraseTimer = null;
-
-function revealResults() {
-const reduced = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
-const dots = $('holeDots');
-if (dots && !reduced) {
-const maxR = Math.round(Math.max(160, Math.min(window.innerWidth, window.innerHeight) * .46));
-let html = '';
-for (let i = 0; i < 150; i++) {
-const a = Math.round(Math.random() * 360);
-const r = Math.round(95 + Math.random() * (maxR - 95));
-const d = (Math.random() * 2.4).toFixed(2);
-const g = 110 + Math.round(Math.random() * 120);
-html += `<span style="--a:${a}deg;--r:${r}px;--d:${d}s;background:rgb(${g},${g},${g})"></span>`;
-}
-dots.innerHTML = html;
-}
-show('view-compiling');
-window.scrollTo({
-top: 0
-});
-const phrases = [ 'Reading your palate…', 'Weighing your flavour axes…', 'Scanning kitchens around the world…', 'Matching dishes to your taste…', 'Handpicking your recommendations…' ];
-let pi = 0;
-const el = $('compilePhrase');
-if (el) el.textContent = phrases[0];
-clearInterval(compilePhraseTimer);
-if (!reduced) compilePhraseTimer = setInterval(() => {
-pi = (pi + 1) % phrases.length;
-if (el) el.textContent = phrases[pi];
-}, 1100);
-clearTimeout(compileTimer);
-compileTimer = setTimeout(() => {
-clearInterval(compilePhraseTimer);
-renderResults();
-show('view-results');
-window.scrollTo({
-top: 0
-});
-}, reduced ? 700 : 7500);
-}
-
-$('endBtn').onclick = () => {
-if (st && !st.finished && answeredCount(st) >= 5) finish(true);
-};
-
-$('pickProfileBtn').addEventListener('click', () => show('view-profile'));
-
-$('pickDishesBtn').addEventListener('click', () => show('view-dishes'));
-
-$('profileBackBtn').addEventListener('click', () => show('view-results'));
-
-$('dishesBackBtn').addEventListener('click', () => show('view-results'));
-
-$('profileToDishesBtn').addEventListener('click', () => show('view-dishes'));
-
-$('dishesToProfileBtn').addEventListener('click', () => show('view-profile'));
-
-$('endInfoBtn').onclick = () => {
-const p = $('endInfoPanel');
-p.hidden = !p.hidden;
-$('endInfoBtn').classList.toggle('open', !p.hidden);
-};
-
-$('csvBtn').onclick = () => {
-const res = st.result || computeResult(st);
-const esc = v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
-const rows = [ [ 'Diving into Buds — taste profile results' ], [ 'Email', res.email ], [ 'Diet', DIET_LABELS[res.diet] || res.diet ], [ 'Roots', rootsLabelOf(res) ], [ 'City', res.city || '' ], [ 'Questions answered', res.detail.length ], [ 'Ended early', res.partial ? 'Yes' : 'No' ], [ 'Completed', res.completedAt ], [ 'Top traits', res.topTags.join(', ') ], [ 'Affinities', Object.entries(res.affinities || {}).map(([k, v]) => `${k}:${v}`).join(', ') ], ...(res.axes || []).map(a => [ `Axis — ${a.name}`, `${a.lean === 'hi' ? a.hi : a.lean === 'lo' ? a.lo : 'Balanced'} (${a.pct}% toward ${a.hi}, strength ${a.strength})` ]), [ 'Hard no\'s', (res.aversions || []).join(', ') ], [ 'Heat %', res.meters.spice ], [ 'Sweet %', res.meters.sweet ], [ 'Adventure %', res.meters.adv ], [ 'Smoke %', res.meters.smoky ], [ 'Tang %', res.meters.tangy ], [ 'Creamy %', res.meters.creamy ], [ 'Fresh %', res.meters.fresh ], [ 'Classic %', res.meters.classic ], [ 'Average confidence', res.avgConfidence ], [], [ '#', 'Question', 'Section', 'Your pick(s)', 'Confidence' ] ];
-res.detail.forEach((d, i) => rows.push([ i + 1, d.q, d.deck, d.picks.join(' + '), d.weight ]));
-rows.push([], [ 'Recommendations' ]);
-res.recs.forEach(r => rows.push([ r.dish, r.from, r.why ]));
-const blob = new Blob([ rows.map(r => r.map(esc).join(',')).join('\n') ], {
-type: 'text/csv'
-});
-const a = document.createElement('a');
-a.href = URL.createObjectURL(blob);
-a.download = 'diving-into-buds-results.csv';
-a.click();
-URL.revokeObjectURL(a.href);
-};
-
-$('retakeBtn').onclick = doRestart;
-
-(async function init() {
-store.del('dib_session');
-if (!sb) {
-show('view-landing');
-return;
-}
-const {data: data} = await sb.auth.getSession();
-if (data && data.session && data.session.user) {
-sessionUser = {
-id: data.session.user.id,
-email: data.session.user.email
-};
-await hydrate();
-routeAfterLogin();
-} else {
-show('view-landing');
-}
-})();
-
-$('qInfoBtn').onclick = () => {
-const p = $('qInfoPanel');
-p.hidden = !p.hidden;
-$('qInfoBtn').classList.toggle('open', !p.hidden);
-};
-
-$('seInfoBtn').onclick = () => {
-const p = $('seInfoPanel');
-p.hidden = !p.hidden;
-$('seInfoBtn').classList.toggle('open', !p.hidden);
-};
-
-(() => {
-if (!('IntersectionObserver' in window)) {
-document.querySelectorAll('.reveal').forEach(el => el.classList.add('inview'));
-return;
-}
-const io = new IntersectionObserver(es => es.forEach(en => {
-if (en.isIntersecting) {
-en.target.classList.add('inview');
-io.unobserve(en.target);
-}
-}), {
-threshold: 0
-});
-document.querySelectorAll('.reveal').forEach(el => io.observe(el));
-})();
-
-(() => {
-if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-const rootEl = document.documentElement;
-const stops = [ [ 139, 92, 246 ], [ 217, 70, 239 ], [ 79, 70, 229 ], [ 147, 51, 234 ], [ 139, 92, 246 ] ];
-let ticking = false;
-function paint() {
-ticking = false;
-const max = document.body.scrollHeight - innerHeight;
-const p = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
-const seg = p * (stops.length - 1);
-const i = Math.min(stops.length - 2, Math.floor(seg));
-const f = seg - i;
-const c = stops[i].map((v, k) => Math.round(v + (stops[i + 1][k] - v) * f));
-const pulse = Math.sin(p * Math.PI);
-rootEl.style.setProperty('--glowA', `rgba(${c[0]},${c[1]},${c[2]},${(.4 + .16 * pulse).toFixed(3)})`);
-rootEl.style.setProperty('--glowB', `rgba(${c[2]},${c[1]},${c[0]},${(.26 + .12 * pulse).toFixed(3)})`);
-rootEl.style.setProperty('--gx1', 12 + p * 48 + '%');
-rootEl.style.setProperty('--gy1', -6 + p * 34 + '%');
-rootEl.style.setProperty('--gx2', 105 - p * 62 + '%');
-rootEl.style.setProperty('--gy2', 22 + p * 48 + '%');
-}
-addEventListener('scroll', () => {
-if (!ticking) {
-ticking = true;
-requestAnimationFrame(paint);
-}
-}, {
-passive: true
-});
-addEventListener('resize', paint);
-paint();
-})();

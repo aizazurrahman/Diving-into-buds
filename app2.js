@@ -377,190 +377,117 @@ revealResults();
 
 let compileTimer = null, compilePhraseTimer = null;
 
-function revealResults() {
-const reduced = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
-const dots = $('holeDots');
-if (dots && !reduced) {
-const maxR = Math.round(Math.max(160, Math.min(window.innerWidth, window.innerHeight) * .46));
-let html = '';
-for (let i = 0; i < 150; i++) {
-const a = Math.round(Math.random() * 360);
-const r = Math.round(95 + Math.random() * (maxR - 95));
-const d = (Math.random() * 2.4).toFixed(2);
-const g = 110 + Math.round(Math.random() * 120);
-html += `<span style="--a:${a}deg;--r:${r}px;--d:${d}s;background:rgb(${g},${g},${g})"></span>`;
-}
-dots.innerHTML = html;
-}
-show('view-compiling');
-window.scrollTo({
-top: 0
-});
-const bf = st && st.builtFor || {};
-const love0 = ((Array.isArray(st.loves) ? st.loves : []).map(id => (st.lovesData || {})[id]).filter(d => d && d.n)[0] || {}).n || '';
-const av0 = st ? aversionsOf(st)[0] || '' : '';
-const phrases = [ 'Reading your palate…', bf.roots ? `Weighing your ${rootsLabelOf(bf)} roots against the world…` : 'Weighing your flavour axes…', love0 ? `Keeping ${love0} at the centre…` : 'Scanning kitchens around the world…', av0 ? `Standing guard — no ${av0.split(' — ')[0].toLowerCase()} anywhere near your list…` : 'Matching dishes to your taste…', bf.city ? bf.mode === 'travel' ? `Lining up ${bf.city.split(',')[0]}'s best tables…` : `Finding your flavours in ${bf.city.split(',')[0]}…` : 'Handpicking your recommendations…' ];
-let pi = 0;
-const el = $('compilePhrase');
-if (el) el.textContent = phrases[0];
-clearInterval(compilePhraseTimer);
-if (!reduced) compilePhraseTimer = setInterval(() => {
-pi = (pi + 1) % phrases.length;
-if (el) el.textContent = phrases[pi];
-}, 1100);
-clearTimeout(compileTimer);
-compileTimer = setTimeout(() => {
-clearInterval(compilePhraseTimer);
-renderResults();
-show('view-results');
-window.scrollTo({
-top: 0
-});
-}, reduced ? 700 : 7500);
-}
+const CITIES = [ 'Hyderabad, India', 'Bengaluru, India', 'Mumbai, India', 'Delhi, India', 'Chennai, India', 'Kolkata, India', 'Pune, India', 'Ahmedabad, India', 'Jaipur, India', 'Lucknow, India', 'Kochi, India', 'Panaji, India', 'Indore, India', 'Bhopal, India', 'Chandigarh, India', 'Coimbatore, India', 'Nagpur, India', 'Surat, India', 'Vadodara, India', 'Visakhapatnam, India', 'Patna, India', 'Guwahati, India', 'Thiruvananthapuram, India', 'Mysuru, India', 'Madurai, India', 'Varanasi, India', 'Agra, India', 'Kanpur, India', 'Ranchi, India', 'Bhubaneswar, India', 'Dehradun, India', 'Amritsar, India', 'Ludhiana, India', 'Udaipur, India', 'Jodhpur, India', 'Karachi, Pakistan', 'Lahore, Pakistan', 'Islamabad, Pakistan', 'Hyderabad, Pakistan', 'Faisalabad, Pakistan', 'Rawalpindi, Pakistan', 'Multan, Pakistan', 'Peshawar, Pakistan', 'Dhaka, Bangladesh', 'Chattogram, Bangladesh', 'Khulna, Bangladesh', 'Sylhet, Bangladesh', 'Colombo, Sri Lanka', 'Kandy, Sri Lanka', 'Kathmandu, Nepal', 'Pokhara, Nepal', 'Dubai, United Arab Emirates', 'Abu Dhabi, United Arab Emirates', 'Sharjah, United Arab Emirates', 'Riyadh, Saudi Arabia', 'Jeddah, Saudi Arabia', 'Mecca, Saudi Arabia', 'Medina, Saudi Arabia', 'Dammam, Saudi Arabia', 'Doha, Qatar', 'Kuwait City, Kuwait', 'Muscat, Oman', 'Manama, Bahrain', 'London, United Kingdom', 'Manchester, United Kingdom', 'Birmingham, United Kingdom', 'Leeds, United Kingdom', 'Glasgow, United Kingdom', 'Edinburgh, United Kingdom', 'Liverpool, United Kingdom', 'Bristol, United Kingdom', 'Sheffield, United Kingdom', 'Cardiff, United Kingdom', 'Belfast, United Kingdom', 'Newcastle, United Kingdom', 'Leicester, United Kingdom', 'Nottingham, United Kingdom', 'Oxford, United Kingdom', 'Cambridge, United Kingdom', 'Brighton, United Kingdom', 'York, United Kingdom', 'Dublin, Ireland', 'Cork, Ireland', 'Galway, Ireland', 'New York, United States', 'Los Angeles, United States', 'Chicago, United States', 'Houston, United States', 'Phoenix, United States', 'Philadelphia, United States', 'San Antonio, United States', 'San Diego, United States', 'Dallas, United States', 'Austin, United States', 'San Jose, United States', 'Columbus, United States', 'Charlotte, United States', 'San Francisco, United States', 'Seattle, United States', 'Denver, United States', 'Washington DC, United States', 'Boston, United States', 'Nashville, United States', 'Portland, United States', 'Las Vegas, United States', 'Miami, United States', 'Atlanta, United States', 'Minneapolis, United States', 'Tampa, United States', 'Sacramento, United States', 'Orlando, United States', 'Detroit, United States', 'Honolulu, United States', 'Milwaukee, United States', 'Baltimore, United States', 'Salt Lake City, United States', 'New Orleans, United States', 'Oklahoma City, United States', 'Memphis, United States', 'Louisville, United States', 'Raleigh, United States', 'Toronto, Canada', 'Vancouver, Canada', 'Montreal, Canada', 'Calgary, Canada', 'Ottawa, Canada', 'Edmonton, Canada', 'Winnipeg, Canada', 'Quebec City, Canada', 'Halifax, Canada', 'Victoria, Canada', 'Mexico City, Mexico', 'Guadalajara, Mexico', 'Monterrey, Mexico', 'Puebla, Mexico', 'Tijuana, Mexico', 'Cancún, Mexico', 'Mérida, Mexico', 'São Paulo, Brazil', 'Rio de Janeiro, Brazil', 'Brasília, Brazil', 'Salvador, Brazil', 'Fortaleza, Brazil', 'Belo Horizonte, Brazil', 'Manaus, Brazil', 'Curitiba, Brazil', 'Recife, Brazil', 'Porto Alegre, Brazil', 'Buenos Aires, Argentina', 'Santiago, Chile', 'Lima, Peru', 'Bogotá, Colombia', 'Medellín, Colombia', 'Quito, Ecuador', 'Montevideo, Uruguay', 'Asunción, Paraguay', 'La Paz, Bolivia', 'Caracas, Venezuela', 'Panama City, Panama', 'San José, Costa Rica', 'Havana, Cuba', 'Santo Domingo, Dominican Republic', 'San Juan, Puerto Rico', 'Paris, France', 'Lyon, France', 'Marseille, France', 'Nice, France', 'Bordeaux, France', 'Toulouse, France', 'Berlin, Germany', 'Munich, Germany', 'Hamburg, Germany', 'Frankfurt, Germany', 'Cologne, Germany', 'Stuttgart, Germany', 'Düsseldorf, Germany', 'Madrid, Spain', 'Barcelona, Spain', 'Valencia, Spain', 'Seville, Spain', 'Bilbao, Spain', 'Rome, Italy', 'Milan, Italy', 'Naples, Italy', 'Turin, Italy', 'Florence, Italy', 'Venice, Italy', 'Bologna, Italy', 'Amsterdam, Netherlands', 'Rotterdam, Netherlands', 'Utrecht, Netherlands', 'The Hague, Netherlands', 'Brussels, Belgium', 'Antwerp, Belgium', 'Ghent, Belgium', 'Vienna, Austria', 'Salzburg, Austria', 'Graz, Austria', 'Zurich, Switzerland', 'Geneva, Switzerland', 'Basel, Switzerland', 'Bern, Switzerland', 'Lisbon, Portugal', 'Porto, Portugal', 'Athens, Greece', 'Thessaloniki, Greece', 'Stockholm, Sweden', 'Gothenburg, Sweden', 'Malmö, Sweden', 'Oslo, Norway', 'Bergen, Norway', 'Copenhagen, Denmark', 'Aarhus, Denmark', 'Helsinki, Finland', 'Tampere, Finland', 'Reykjavik, Iceland', 'Warsaw, Poland', 'Kraków, Poland', 'Gdańsk, Poland', 'Poznań, Poland', 'Prague, Czechia', 'Brno, Czechia', 'Budapest, Hungary', 'Bucharest, Romania', 'Sofia, Bulgaria', 'Zagreb, Croatia', 'Belgrade, Serbia', 'Ljubljana, Slovenia', 'Bratislava, Slovakia', 'Vilnius, Lithuania', 'Riga, Latvia', 'Tallinn, Estonia', 'Kyiv, Ukraine', 'Istanbul, Türkiye', 'Ankara, Türkiye', 'Izmir, Türkiye', 'Cairo, Egypt', 'Alexandria, Egypt', 'Lagos, Nigeria', 'Abuja, Nigeria', 'Nairobi, Kenya', 'Accra, Ghana', 'Johannesburg, South Africa', 'Cape Town, South Africa', 'Durban, South Africa', 'Addis Ababa, Ethiopia', 'Dar es Salaam, Tanzania', 'Luanda, Angola', 'Maputo, Mozambique', 'Casablanca, Morocco', 'Marrakech, Morocco', 'Tunis, Tunisia', 'Algiers, Algeria', 'Tel Aviv, Israel', 'Jerusalem, Israel', 'Beirut, Lebanon', 'Amman, Jordan', 'Tehran, Iran', 'Baghdad, Iraq', 'Kabul, Afghanistan', 'Beijing, China', 'Shanghai, China', 'Guangzhou, China', 'Shenzhen, China', 'Chengdu, China', 'Xi\'an, China', 'Wuhan, China', 'Hangzhou, China', 'Nanjing, China', 'Chongqing, China', 'Hong Kong', 'Taipei, Taiwan', 'Tokyo, Japan', 'Osaka, Japan', 'Kyoto, Japan', 'Nagoya, Japan', 'Fukuoka, Japan', 'Sapporo, Japan', 'Seoul, South Korea', 'Busan, South Korea', 'Incheon, South Korea', 'Bangkok, Thailand', 'Chiang Mai, Thailand', 'Phuket, Thailand', 'Hanoi, Vietnam', 'Ho Chi Minh City, Vietnam', 'Da Nang, Vietnam', 'Kuala Lumpur, Malaysia', 'Penang, Malaysia', 'Johor Bahru, Malaysia', 'Singapore', 'Jakarta, Indonesia', 'Surabaya, Indonesia', 'Bandung, Indonesia', 'Denpasar, Indonesia', 'Manila, Philippines', 'Cebu, Philippines', 'Davao, Philippines', 'Yangon, Myanmar', 'Phnom Penh, Cambodia', 'Vientiane, Laos', 'Ulaanbaatar, Mongolia', 'Almaty, Kazakhstan', 'Tashkent, Uzbekistan', 'Baku, Azerbaijan', 'Tbilisi, Georgia', 'Yerevan, Armenia', 'Sydney, Australia', 'Melbourne, Australia', 'Brisbane, Australia', 'Perth, Australia', 'Adelaide, Australia', 'Canberra, Australia', 'Gold Coast, Australia', 'Hobart, Australia', 'Darwin, Australia', 'Auckland, New Zealand', 'Wellington, New Zealand', 'Christchurch, New Zealand', 'Hamilton, New Zealand', 'Suva, Fiji' ];
 
-$('endBtn').onclick = () => {
-if (st && !st.finished && answeredCount(st) >= 5) finish(true);
+const COUNTRY_REGION = {
+India: 'southasia',
+Pakistan: 'southasia',
+Bangladesh: 'southasia',
+'Sri Lanka': 'southasia',
+Nepal: 'southasia',
+Afghanistan: 'southasia',
+China: 'eastasia',
+Japan: 'eastasia',
+'South Korea': 'eastasia',
+Indonesia: 'eastasia',
+Thailand: 'eastasia',
+Vietnam: 'eastasia',
+Malaysia: 'eastasia',
+Philippines: 'eastasia',
+'Hong Kong': 'eastasia',
+Taiwan: 'eastasia',
+Singapore: 'eastasia',
+Myanmar: 'eastasia',
+Cambodia: 'eastasia',
+Laos: 'eastasia',
+Mongolia: 'eastasia',
+'Saudi Arabia': 'middleeast',
+'United Arab Emirates': 'middleeast',
+Qatar: 'middleeast',
+Kuwait: 'middleeast',
+Oman: 'middleeast',
+Bahrain: 'middleeast',
+Israel: 'middleeast',
+Lebanon: 'middleeast',
+Jordan: 'middleeast',
+Palestine: 'middleeast',
+Iran: 'middleeast',
+Iraq: 'middleeast',
+'Türkiye': 'middleeast',
+Egypt: 'middleeast',
+Kazakhstan: 'middleeast',
+Uzbekistan: 'middleeast',
+'United Kingdom': 'europe',
+Germany: 'europe',
+Italy: 'europe',
+France: 'europe',
+Spain: 'europe',
+Netherlands: 'europe',
+Switzerland: 'europe',
+Poland: 'europe',
+Ireland: 'europe',
+Belgium: 'europe',
+Austria: 'europe',
+Sweden: 'europe',
+Portugal: 'europe',
+Greece: 'europe',
+Norway: 'europe',
+Denmark: 'europe',
+Finland: 'europe',
+Czechia: 'europe',
+Iceland: 'europe',
+Hungary: 'europe',
+Romania: 'europe',
+Bulgaria: 'europe',
+Croatia: 'europe',
+Serbia: 'europe',
+Slovenia: 'europe',
+Slovakia: 'europe',
+Lithuania: 'europe',
+Latvia: 'europe',
+Estonia: 'europe',
+Ukraine: 'europe',
+Russia: 'europe',
+Georgia: 'europe',
+Armenia: 'europe',
+Azerbaijan: 'europe',
+'South Africa': 'africa',
+Nigeria: 'africa',
+Morocco: 'africa',
+Kenya: 'africa',
+Ghana: 'africa',
+Ethiopia: 'africa',
+Tanzania: 'africa',
+Angola: 'africa',
+Mozambique: 'africa',
+Tunisia: 'africa',
+Algeria: 'africa',
+Mali: 'africa',
+Zambia: 'africa',
+'United States': 'unitedstates',
+Canada: 'unitedstates',
+Brazil: 'latinamerica',
+Mexico: 'latinamerica',
+Colombia: 'latinamerica',
+Argentina: 'latinamerica',
+Chile: 'latinamerica',
+Peru: 'latinamerica',
+Ecuador: 'latinamerica',
+Uruguay: 'latinamerica',
+Paraguay: 'latinamerica',
+Bolivia: 'latinamerica',
+Venezuela: 'latinamerica',
+Panama: 'latinamerica',
+'Costa Rica': 'latinamerica',
+Cuba: 'latinamerica',
+'Dominican Republic': 'latinamerica',
+'El Salvador': 'latinamerica',
+Jamaica: 'latinamerica',
+'Puerto Rico': 'latinamerica',
+Australia: 'oceania',
+'New Zealand': 'oceania',
+Fiji: 'oceania',
+Samoa: 'oceania',
+Tonga: 'oceania',
+Vanuatu: 'oceania'
 };
-
-$('pickProfileBtn').addEventListener('click', () => show('view-profile'));
-
-$('pickDishesBtn').addEventListener('click', () => show('view-dishes'));
-
-$('profileBackBtn').addEventListener('click', () => show('view-results'));
-
-$('dishesBackBtn').addEventListener('click', () => show('view-results'));
-
-$('profileToDishesBtn').addEventListener('click', () => show('view-dishes'));
-
-$('dishesToProfileBtn').addEventListener('click', () => show('view-profile'));
-
-$('endInfoBtn').onclick = () => {
-const p = $('endInfoPanel');
-p.hidden = !p.hidden;
-$('endInfoBtn').classList.toggle('open', !p.hidden);
-};
-
-$('shareProfileBtn').onclick = async () => {
-const res = st.result || lastResult;
-if (!res) return;
-const btn = $('shareProfileBtn');
-const stripLbl = s2 => String(s2 || '').replace(/^\S+\s/, '');
-const sumTags = (res.summaryTags && res.summaryTags.length >= 2 ? res.summaryTags : res.topTags || []).map(t => stripLbl(TAG_LABELS[t])).filter(Boolean);
-const leans = (res.axes || []).filter(a => a.lean === 'hi' || a.lean === 'lo').slice(0, 3).map(a => a.lean === 'hi' ? a.hi : a.lo);
-const dishes = (res.recs || []).slice(0, 3).map(r => r.dish);
-const text = [ '🍽️ My taste profile — Diving into Buds', sumTags.length >= 2 ? `In one line: ${sumTags[0]} meets ${sumTags[1].toLowerCase()}.` : '', leans.length ? `My leans: ${leans.join(' · ')}` : '', dishes.length ? `First dishes to try: ${dishes.join(', ')}` : '', 'Take your own dive: https://aizazurrahman.github.io/Diving-into-buds/' ].filter(Boolean).join('\n');
-try {
-if (navigator.share) {
-await navigator.share({
-title: 'My taste profile',
-text: text
-});
-return;
-}
-throw new Error('no native share');
-} catch (e) {
-if (e && e.name === 'AbortError') return;
-try {
-await navigator.clipboard.writeText(text);
-const old = btn.textContent;
-btn.textContent = '✓ Copied — paste it anywhere';
-setTimeout(() => {
-btn.textContent = old;
-}, 3e3);
-} catch (e2) {}
-}
-};
-
-$('csvBtn').onclick = () => {
-const res = st.result || computeResult(st);
-const esc = v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
-const rows = [ [ 'Diving into Buds — taste profile results' ], [ 'Email', res.email ], [ 'Diet', DIET_LABELS[res.diet] || res.diet ], [ 'Roots', rootsLabelOf(res) ], [ 'City', res.city || '' ], [ 'Questions answered', res.detail.length ], [ 'Ended early', res.partial ? 'Yes' : 'No' ], [ 'Completed', res.completedAt ], [ 'Top traits', res.topTags.join(', ') ], [ 'Affinities', Object.entries(res.affinities || {}).map(([k, v]) => `${k}:${v}`).join(', ') ], ...(res.axes || []).map(a => [ `Axis — ${a.name}`, `${a.lean === 'hi' ? a.hi : a.lean === 'lo' ? a.lo : 'Balanced'} (${a.pct}% toward ${a.hi}, strength ${a.strength})` ]), [ 'Hard no\'s', (res.aversions || []).join(', ') ], [ 'Heat %', res.meters.spice ], [ 'Sweet %', res.meters.sweet ], [ 'Adventure %', res.meters.adv ], [ 'Smoke %', res.meters.smoky ], [ 'Tang %', res.meters.tangy ], [ 'Creamy %', res.meters.creamy ], [ 'Fresh %', res.meters.fresh ], [ 'Classic %', res.meters.classic ], [ 'Average confidence', res.avgConfidence ], [], [ '#', 'Question', 'Section', 'Your pick(s)', 'Confidence' ] ];
-res.detail.forEach((d, i) => rows.push([ i + 1, d.q, d.deck, d.picks.join(' + '), d.weight ]));
-rows.push([], [ 'Recommendations' ]);
-res.recs.forEach(r => rows.push([ r.dish, r.from, r.why ]));
-const blob = new Blob([ rows.map(r => r.map(esc).join(',')).join('\n') ], {
-type: 'text/csv'
-});
-const a = document.createElement('a');
-a.href = URL.createObjectURL(blob);
-a.download = 'diving-into-buds-results.csv';
-a.click();
-URL.revokeObjectURL(a.href);
-};
-
-$('retakeBtn').onclick = doRestart;
-
-(async function init() {
-store.del('dib_session');
-if (!sb) {
-show('view-landing');
-return;
-}
-const {data: data} = await sb.auth.getSession();
-if (data && data.session && data.session.user) {
-sessionUser = {
-id: data.session.user.id,
-email: data.session.user.email
-};
-await hydrate();
-routeAfterLogin();
-} else {
-show('view-landing');
-}
-})();
-
-$('qInfoBtn').onclick = () => {
-const p = $('qInfoPanel');
-p.hidden = !p.hidden;
-$('qInfoBtn').classList.toggle('open', !p.hidden);
-};
-
-(() => {
-if (!('IntersectionObserver' in window)) {
-document.querySelectorAll('.reveal').forEach(el => el.classList.add('inview'));
-return;
-}
-const io = new IntersectionObserver(es => es.forEach(en => {
-if (en.isIntersecting) {
-en.target.classList.add('inview');
-io.unobserve(en.target);
-}
-}), {
-threshold: 0
-});
-document.querySelectorAll('.reveal').forEach(el => io.observe(el));
-})();
-
-(() => {
-if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-const rootEl = document.documentElement;
-const stops = [ [ 139, 92, 246 ], [ 217, 70, 239 ], [ 79, 70, 229 ], [ 147, 51, 234 ], [ 139, 92, 246 ] ];
-let ticking = false;
-function paint() {
-ticking = false;
-const max = document.body.scrollHeight - innerHeight;
-const p = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
-const seg = p * (stops.length - 1);
-const i = Math.min(stops.length - 2, Math.floor(seg));
-const f = seg - i;
-const c = stops[i].map((v, k) => Math.round(v + (stops[i + 1][k] - v) * f));
-const pulse = Math.sin(p * Math.PI);
-rootEl.style.setProperty('--glowA', `rgba(${c[0]},${c[1]},${c[2]},${(.4 + .16 * pulse).toFixed(3)})`);
-rootEl.style.setProperty('--glowB', `rgba(${c[2]},${c[1]},${c[0]},${(.26 + .12 * pulse).toFixed(3)})`);
-rootEl.style.setProperty('--gx1', 12 + p * 48 + '%');
-rootEl.style.setProperty('--gy1', -6 + p * 34 + '%');
-rootEl.style.setProperty('--gx2', 105 - p * 62 + '%');
-rootEl.style.setProperty('--gy2', 22 + p * 48 + '%');
-}
-addEventListener('scroll', () => {
-if (!ticking) {
-ticking = true;
-requestAnimationFrame(paint);
-}
-}, {
-passive: true
-});
-addEventListener('resize', paint);
-paint();
-})();

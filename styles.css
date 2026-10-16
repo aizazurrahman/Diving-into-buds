@@ -558,10 +558,8 @@ footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 18
 .ft-note { color: var(--muted); font-size: .9rem; margin: 6px 0 0; }
 .ft-any { float: right; border: 1.5px solid #D9D2EA; background: #fff; color: inherit; border-radius: 999px; padding: 3px 12px; font: inherit; font-size: .85rem; cursor: pointer; min-height: 32px; }
 .ft-any.sel { background: var(--grad-action); color: #fff; border-color: transparent; font-weight: 600; }
-.ft-slider-row { display: flex; align-items: center; gap: 10px; }
-.ft-slider-row input[type="range"] { flex: 1; }
-.ft-slider-row input[type="range"]:disabled { opacity: .35; }
-.ft-end { font-size: .82rem; color: var(--muted); white-space: nowrap; }
+.ft-scale { display: flex; justify-content: space-between; font-size: .82rem; color: var(--muted); margin: 0 2px 2px; }
+.ft-range { width: 100%; padding: 12px 0; cursor: pointer; }
 .ft-val { font-size: .9rem; color: var(--muted); margin: 4px 0 0; min-height: 1.2em; }
 .ft-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 26px; }
 .ft-summary { margin: 14px 0 6px; font-size: .95rem; }

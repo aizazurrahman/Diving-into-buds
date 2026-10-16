@@ -2614,7 +2614,7 @@ wgt: -lean * (1 - dv)
 return null;
 }).filter(Boolean).sort((a, b) => b.wgt - a.wgt).slice(0, 2).map(x => x.label);
 };
-const dishScoreV2 = r => dishScore(r) + .55 * axisAlign(r) + exploreBonus(r) + ftBonus(r);
+const dishScoreV2 = r => dishScore(r) + .55 * axisAlign(r) + exploreBonus(r);
 const vetoedByAversion = dish => aversionHit(dish, aversions);
 const eggStance = chosenEgg(s);
 if (eggStance !== null) eggOk = eggStance;
@@ -2650,30 +2650,39 @@ if (/\b(chilli|chillies|chili|pepper|spicy|fiery|masala)\b/.test(tx)) v += .35;
 if (/\bhot\b/.test(tx)) v += .15;
 return Math.min(1, v);
 };
-const ftActive = !!(ftScope || ftKind || ft.heft || ft.spice || ft.adv || (ft.notTonight || []).length);
-const ftBonus = r => {
-if (!ftActive) return 0;
-let b = 0;
-if (ftScope === 'roots' && ownRoots.includes(r.region)) b += .9; else if (ftScope === 'local' && ftDestC && r.country === ftDestC) b += .9; else if (ftScope === 'surprise' && !ownRoots.includes(r.region) && r.country !== ftDestC) b += .35;
-if (ftKind && !kindHard && kindOk(r)) b += .8;
+const optMeats = ftKind ? [ 'chicken', 'beef', 'lamb', 'pork', 'fish', 'seafood', 'duck', 'quail' ] : meats;
+const baseOk = r => optVisible(r, s.builtFor.diet, optMeats) && (!r.raw || rawOk) && (!r.alc || alcOk) && (!r.egg || s.builtFor.diet !== 'vegetarian' || eggOk) && (!r.dairy || chosenDairy(s) !== false) && !vetoedByAversion(r.dish + ' ' + (r.why || '')) && !((ft.notTonight || []).length && aversionHit(r.dish + ' ' + (r.why || ''), ft.notTonight)) && (s.feedback || {})[r.dish] !== 'no' && (s.feedback || {})[r.dish] !== 'love';
+let ftPool = RECS.filter(baseOk);
+const modeOk = r => s.builtFor.mode === 'travel' || !ownRoots.includes(r.region);
+const scopeOk = r => ftScope === 'roots' ? ownRoots.includes(r.region) : ftScope === 'local' ? !!ftDestC && r.country === ftDestC : ftScope === 'surprise' ? !ownRoots.includes(r.region) && r.country !== ftDestC : modeOk(r);
+let ftScopeWidened = false;
+const scopedPool = ftPool.filter(scopeOk);
+if (ftScope && !scopedPool.length) {
+ftPool = ftPool.filter(modeOk);
+ftScopeWidened = true;
+} else ftPool = scopedPool;
+let ftKindWidened = false;
+if (ftKind) {
+const kindPool = ftPool.filter(kindOk);
+if (kindPool.length) ftPool = kindPool; else ftKindWidened = true;
+}
 if (ft.heft) {
+const heftOk = r => {
 const h = heftOf(r);
-b += ft.heft === 1 ? -.38 * h : ft.heft === 3 ? .38 * h : -.12 * Math.abs(h);
+return ft.heft === 1 ? h <= .1 : ft.heft === 3 ? h >= -.05 : h >= -.45 && h <= .55;
+};
+const heftPool = ftPool.filter(heftOk);
+if (heftPool.length) ftPool = heftPool;
 }
 if (ft.spice) {
-const t = (ft.spice - 1) / 4;
-b += .9 * (1 - Math.abs(spiceOf(r) - t) - .5);
-}
-if (ft.adv) {
-const t = (ft.adv - 1) / 4;
-const nov = ownRoots.includes(r.region) ? 0 : ftDestC && r.country === ftDestC ? .45 : 1;
-b += .8 * (2 * t - 1) * (nov - .5);
-}
-return b;
+const spiceOk = r => {
+const v = spiceOf(r);
+return ft.spice === 1 ? v <= .2 : ft.spice === 2 ? v <= .65 : ft.spice === 4 ? v >= .65 : v >= .8;
 };
-const hardOk = r => (ftScope === 'roots' || s.builtFor.mode === 'travel' || !ownRoots.includes(r.region)) && optVisible(r, s.builtFor.diet, meats) && (!r.raw || rawOk) && (!r.alc || alcOk) && (!r.egg || s.builtFor.diet !== 'vegetarian' || eggOk) && (!r.dairy || chosenDairy(s) !== false) && !vetoedByAversion(r.dish + ' ' + (r.why || '')) && !((ft.notTonight || []).length && aversionHit(r.dish + ' ' + (r.why || ''), ft.notTonight)) && (s.feedback || {})[r.dish] !== 'no' && (s.feedback || {})[r.dish] !== 'love';
-const kindHard = !!ftKind && RECS.filter(r => hardOk(r) && kindOk(r)).length >= 20;
-const scored = RECS.filter(r => hardOk(r) && (!kindHard || kindOk(r))).map(r => ({
+const spicePool = ftPool.filter(spiceOk);
+if (spicePool.length) ftPool = spicePool;
+}
+const scored = ftPool.map(r => ({
 r: r,
 score: dishScoreV2(r),
 ax: axisAlign(r),
@@ -3035,7 +3044,8 @@ roots2: s.builtFor.roots2 || null,
 city: s.builtFor.city || '',
 mode: s.builtFor.mode || 'explore',
 fineTune: s.fineTune || null,
-ftKindWidened: !!ftKind && !kindHard,
+ftKindWidened: ftKindWidened,
+ftScopeWidened: ftScopeWidened,
 topTags: topTags,
 summaryTags: summaryTags,
 affinities: affinities,
@@ -3469,12 +3479,12 @@ if (st && !st.finished && answeredCount(st) >= 5) finish(true);
 $('ftGoBtn').addEventListener('click', () => {
 if (!st) return;
 const d = ftDraft || {};
-st.fineTune = d.scope || d.kind || d.heft || d.spice || d.adv || (d.notTonight || []).length ? {
+const spice = d.spice && d.spice !== 3 ? d.spice : 0;
+st.fineTune = d.scope || d.kind || d.heft || spice || (d.notTonight || []).length ? {
 scope: d.scope || '',
 kind: d.kind || '',
 heft: d.heft || 0,
-spice: d.spice || 0,
-adv: d.adv || 0,
+spice: spice,
 notTonight: [ ...d.notTonight || [] ]
 } : null;
 saveState();

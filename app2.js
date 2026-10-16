@@ -313,7 +313,6 @@ function finish(early) {
 }
 const FT_NOT_TONIGHT = ["Mushrooms", "Coriander", "Offal", "Blue cheese", "Olives", "Onions", "Peanuts", "Prawns"];
 const FT_SPICE_LABELS = ["", "Barely a whisper", "Gentle warmth", "Properly hot", "Serious fire", "Bring the fire"];
-const FT_ADV_LABELS = ["", "Old favourites", "Mostly familiar", "A good mix", "New territory", "Push my palate"];
 function ftChipRow(el, opts, cur, onPick) {
   el.innerHTML = "";
   opts.forEach(([v, label]) => {
@@ -329,22 +328,23 @@ function ftSummaryParts(ft, res) {
   if (!ft) return [];
   const parts = [];
   const cityName = ((res && res.city) || "").split(",")[0];
-  if (ft.scope === "roots") parts.push("My roots");
-  if (ft.scope === "local") parts.push("Local to " + (cityName || "your city"));
+  if (ft.scope === "roots") parts.push("My roots" + (res && res.ftScopeWidened ? " (no exact matches — widened)" : ""));
+  if (ft.scope === "local") parts.push("Local to " + (cityName || "your city") + (res && res.ftScopeWidened ? " (no exact matches — widened)" : ""));
   if (ft.scope === "surprise") parts.push("Surprise me");
   if (ft.heft === 1) parts.push("Light");
   if (ft.heft === 2) parts.push("In between");
   if (ft.heft === 3) parts.push("Full feast");
-  if (ft.kind) parts.push(({ veg: "Veg", nonveg: "Non-veg", seafood: "Seafood" })[ft.kind] + (res && res.ftKindWidened ? " (widened to fill the 20)" : ""));
+  if (ft.kind) parts.push(({ veg: "Veg", nonveg: "Non-veg", seafood: "Seafood" })[ft.kind] + (res && res.ftKindWidened ? " (no exact matches — widened)" : ""));
   if (ft.spice) parts.push("Heat " + ft.spice + "/5");
-  if (ft.adv) parts.push("Adventure " + ft.adv + "/5");
   if ((ft.notTonight || []).length) parts.push("No " + ft.notTonight.join(", ").toLowerCase());
   return parts;
 }
 function openFineTune() {
   const bf = (st && st.builtFor) || {};
   const cityName = (bf.city || "").split(",")[0] || "your city";
-  ftDraft = Object.assign({ scope: "", kind: "", heft: 0, spice: 0, adv: 0, notTonight: [] }, (st && st.fineTune) || {});
+  ftDraft = Object.assign({ scope: "", kind: "", heft: 0, spice: 3, notTonight: [] }, (st && st.fineTune) || {});
+  if (!ftDraft.spice) ftDraft.spice = 3; // builds ≤85 could save spice 0 ("Any") — the slider now rests at neutral 3
+  delete ftDraft.adv; // the adventure dial was removed at Aizaz's word (build 86)
   ftDraft.notTonight = [...(ftDraft.notTonight || [])];
   if ((bf.diet === "vegan" || bf.diet === "vegetarian") && ftDraft.kind && ftDraft.kind !== "veg") ftDraft.kind = "";
   const paintSingles = () => {
@@ -371,22 +371,14 @@ function openFineTune() {
     });
   };
   paintSingles();
-  const paintSlider = (rangeEl, anyEl, valEl, labels, v) => {
-    rangeEl.value = v || 3;
-    rangeEl.disabled = !v;
-    rangeEl.style.setProperty("--valp", (((v || 3) - 1) / 4 * 100) + "%");
-    anyEl.classList.toggle("sel", !v);
-    valEl.textContent = v ? labels[v] : "Any — no steer from this dial";
+  const paintSpice = () => {
+    const v = ftDraft.spice || 3;
+    $("ftSpice").value = v;
+    $("ftSpice").style.setProperty("--valp", ((v - 1) / 4 * 100) + "%");
+    $("ftSpiceVal").textContent = FT_SPICE_LABELS[v];
   };
-  const paintSliders = () => {
-    paintSlider($("ftSpice"), $("ftSpiceAny"), $("ftSpiceVal"), FT_SPICE_LABELS, ftDraft.spice);
-    paintSlider($("ftAdv"), $("ftAdvAny"), $("ftAdvVal"), FT_ADV_LABELS, ftDraft.adv);
-  };
-  paintSliders();
-  $("ftSpice").oninput = e => { ftDraft.spice = +e.target.value; paintSliders(); };
-  $("ftAdv").oninput = e => { ftDraft.adv = +e.target.value; paintSliders(); };
-  $("ftSpiceAny").onclick = () => { ftDraft.spice = ftDraft.spice ? 0 : 3; paintSliders(); };
-  $("ftAdvAny").onclick = () => { ftDraft.adv = ftDraft.adv ? 0 : 3; paintSliders(); };
+  paintSpice();
+  $("ftSpice").oninput = e => { ftDraft.spice = +e.target.value; paintSpice(); };
   $("ftSkipBtn").textContent = ftEditing ? "Remove fine-tuning" : "Skip — as I answered";
   show("view-finetune");
   window.scrollTo({ top: 0 });

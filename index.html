@@ -11,7 +11,7 @@
    session. Any failure is swallowed — the site behaves exactly as
    before. Bump BUILD together with version.json on every deploy. */
 (function () {
-  var BUILD = "84";
+  var BUILD = "85";
   try {
     fetch("version.json?ts=" + Date.now(), { cache: "no-store" })
       .then(function (r) { return r.ok ? r.json() : null; })
@@ -38,7 +38,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=43">
+<link rel="stylesheet" href="styles.css?v=44">
 </head>
 <body>
 
@@ -257,6 +257,41 @@
 
   <!-- ——— RESULTS ——— -->
   <!-- ——— COMPILING (v23.2) ——— -->
+  <section id="view-finetune" class="view" hidden>
+    <div class="card ft-card">
+      <h2>🎛️ Final touches</h2>
+      <p class="ft-sub">Aim tonight's list before we plate it. Every control is optional — and none of it changes your saved palate.</p>
+      <h3 class="ft-q">Where should tonight's flavours come from?</h3>
+      <div class="ft-row" id="ftScopeRow"></div>
+      <h3 class="ft-q">How hungry are you?</h3>
+      <div class="ft-row" id="ftHeftRow"></div>
+      <h3 class="ft-q">What's on the plate?</h3>
+      <div class="ft-row" id="ftKindRow"></div>
+      <p class="ft-note" id="ftKindNote" hidden></p>
+      <h3 class="ft-q">🌶️ Heat <button type="button" class="ft-any" id="ftSpiceAny">Any</button></h3>
+      <div class="ft-slider-row">
+        <span class="ft-end">Barely a whisper</span>
+        <input type="range" id="ftSpice" min="1" max="5" step="1" value="3" aria-label="Heat level">
+        <span class="ft-end">Bring the fire</span>
+      </div>
+      <p class="ft-val" id="ftSpiceVal"></p>
+      <h3 class="ft-q">🧭 How far from home? <button type="button" class="ft-any" id="ftAdvAny">Any</button></h3>
+      <div class="ft-slider-row">
+        <span class="ft-end">Old favourites</span>
+        <input type="range" id="ftAdv" min="1" max="5" step="1" value="3" aria-label="Adventure level">
+        <span class="ft-end">Push my palate</span>
+      </div>
+      <p class="ft-val" id="ftAdvVal"></p>
+      <h3 class="ft-q">Not tonight</h3>
+      <p class="ft-note">One-off skips — just for this list, never saved to your palate.</p>
+      <div class="ft-row" id="ftNotRow"></div>
+      <div class="ft-actions">
+        <button class="btn primary big" id="ftGoBtn" type="button">Plate my picks →</button>
+        <button class="btn ghost" id="ftSkipBtn" type="button">Skip — as I answered</button>
+      </div>
+    </div>
+  </section>
+
   <section id="view-compiling" class="view" hidden>
     <div class="compile-wrap">
       <div class="hole" aria-hidden="true">
@@ -285,6 +320,8 @@
           <span class="pick-arrow">→</span>
         </button>
       </div>
+      <p class="ft-summary" id="ftSummary" hidden></p>
+      <button class="btn ghost" id="ftAdjustBtn" type="button">🎛️ Fine-tune these picks</button>
       <p class="fineprint" id="sheetNote"></p>
       <div class="stack">
         <button class="btn primary" id="retakeBtn" type="button">↺ Start over</button>
@@ -338,7 +375,7 @@
 <script src="recs2.js?v=5"></script>
 <script src="recs3.js?v=4"></script>
 <script src="recs4.js?v=5"></script>
-<script src="app2.js?v=3"></script>
-<script src="app.js?v=82"></script>
+<script src="app2.js?v=4"></script>
+<script src="app.js?v=85"></script>
 </body>
 </html>

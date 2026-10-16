@@ -499,6 +499,7 @@ answersPayload.__loves = st.loves;
 answersPayload.__lovesData = st.lovesData || {};
 }
 if (st.feedback && Object.keys(st.feedback).length) answersPayload.__feedback = st.feedback;
+if (st.fineTune) answersPayload.__ft = st.fineTune;
 const base = {
 user_id: sessionUser.id,
 answers: answersPayload,
@@ -547,6 +548,7 @@ st.skipped = rawAnswers.__skipped || local.skipped || {};
 st.loves = Array.isArray(rawAnswers.__loves) ? rawAnswers.__loves : local.loves !== undefined ? local.loves : [];
 st.lovesData = rawAnswers.__lovesData || local.lovesData || {};
 st.feedback = rawAnswers.__feedback || local.feedback || {};
+st.fineTune = rawAnswers.__ft || local.fineTune || null;
 st.finished = !!row.finished;
 st.result = result;
 st.sheetSent = !!result;
@@ -574,7 +576,7 @@ if (!st.lovesData) st.lovesData = {};
 }
 
 function show(view) {
-[ 'view-landing', 'view-start', 'view-fund', 'view-home', 'view-loves', 'view-quiz', 'view-compiling', 'view-results', 'view-profile', 'view-dishes' ].forEach(v => {
+[ 'view-landing', 'view-start', 'view-fund', 'view-home', 'view-loves', 'view-quiz', 'view-finetune', 'view-compiling', 'view-results', 'view-profile', 'view-dishes' ].forEach(v => {
 $(v).hidden = v !== view;
 });
 const sec = $(view);
@@ -2612,14 +2614,66 @@ wgt: -lean * (1 - dv)
 return null;
 }).filter(Boolean).sort((a, b) => b.wgt - a.wgt).slice(0, 2).map(x => x.label);
 };
-const dishScoreV2 = r => dishScore(r) + .55 * axisAlign(r) + exploreBonus(r);
+const dishScoreV2 = r => dishScore(r) + .55 * axisAlign(r) + exploreBonus(r) + ftBonus(r);
 const vetoedByAversion = dish => aversionHit(dish, aversions);
 const eggStance = chosenEgg(s);
 if (eggStance !== null) eggOk = eggStance;
-const scored = RECS.filter(r => s.builtFor.mode === 'travel' || !ownRoots.includes(r.region)).filter(r => optVisible(r, s.builtFor.diet, meats)).filter(r => !r.raw || rawOk).filter(r => !r.alc || alcOk).filter(r => !r.egg || s.builtFor.diet !== 'vegetarian' || eggOk).filter(r => !r.dairy || chosenDairy(s) !== false).filter(r => !vetoedByAversion(r.dish + ' ' + (r.why || ''))).filter(r => {
-const fv = (s.feedback || {})[r.dish];
-return fv !== 'no' && fv !== 'love';
-}).map(r => ({
+const ft = s.fineTune || {};
+const ftScope = ft.scope || '';
+const ftKind = ft.kind || '';
+const ftDestC = destCountryOf(s.builtFor.city);
+const isSeafoodDish = r => r.diet === 'meat:fish' || r.diet === 'meat:seafood';
+const kindOk = r => !ftKind || (ftKind === 'veg' ? r.diet === 'vegan' || r.diet === 'veg' : ftKind === 'seafood' ? isSeafoodDish(r) : String(r.diet).startsWith('meat') && !isSeafoodDish(r));
+const heftOf = r => {
+let h = 0;
+const m = r.match || [];
+if (m.includes('comfort')) h += .45;
+if (m.includes('creamy')) h += .4;
+if (m.includes('meat')) h += .25;
+if (m.includes('home')) h += .2;
+if (m.includes('rice')) h += .15;
+if (m.includes('fresh')) h -= .45;
+if (m.includes('healthy')) h -= .4;
+const tx = (r.dish + ' ' + (r.why || '')).toLowerCase();
+if (/\bfried\b/.test(tx)) h += .25;
+if (/\bcheese\b/.test(tx)) h += .2;
+if (/\bstew\b/.test(tx)) h += .2;
+if (/\bbutter\b/.test(tx)) h += .15;
+if (/\bsalad\b/.test(tx)) h -= .35;
+if (/\bsoup\b/.test(tx)) h -= .1;
+return Math.max(-1, Math.min(1, h));
+};
+const spiceOf = r => {
+let v = (r.match || []).includes('spice') ? .65 : 0;
+const tx = (r.dish + ' ' + (r.why || '')).toLowerCase();
+if (/\b(chilli|chillies|chili|pepper|spicy|fiery|masala)\b/.test(tx)) v += .35;
+if (/\bhot\b/.test(tx)) v += .15;
+return Math.min(1, v);
+};
+const ftActive = !!(ftScope || ftKind || ft.heft || ft.spice || ft.adv || (ft.notTonight || []).length);
+const ftBonus = r => {
+if (!ftActive) return 0;
+let b = 0;
+if (ftScope === 'roots' && ownRoots.includes(r.region)) b += .9; else if (ftScope === 'local' && ftDestC && r.country === ftDestC) b += .9; else if (ftScope === 'surprise' && !ownRoots.includes(r.region) && r.country !== ftDestC) b += .35;
+if (ftKind && !kindHard && kindOk(r)) b += .8;
+if (ft.heft) {
+const h = heftOf(r);
+b += ft.heft === 1 ? -.38 * h : ft.heft === 3 ? .38 * h : -.12 * Math.abs(h);
+}
+if (ft.spice) {
+const t = (ft.spice - 1) / 4;
+b += .9 * (1 - Math.abs(spiceOf(r) - t) - .5);
+}
+if (ft.adv) {
+const t = (ft.adv - 1) / 4;
+const nov = ownRoots.includes(r.region) ? 0 : ftDestC && r.country === ftDestC ? .45 : 1;
+b += .8 * (2 * t - 1) * (nov - .5);
+}
+return b;
+};
+const hardOk = r => (ftScope === 'roots' || s.builtFor.mode === 'travel' || !ownRoots.includes(r.region)) && optVisible(r, s.builtFor.diet, meats) && (!r.raw || rawOk) && (!r.alc || alcOk) && (!r.egg || s.builtFor.diet !== 'vegetarian' || eggOk) && (!r.dairy || chosenDairy(s) !== false) && !vetoedByAversion(r.dish + ' ' + (r.why || '')) && !((ft.notTonight || []).length && aversionHit(r.dish + ' ' + (r.why || ''), ft.notTonight)) && (s.feedback || {})[r.dish] !== 'no' && (s.feedback || {})[r.dish] !== 'love';
+const kindHard = !!ftKind && RECS.filter(r => hardOk(r) && kindOk(r)).length >= 20;
+const scored = RECS.filter(r => hardOk(r) && (!kindHard || kindOk(r))).map(r => ({
 r: r,
 score: dishScoreV2(r),
 ax: axisAlign(r),
@@ -2980,6 +3034,8 @@ roots: s.builtFor.roots,
 roots2: s.builtFor.roots2 || null,
 city: s.builtFor.city || '',
 mode: s.builtFor.mode || 'explore',
+fineTune: s.fineTune || null,
+ftKindWidened: !!ftKind && !kindHard,
 topTags: topTags,
 summaryTags: summaryTags,
 affinities: affinities,
@@ -3134,6 +3190,13 @@ if (topAx) forkP.textContent = `Your strongest lean: ${topAx.lean === 'hi' ? top
 if (forkD && res.recs && res.recs.length) {
 const regions = new Set(res.recs.map(r => (RECS.find(x => x.dish === r.dish) || {}).region).filter(Boolean));
 forkD.textContent = res.mode === 'travel' && res.city ? `${res.recs.length} dishes, led by ${res.city.split(',')[0]} — and where to try them` : `${res.recs.length} dishes from ${regions.size} corners of the world — and where to try them`;
+}
+const ftSum = $('ftSummary'), ftAdj = $('ftAdjustBtn');
+if (ftSum && ftAdj) {
+const parts = ftSummaryParts(res.fineTune || st && st.fineTune, res);
+ftSum.hidden = !parts.length;
+ftSum.textContent = parts.length ? '🎛️ Fine-tuned: ' + parts.join(' · ') : '';
+ftAdj.textContent = parts.length ? '🎛️ Adjust fine-tuning' : '🎛️ Fine-tune these picks';
 }
 }
 
@@ -3399,51 +3462,38 @@ aiReasonsOff = true;
 aiReasonsBusy = false;
 }
 
-function revealResults() {
-const reduced = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
-const dots = $('holeDots');
-if (dots && !reduced) {
-const maxR = Math.round(Math.max(160, Math.min(window.innerWidth, window.innerHeight) * .46));
-let html = '';
-for (let i = 0; i < 150; i++) {
-const a = Math.round(Math.random() * 360);
-const r = Math.round(95 + Math.random() * (maxR - 95));
-const d = (Math.random() * 2.4).toFixed(2);
-const g = 110 + Math.round(Math.random() * 120);
-html += `<span style="--a:${a}deg;--r:${r}px;--d:${d}s;background:rgb(${g},${g},${g})"></span>`;
-}
-dots.innerHTML = html;
-}
-show('view-compiling');
-window.scrollTo({
-top: 0
-});
-const bf = st && st.builtFor || {};
-const love0 = ((Array.isArray(st.loves) ? st.loves : []).map(id => (st.lovesData || {})[id]).filter(d => d && d.n)[0] || {}).n || '';
-const av0 = st ? aversionsOf(st)[0] || '' : '';
-const phrases = [ 'Reading your palate…', bf.roots ? `Weighing your ${rootsLabelOf(bf)} roots against the world…` : 'Weighing your flavour axes…', love0 ? `Keeping ${love0} at the centre…` : 'Scanning kitchens around the world…', av0 ? `Standing guard — no ${av0.split(' — ')[0].toLowerCase()} anywhere near your list…` : 'Matching dishes to your taste…', bf.city ? bf.mode === 'travel' ? `Lining up ${bf.city.split(',')[0]}'s best tables…` : `Finding your flavours in ${bf.city.split(',')[0]}…` : 'Handpicking your recommendations…' ];
-let pi = 0;
-const el = $('compilePhrase');
-if (el) el.textContent = phrases[0];
-clearInterval(compilePhraseTimer);
-if (!reduced) compilePhraseTimer = setInterval(() => {
-pi = (pi + 1) % phrases.length;
-if (el) el.textContent = phrases[pi];
-}, 1100);
-clearTimeout(compileTimer);
-compileTimer = setTimeout(() => {
-clearInterval(compilePhraseTimer);
-renderResults();
-show('view-results');
-window.scrollTo({
-top: 0
-});
-}, reduced ? 700 : 7500);
-}
-
 $('endBtn').onclick = () => {
 if (st && !st.finished && answeredCount(st) >= 5) finish(true);
 };
+
+$('ftGoBtn').addEventListener('click', () => {
+if (!st) return;
+const d = ftDraft || {};
+st.fineTune = d.scope || d.kind || d.heft || d.spice || d.adv || (d.notTonight || []).length ? {
+scope: d.scope || '',
+kind: d.kind || '',
+heft: d.heft || 0,
+spice: d.spice || 0,
+adv: d.adv || 0,
+notTonight: [ ...d.notTonight || [] ]
+} : null;
+saveState();
+finishNow(ftEditing ? !!(st.result || {}).early : ftEarly);
+});
+
+$('ftSkipBtn').addEventListener('click', () => {
+if (!st) return;
+st.fineTune = null;
+saveState();
+finishNow(ftEditing ? !!(st.result || {}).early : ftEarly);
+});
+
+$('ftAdjustBtn').addEventListener('click', () => {
+if (!st || !$('view-finetune')) return;
+ftEditing = true;
+ftEarly = !!(st.result || {}).early;
+openFineTune();
+});
 
 $('pickProfileBtn').addEventListener('click', () => show('view-profile'));
 

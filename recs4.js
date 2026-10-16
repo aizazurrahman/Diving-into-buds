@@ -166,7 +166,7 @@ RECS.push(
  "from": "Arequipa · Latin America",
  "region": "latinamerica",
  "country": "Peru",
- "diet": "vegan",
+ "diet": "veg",
  "emoji": "🎃",
  "course": "main",
  "match": [
@@ -1991,5 +1991,37 @@ RECS.push(
  ],
  "why": "Nova Scotia's stovetop pudding — wild blueberries stewed under steamed dumplings until they grunt in the pot.",
  "dairy": true
+},
+{
+ "dish": "Red beans and rice",
+ "yt": "https://www.youtube.com/watch?v=T06oh88VhiE",
+ "from": "Louisiana · United States",
+ "region": "unitedstates",
+ "country": "United States",
+ "diet": "vegan",
+ "emoji": "🫘",
+ "course": "main",
+ "match": [
+  "home",
+  "comfort",
+  "classic"
+ ],
+ "why": "Louisiana's Monday staple — red kidney beans simmered low with onion, celery and pepper, ladled over white rice."
+},
+{
+ "dish": "Casamiento",
+ "yt": "https://www.youtube.com/watch?v=fSuULawoC5U",
+ "from": "El Salvador · Central America",
+ "region": "latinamerica",
+ "country": "El Salvador",
+ "diet": "vegan",
+ "emoji": "🍛",
+ "course": "main",
+ "match": [
+  "rice",
+  "home",
+  "comfort"
+ ],
+ "why": "El Salvador's 'marriage' of red beans and rice, fried together with onion, pepper and garlic until the grains take the beans' colour."
 }
 );

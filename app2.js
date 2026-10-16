@@ -290,7 +290,7 @@ async function upgradePlacesGoogle(res) {
     requestAnimationFrame(() => { fx.style.transform = `translateY(${Math.min(window.scrollY * 0.05, 110)}px)`; ticking = false; });
   }, { passive: true });
 })();
-function finish(early) {
+function finishNow(early) {
   st.finished = true;
   st.result = computeResult(st);
   st.altRecs = altRecsCache;
@@ -299,6 +299,143 @@ function finish(early) {
   saveState();
   sendToSheets();
   revealResults();
+}
+// ——— Fine-tune (Aizaz, 2026-10-15): the optional pass between the last
+// question and the reveal. finish() parks here first; the screen writes
+// st.fineTune (or null), then finishNow() (app2.js) computes + reveals
+// exactly as before. Also re-openable from the results fork ("Adjust"),
+// where confirming recomputes the same profile with the new tuning.
+let ftEarly = false, ftEditing = false, ftDraft = null;
+function finish(early) {
+  if (typeof document === "undefined" || !$("view-finetune")) return finishNow(early);
+  ftEarly = !!early; ftEditing = false;
+  openFineTune();
+}
+const FT_NOT_TONIGHT = ["Mushrooms", "Coriander", "Offal", "Blue cheese", "Olives", "Onions", "Peanuts", "Prawns"];
+const FT_SPICE_LABELS = ["", "Barely a whisper", "Gentle warmth", "Properly hot", "Serious fire", "Bring the fire"];
+const FT_ADV_LABELS = ["", "Old favourites", "Mostly familiar", "A good mix", "New territory", "Push my palate"];
+function ftChipRow(el, opts, cur, onPick) {
+  el.innerHTML = "";
+  opts.forEach(([v, label]) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "ft-chip" + (String(cur) === String(v) ? " sel" : "");
+    b.textContent = label;
+    b.onclick = () => onPick(v);
+    el.appendChild(b);
+  });
+}
+function ftSummaryParts(ft, res) {
+  if (!ft) return [];
+  const parts = [];
+  const cityName = ((res && res.city) || "").split(",")[0];
+  if (ft.scope === "roots") parts.push("My roots");
+  if (ft.scope === "local") parts.push("Local to " + (cityName || "your city"));
+  if (ft.scope === "surprise") parts.push("Surprise me");
+  if (ft.heft === 1) parts.push("Light");
+  if (ft.heft === 2) parts.push("In between");
+  if (ft.heft === 3) parts.push("Full feast");
+  if (ft.kind) parts.push(({ veg: "Veg", nonveg: "Non-veg", seafood: "Seafood" })[ft.kind] + (res && res.ftKindWidened ? " (widened to fill the 20)" : ""));
+  if (ft.spice) parts.push("Heat " + ft.spice + "/5");
+  if (ft.adv) parts.push("Adventure " + ft.adv + "/5");
+  if ((ft.notTonight || []).length) parts.push("No " + ft.notTonight.join(", ").toLowerCase());
+  return parts;
+}
+function openFineTune() {
+  const bf = (st && st.builtFor) || {};
+  const cityName = (bf.city || "").split(",")[0] || "your city";
+  ftDraft = Object.assign({ scope: "", kind: "", heft: 0, spice: 0, adv: 0, notTonight: [] }, (st && st.fineTune) || {});
+  ftDraft.notTonight = [...(ftDraft.notTonight || [])];
+  if ((bf.diet === "vegan" || bf.diet === "vegetarian") && ftDraft.kind && ftDraft.kind !== "veg") ftDraft.kind = "";
+  const paintSingles = () => {
+    ftChipRow($("ftScopeRow"), [["roots", "🏠 My roots"], ["local", "📍 Local to " + cityName], ["surprise", "🌍 Surprise me"]], ftDraft.scope, v => { ftDraft.scope = ftDraft.scope === v ? "" : v; paintSingles(); });
+    ftChipRow($("ftHeftRow"), [[1, "🥗 Light"], [2, "🍽️ In between"], [3, "🍖 Full feast"]], ftDraft.heft, v => { ftDraft.heft = ftDraft.heft === v ? 0 : v; paintSingles(); });
+    const kindNote = $("ftKindNote");
+    if (bf.diet === "vegan" || bf.diet === "vegetarian") {
+      $("ftKindRow").innerHTML = "";
+      kindNote.hidden = false;
+      kindNote.textContent = bf.diet === "vegan" ? "Set by your diet — everything on your list is plant-based already." : "Set by your diet — your list is vegetarian; a fine-tune can't add meat back.";
+    } else {
+      kindNote.hidden = true;
+      ftChipRow($("ftKindRow"), [["veg", "🌱 Veg"], ["nonveg", "🍗 Non-veg"], ["seafood", "🦐 Seafood"]], ftDraft.kind, v => { ftDraft.kind = ftDraft.kind === v ? "" : v; paintSingles(); });
+    }
+    const notRow = $("ftNotRow");
+    notRow.innerHTML = "";
+    FT_NOT_TONIGHT.forEach(name => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "ft-chip" + (ftDraft.notTonight.includes(name) ? " sel" : "");
+      b.textContent = name;
+      b.onclick = () => { const i = ftDraft.notTonight.indexOf(name); if (i >= 0) ftDraft.notTonight.splice(i, 1); else ftDraft.notTonight.push(name); paintSingles(); };
+      notRow.appendChild(b);
+    });
+  };
+  paintSingles();
+  const paintSlider = (rangeEl, anyEl, valEl, labels, v) => {
+    rangeEl.value = v || 3;
+    rangeEl.disabled = !v;
+    rangeEl.style.setProperty("--valp", (((v || 3) - 1) / 4 * 100) + "%");
+    anyEl.classList.toggle("sel", !v);
+    valEl.textContent = v ? labels[v] : "Any — no steer from this dial";
+  };
+  const paintSliders = () => {
+    paintSlider($("ftSpice"), $("ftSpiceAny"), $("ftSpiceVal"), FT_SPICE_LABELS, ftDraft.spice);
+    paintSlider($("ftAdv"), $("ftAdvAny"), $("ftAdvVal"), FT_ADV_LABELS, ftDraft.adv);
+  };
+  paintSliders();
+  $("ftSpice").oninput = e => { ftDraft.spice = +e.target.value; paintSliders(); };
+  $("ftAdv").oninput = e => { ftDraft.adv = +e.target.value; paintSliders(); };
+  $("ftSpiceAny").onclick = () => { ftDraft.spice = ftDraft.spice ? 0 : 3; paintSliders(); };
+  $("ftAdvAny").onclick = () => { ftDraft.adv = ftDraft.adv ? 0 : 3; paintSliders(); };
+  $("ftSkipBtn").textContent = ftEditing ? "Remove fine-tuning" : "Skip — as I answered";
+  show("view-finetune");
+  window.scrollTo({ top: 0 });
+}
+function revealResults() {
+  const reduced = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+  // v23.3: the hole's grey dots are generated once per reveal — random
+  // angles, radii and greys, so no two compilations look the same.
+  const dots = $("holeDots");
+  if (dots && !reduced) {
+    const maxR = Math.round(Math.max(160, Math.min(window.innerWidth, window.innerHeight) * 0.46));
+    let html = "";
+    for (let i = 0; i < 150; i++) {
+      const a = Math.round(Math.random() * 360);
+      const r = Math.round(95 + Math.random() * (maxR - 95));
+      const d = (Math.random() * 2.4).toFixed(2);
+      const g = 110 + Math.round(Math.random() * 120);
+      html += `<span style="--a:${a}deg;--r:${r}px;--d:${d}s;background:rgb(${g},${g},${g})"></span>`;
+    }
+    dots.innerHTML = html;
+  }
+  show("view-compiling");
+  window.scrollTo({ top: 0 });
+  // Revamp G8: the compiling phrases speak the user's own data back —
+  // their roots, their first favourite, a hard no standing guard, their
+  // city — instead of five generic lines any profile could get. (The
+  // animation itself is owner-specified and untouched.)
+  const bf = (st && st.builtFor) || {};
+  const love0 = ((Array.isArray(st.loves) ? st.loves : []).map(id => (st.lovesData || {})[id]).filter(d => d && d.n)[0] || {}).n || "";
+  const av0 = st ? (aversionsOf(st)[0] || "") : "";
+  const phrases = [
+    "Reading your palate…",
+    bf.roots ? `Weighing your ${rootsLabelOf(bf)} roots against the world…` : "Weighing your flavour axes…",
+    love0 ? `Keeping ${love0} at the centre…` : "Scanning kitchens around the world…",
+    av0 ? `Standing guard — no ${av0.split(" — ")[0].toLowerCase()} anywhere near your list…` : "Matching dishes to your taste…",
+    bf.city ? (bf.mode === "travel" ? `Lining up ${bf.city.split(",")[0]}'s best tables…` : `Finding your flavours in ${bf.city.split(",")[0]}…`) : "Handpicking your recommendations…"
+  ];
+  let pi = 0;
+  const el = $("compilePhrase");
+  if (el) el.textContent = phrases[0];
+  clearInterval(compilePhraseTimer);
+  if (!reduced) compilePhraseTimer = setInterval(() => { pi = (pi + 1) % phrases.length; if (el) el.textContent = phrases[pi]; }, 1100);
+  clearTimeout(compileTimer);
+  compileTimer = setTimeout(() => {
+    clearInterval(compilePhraseTimer);
+    renderResults();
+    show("view-results");
+    window.scrollTo({ top: 0 });
+  }, reduced ? 700 : 7500); // v23.4 (Aizaz): 7.5 seconds (was 5)
 }
 // v23.2 (Aizaz): a 5-second "compiling" interlude before the reveal — the
 // result is already computed and saved above; only the display waits, so

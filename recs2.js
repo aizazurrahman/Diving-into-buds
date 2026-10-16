@@ -3048,7 +3048,7 @@ RECS.push(
  "from": "Persia · Middle East",
  "region": "middleeast",
  "country": "Iran",
- "diet": "vegan",
+ "diet": "veg",
  "emoji": "🍜",
  "course": "appetizer",
  "match": [

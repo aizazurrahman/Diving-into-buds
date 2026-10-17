@@ -378,51 +378,6 @@ sendToSheets();
 revealResults();
 }
 
-let favsEditReturn = null, favsEditSnapshot = null;
-
-function openFavsEditor(from) {
-favsEditReturn = from;
-favsEditSnapshot = JSON.stringify(st.loves || []);
-renderLoves();
-show('view-loves');
-}
-
-function exitFavsEditor() {
-const from = favsEditReturn;
-const changed = JSON.stringify(st.loves || []) !== favsEditSnapshot;
-favsEditReturn = null;
-favsEditSnapshot = null;
-if (from === 'results') {
-if (changed && st.finished) {
-finishNow(false);
-return;
-}
-renderResults();
-show('view-results');
-return;
-}
-renderHome();
-show('view-home');
-}
-
-function favChrome() {
-const b = $('lovesBackBtn');
-if (b) b.hidden = !favsEditReturn;
-$('lovesNext').textContent = favsEditReturn === 'results' ? 'Update my results →' : 'Continue →';
-}
-
-function favContinue() {
-if (favsEditReturn === 'results') {
-exitFavsEditor();
-return true;
-}
-if (favsEditReturn === 'home') {
-favsEditReturn = null;
-favsEditSnapshot = null;
-}
-return false;
-}
-
 let ftEarly = false, ftEditing = false, ftDraft = null;
 
 function finish(early) {
@@ -695,8 +650,3 @@ Samoa: 'oceania',
 Tonga: 'oceania',
 Vanuatu: 'oceania'
 };
-
-function syncHomeFavsBtn() {
-const b = $('homeFavsBtn');
-if (b) b.hidden = !(Array.isArray(st.loves) && st.loves.length > 0);
-}

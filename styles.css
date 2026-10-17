@@ -436,10 +436,10 @@ footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 18
 .loves-max-note { margin: 12px 0 0; font-size: .85rem; color: var(--muted); }
 .loves-picked-title span { opacity: .62; font-weight: 400; font-size: .85em; margin-left: .35em; }
 /* Aizaz (2026-10-17): smaller dish buttons on the Favs page — the search
-   suggestions two sizes down, the picked dishes one size down. Scoped to
-   the loves view; quiz answer buttons keep their size. */
-#lovesResults .opt { font-size: .875rem; padding: 11px 14px; border-radius: 12px; }
-#lovesPicked .opt { font-size: .9375rem; padding: 13px 16px; border-radius: 13px; }
+   suggestions at 12px, the picked dishes at 13px. Scoped to the loves
+   view; quiz answer buttons keep their size. */
+#lovesResults .opt { font-size: .75rem; padding: 10px 12px; border-radius: 11px; }
+#lovesPicked .opt { font-size: .8125rem; padding: 11px 14px; border-radius: 12px; }
 
 /* ——— Compiling (v23.5, Aizaz; ring removed + dots slowed v24.1): full-screen
    black; at the centre a 3D black hole — a glossy obsidian sphere — drinking

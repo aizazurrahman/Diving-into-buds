@@ -1191,7 +1191,7 @@ if (e.nn === q) rank = -1; else if (e.nn.startsWith(q)) rank = 0; else if (e.nn.
 hits.push({
 rank: rank,
 e: e,
-k: e.nn.replace(/[^a-z0-9]/g, '')
+k: e.nn.replace(/[^a-z]/g, '')
 });
 }
 hits.sort((a, b) => a.rank - b.rank || a.k.localeCompare(b.k));
@@ -1200,7 +1200,7 @@ return hits.slice(0, 24).map(h => h.e);
 
 function paintLoveResults(list) {
 lovesLastQuery = list;
-let html = list.slice(0, 3).sort((a, b) => a.name.localeCompare(b.name)).map(e => {
+let html = list.slice(0, 3).sort((a, b) => a.nn.replace(/[^a-z]/g, '').localeCompare(b.nn.replace(/[^a-z]/g, ''))).map(e => {
 const picked = (st.loves || []).includes(e.id);
 return `<button type="button" class="opt${picked ? ' sel' : ''}" data-pick="${e.id}">${e.name}<span class="dish-sub">${[ e.origin, e.course ].filter(Boolean).join(' · ')}</span></button>`;
 }).join('');

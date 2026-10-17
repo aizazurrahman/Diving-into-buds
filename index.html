@@ -11,7 +11,7 @@
    session. Any failure is swallowed — the site behaves exactly as
    before. Bump BUILD together with version.json on every deploy. */
 (function () {
-  var BUILD = "88";
+  var BUILD = "89";
   try {
     fetch("version.json?ts=" + Date.now(), { cache: "no-store" })
       .then(function (r) { return r.ok ? r.json() : null; })
@@ -176,7 +176,6 @@
         <button class="btn primary big" id="primaryAction" type="button">Start the questions</button>
         <button class="btn ghost" id="changeFundBtn" type="button" hidden>Change fundamentals</button>
         <button class="btn ghost" id="restartBtn" type="button" hidden>↺ Start over</button>
-        <button class="btn ghost" id="homeFavsBtn" type="button" hidden>❤️ My favourite dishes</button>
       </div>
     </div>
   </section>
@@ -185,7 +184,6 @@
   <!-- ——— LOVED DISHES (v22) ——— -->
   <section id="view-loves" class="view" hidden>
     <div class="card qcard">
-      <button class="back-btn" id="lovesBackBtn" type="button" hidden>← Back</button>
       <div class="qmeta"><span class="chip">Warm-up · before the 20 questions</span></div>
       <h2 class="qtext">Tell us what you love! ❤️</h2>
       <p class="loves-sub">Pick 5 of your favorite foods to get started — whether they're starters, main courses, desserts, regional foods, or global dishes.</p>
@@ -311,11 +309,6 @@
           <span class="pick-text"><strong>Dishes recommended</strong><small id="forkDishesFact">20 dishes picked for your palate — and where to try them</small></span>
           <span class="pick-arrow">→</span>
         </button>
-        <button class="pick-btn" id="pickFavsBtn" type="button">
-          <span class="pick-emoji">❤️</span>
-          <span class="pick-text"><strong>My favourite dishes</strong><small>The dishes you love, view or change your picks</small></span>
-          <span class="pick-arrow">→</span>
-        </button>
       </div>
       <p class="ft-summary" id="ftSummary" hidden></p>
       <button class="btn ghost" id="ftAdjustBtn" type="button">🎛️ Fine-tune these picks</button>
@@ -372,7 +365,7 @@
 <script src="recs2.js?v=5"></script>
 <script src="recs3.js?v=4"></script>
 <script src="recs4.js?v=5"></script>
-<script src="app2.js?v=6"></script>
-<script src="app.js?v=88"></script>
+<script src="app2.js?v=7"></script>
+<script src="app.js?v=89"></script>
 </body>
 </html>

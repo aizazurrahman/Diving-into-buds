@@ -1024,6 +1024,7 @@ const restart = $('restartBtn'), change = $('changeFundBtn');
 $('fundSummary').textContent = st.builtFor ? `Your fundamentals: ${DIET_LABELS[st.builtFor.diet]} · ${ROOT_EMOJI[st.builtFor.roots]} ${rootsLabelOf(st.builtFor)} roots${st.builtFor.city ? st.builtFor.mode === 'travel' ? ` · ✈️ Travelling to ${st.builtFor.city}` : ` · 📍 ${st.builtFor.city}` : ''}` : '';
 restart.hidden = !(n > 0 || st.finished);
 change.hidden = !st.builtFor;
+syncHomeFavsBtn();
 if (!st.builtFor) {
 $('homeTitle').textContent = 'One quick step first 🧭';
 $('homeText').textContent = 'Pick your diet, your roots and the city you live in — and we\'ll build your questions around them.';
@@ -1071,6 +1072,10 @@ enterQuiz();
 $('changeFundBtn').onclick = () => {
 initFundPicks();
 show('view-fund');
+};
+
+$('homeFavsBtn').onclick = () => {
+openFavsEditor('home');
 };
 
 let restartArmAt = 0;
@@ -1192,9 +1197,8 @@ hits.push({
 rank: rank,
 e: e
 });
-if (hits.length > 600 && rank > 0) break;
 }
-hits.sort((a, b) => a.rank - b.rank);
+hits.sort((a, b) => a.rank - b.rank || a.e.name.localeCompare(b.e.name));
 return hits.slice(0, 24).map(h => h.e);
 }
 
@@ -1547,6 +1551,7 @@ $('lovesInput').value = '';
 lovesQueryRaw = '';
 paintLoveResults([]);
 paintLoves();
+favChrome();
 const loadNote = $('lovesLoadNote');
 if (loadNote) loadNote.hidden = !!DISH_LIST;
 ensureDishMeta().then(() => ensureDishIndex()).then(() => {
@@ -1606,11 +1611,15 @@ removeLove(+b.dataset.love);
 $('lovesNext').onclick = () => {
 if (lovesLoadFailed && (!st.loves || st.loves.length === 0)) st.loves = [];
 if (!Array.isArray(st.loves) || st.loves.length < LOVES_MIN && !lovesLoadFailed) return;
+if (favContinue()) return;
 saveState();
 const t = findNext(0);
 st.pos = t >= 0 ? t : 0;
 renderQuestion();
 show('view-quiz');
+};
+$('lovesBackBtn').onclick = () => {
+exitFavsEditor();
 };
 }
 
@@ -3506,6 +3515,8 @@ openFineTune();
 });
 
 $('pickProfileBtn').addEventListener('click', () => show('view-profile'));
+
+$('pickFavsBtn').addEventListener('click', () => openFavsEditor('results'));
 
 $('pickDishesBtn').addEventListener('click', () => show('view-dishes'));
 

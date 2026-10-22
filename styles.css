@@ -474,14 +474,6 @@ footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 18
 @keyframes blobDrift1 { from { transform: translate(0, 0) scale(1); } to { transform: translate(9vmax, 5vmax) scale(1.15); } }
 @keyframes blobDrift2 { from { transform: translate(0, 0) scale(1.1); } to { transform: translate(-8vmax, 9vmax) scale(.95); } }
 .hero { position: relative; }
-.floaties { position: absolute; inset: 0; pointer-events: none; }
-.floaties span { position: absolute; font-size: 1.5rem; opacity: .55; filter: drop-shadow(0 4px 10px rgba(76, 29, 149, .25)); animation: floaty2 7s ease-in-out infinite; }
-.floaties span:nth-child(1) { left: 4%; top: 58%; animation-delay: 0s; }
-.floaties span:nth-child(2) { left: 12%; top: 16%; animation-delay: 1.2s; font-size: 1.2rem; }
-.floaties span:nth-child(3) { right: 10%; top: 22%; animation-delay: .6s; }
-.floaties span:nth-child(4) { right: 4%; top: 62%; animation-delay: 1.8s; font-size: 1.25rem; }
-.floaties span:nth-child(5) { left: 24%; top: 82%; animation-delay: 2.4s; font-size: 1.15rem; }
-.floaties span:nth-child(6) { right: 24%; top: 84%; animation-delay: .3s; font-size: 1.35rem; }
 .mode-gate { max-width: 640px; margin: 0 auto 26px; text-align: center; }
 .mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .mode-card { font: inherit; text-align: left; cursor: pointer; border: 1.5px solid var(--line); border-radius: var(--radius); padding: 20px 18px 16px; color: var(--ink);
@@ -499,9 +491,9 @@ footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 18
 .mode-pill:hover { border-color: var(--accent-2); color: var(--ink); }
 .mode-pill.on { background: var(--grad-action); border-color: transparent; color: #fff; box-shadow: 0 6px 18px rgba(124, 58, 237, .35); }
 .places-attr { color: var(--muted); font-size: .78rem; text-align: center; margin: 10px 0 2px; }
-@media (max-width: 560px) { .mode-cards { grid-template-columns: 1fr; } .floaties span:nth-child(5), .floaties span:nth-child(6) { display: none; } }
+@media (max-width: 560px) { .mode-cards { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) {
-  .bg-fx .blob, .floaties span { animation: none !important; }
+  .bg-fx .blob { animation: none !important; }
   .mode-card { transition: none; }
   .mode-card:hover { transform: none; }
 }

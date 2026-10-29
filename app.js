@@ -2528,6 +2528,38 @@ course: LOVE_COURSE[d.c] || null,
 dom: dom
 });
 });
+let verdictLoveIdx = 0;
+Object.entries(s.feedback || {}).forEach(([dish, v]) => {
+if (v !== 'love') return;
+const r = RECS.find(x => x.dish === dish);
+if (!r) return;
+const norm = dish.toLowerCase().replace(/[^a-z0-9]/g, '');
+if (lovedNamesNorm.includes(norm)) return;
+const lw = verdictLoveIdx < 5 ? 1 : .5;
+verdictLoveIdx++;
+const vtags = (r.match || []).filter(t => t !== 'rawok' && t !== 'alcok' && t !== 'eggok');
+vtags.forEach(t => {
+tagCount[t] = (tagCount[t] || 0) + lw;
+});
+const vsig = dishAxesFor(r);
+Object.entries(vsig).forEach(([a, val]) => {
+if (val > 0) axisPos[a] = (axisPos[a] || 0) + val * 1.5 * lw;
+});
+const vdom = Object.entries(vsig).filter(([, val]) => val > 0).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => k);
+const vcourse = [ 'drink', 'appetizer', 'main', 'dessert' ].includes(r.course) ? r.course : null;
+pickRefs.push({
+text: dish,
+qid: 'verdict-love',
+w: 3,
+mult: 1,
+rank1: false,
+love: true,
+axes: vsig,
+tags: vtags.slice(),
+course: vcourse,
+dom: vdom
+});
+});
 const axes = AXES.map(ax => {
 const p = axisPos[ax.id] || 0, n = axisNeg[ax.id] || 0, tot = p + n;
 const share = tot ? p / tot : .5;
